@@ -76,6 +76,7 @@
                 laser(center, angle)
                 {
                     let closestIntersection;
+                    let distanceToClosestIntersection;
 
                     for(var n = 0; n < this.mirrors.length; n++)
                     {
@@ -87,39 +88,41 @@
                             let halfWidth = mirror.width / 2;
                             let halfHeight = mirror.height / 2;
 
-                            for(var x = -1; x < 1; x += 2)
+                            for(var x = -1; x <= 1; x += 2)
                             {
                                 let rectangleSide = new Line(new Point(mirror.center.x + x * halfWidth, mirror.center.y - halfHeight), new Point(mirror.center.x + x * halfWidth, mirror.center.y + halfHeight));
                                 if(intersectSegmentSegment(laserLine, rectangleSide))
                                 {
                                     let intersection = intersectionLineLine(laserLine, rectangleSide);
+                                    let distanceToIntersection = distance(center, intersection);
 
-                                    if(closestIntersection === undefined || distance(center, intersection) < distance(center, closestIntersection))
+                                    if(closestIntersection === undefined || distanceToIntersection < distanceToClosestIntersection)
                                     {
                                         closestIntersection = intersection;
+                                        distanceToClosestIntersection = distanceToIntersection;
                                     }
-
-                                    console.log(closestIntersection);
                                 }
                             }
 
-                            for(var y = -1; y < 1; y += 2)
+                            for(var y = -1; y <= 1; y += 2)
                             {
                                 let rectangleSide = new Line(new Point(mirror.center.x - halfWidth, mirror.center.y + y * halfHeight), new Point(mirror.center.x + halfWidth, mirror.center.y + y * halfHeight));
                                 if(intersectSegmentSegment(laserLine, rectangleSide))
                                 {
                                     let intersection = intersectionLineLine(laserLine, rectangleSide);
+                                    let distanceToIntersection = distance(center, intersection);
 
-                                    if(closestIntersection === undefined || distance(center, intersection) < distance(center, closestIntersection))
+                                    if(closestIntersection === undefined || distanceToIntersection < distanceToClosestIntersection)
                                     {
                                         closestIntersection = intersection;
+                                        distanceToClosestIntersection = distanceToIntersection;
                                     }
                                 }
                             }
                         }
                     }
 
-                    if(closestIntersection === undefined)
+                    if(closestIntersection === undefined || distanceToClosestIntersection < 10)
                     {
                         return false;
                     }
@@ -200,8 +203,8 @@
             const canvasHeight = canvas.height;
             const ctx = canvas.getContext("2d");
             const pointOrigin = new Point(0, 0);
-            var mirrorCollection = new MirrorCollection([new MirrorRectangle(new Point(400, 400), 0, 200, 100)]);
-            var laserCenter = new Point(400, 0);
+            var mirrorCollection = new MirrorCollection([new MirrorRectangle(new Point(400, 400), 0, 200, 100), new MirrorRectangle(new Point(600, 700), 0, 200, 100)]);
+            var laserCenter = new Point(400, 350);
             var laserAngle = 0;
 
             function render()
