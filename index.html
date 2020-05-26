@@ -1,0 +1,398 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <title>Laser Simulation</title>
+    </head>
+    
+    <body onresize="resize();">
+        <canvas id="canvas" width="1920" height="1080"></canvas>
+
+        <style>
+
+            body
+            {
+                background-color: #000000;
+                overflow: hidden;
+                margin: 0;
+                padding: 0;
+            }
+
+            #canvas
+            {
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+            }
+            
+        </style>
+        
+        <script>
+
+            class Point
+            {
+                constructor(x, y)
+                {
+                    this.x = x;
+                    this.y = y;
+                }
+            }
+
+            class Line
+            {
+                constructor(p1, p2)
+                {
+                    this.p1 = p1;
+                    this.p2 = p2;
+                }
+            }
+
+            class Circle
+            {
+                constructor(center, radius)
+                {
+                    this.center = center;
+                    this.radius = radius;
+                }
+            }
+            
+            class Rectangle
+            {
+                constructor(center, width, height)
+                {
+                    this.center = center;
+                    this.width = width;
+                    this.height = height;
+                }
+            }
+
+            class MirrorCollection
+            {
+                constructor(mirrors)
+                {
+                    this.mirrors = mirrors;
+                }
+
+                laser(center, angle)
+                {
+                    let closestIntersection;
+
+                    for(var n = 0; n < this.mirrors.length; n++)
+                    {
+                        let mirror = this.mirrors[n];
+
+                        if(mirror.constructor.name === "MirrorRectangle")
+                        {
+                            let laserLine = new Line(center, new Point(center.x + 10000 * Math.cos(angle), center.y + 10000 * Math.sin(angle)));
+                            let halfWidth = mirror.width / 2;
+                            let halfHeight = mirror.height / 2;
+
+                            for(var x = -1; x < 1; x += 2)
+                            {
+                                let rectangleSide = new Line(new Point(mirror.center.x + x * halfWidth, mirror.center.y - halfHeight), new Point(mirror.center.x + x * halfWidth, mirror.center.y + halfHeight));
+                                if(intersectSegmentSegment(laserLine, rectangleSide))
+                                {
+                                    let intersection = intersectionLineLine(laserLine, rectangleSide);
+
+                                    if(closestIntersection === undefined || distance(center, intersection) < distance(center, closestIntersection))
+                                    {
+                                        closestIntersection = intersection;
+                                    }
+
+                                    console.log(closestIntersection);
+                                }
+                            }
+
+                            for(var y = -1; y < 1; y += 2)
+                            {
+                                let rectangleSide = new Line(new Point(mirror.center.x - halfWidth, mirror.center.y + y * halfHeight), new Point(mirror.center.x + halfWidth, mirror.center.y + y * halfHeight));
+                                if(intersectSegmentSegment(laserLine, rectangleSide))
+                                {
+                                    let intersection = intersectionLineLine(laserLine, rectangleSide);
+
+                                    if(closestIntersection === undefined || distance(center, intersection) < distance(center, closestIntersection))
+                                    {
+                                        closestIntersection = intersection;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    if(closestIntersection === undefined)
+                    {
+                        return false;
+                    }
+
+                    return closestIntersection;
+                }
+            }
+
+            class MirrorRectangle
+            {
+                constructor(center, rotation, width, height)
+                {
+                    this.active = true;
+                    this.reflecting = true;
+                    this.center = center;
+                    this.rotation = rotation;
+                    this.width = width;
+                    this.height = height;
+                }
+            }
+
+            class MirrorArc
+            {
+                constructor(center, rotation, innerRadius, outerRadius, startingAngle, endingAngle)
+                {
+                    this.active = true;
+                    this.reflecting = true;
+                    this.center = center;
+                    this.rotation = rotation;
+                    this.innerRadius = innerRadius;
+                    this.outerRadius = outerRadius;
+                    this.startingAngle = startingAngle;
+                    this.endingAngle = endingAngle;
+                }
+            }
+
+            class MirrorPolygon
+            {
+                constructor(center, rotation, vertices)
+                {
+                    this.active = true;
+                    this.reflecting = true;
+                    this.center = center;
+                    this.rotation = rotation;
+                    this.vertices = vertices;
+                }
+            }
+
+            CanvasRenderingContext2D.prototype.reset = function()
+            {
+                this.direction = "ltr";
+                this.fillStyle = "#000000";
+                this.filter = "none";
+                this.font = "10px sans-serif";
+                this.globalAlpha = 1;
+                this.globalCompositeOperation = "source-over";
+                this.imageSmoothingEnabled = true;
+                this.imageSmoothingQuality = "low";
+                this.lineCap = "butt";
+                this.lineDashOffset = 0;
+                this.lineJoin = "miter";
+                this.lineWidth = 1;
+                this.miterLimit = 10;
+                this.shadowBlur = 0;
+                this.shadowColor = "rgba(0, 0, 0, 0)";
+                this.shadowOffsetX = 0;
+                this.shadowOffsetY = 0;
+                this.strokeStyle = "#000000";
+                this.textAlign = "start";
+                this.textBaseline = "alphabetic";
+            }
+
+            var request;
+            const requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
+            const cancelAnimationFrame = window.cancelAnimationFrame || window.mozCancelAnimationFrame || window.webkitCancelAnimationFrame || window.msCancelAnimationFrame;
+            const canvas = document.getElementById("canvas");
+            const canvasWidth = canvas.width;
+            const canvasHeight = canvas.height;
+            const ctx = canvas.getContext("2d");
+            const pointOrigin = new Point(0, 0);
+            var mirrorCollection = new MirrorCollection([new MirrorRectangle(new Point(400, 400), 0, 200, 100)]);
+            var laserCenter = new Point(400, 0);
+            var laserAngle = 0;
+
+            function render()
+            {
+                let intersection = mirrorCollection.laser(laserCenter, laserAngle);
+
+                ctx.reset();
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                console.log(intersection);
+                if(intersection !== false)
+                {
+                    ctx.reset();
+                    ctx.fillStyle = "#0000ff";
+                    ctx.shadowColor = "#0000ff";
+                    ctx.shadowBlur = 20;
+                    ctx.beginPath();
+                    ctx.arc(intersection.x, intersection.y, 10, 0, 2 * Math.PI);
+                    ctx.closePath();
+                    ctx.fill();
+                }
+
+                ctx.reset();
+                ctx.lineWidth = 5;
+                ctx.strokeStyle = "#00ff00";
+                ctx.shadowColor = "#00ff00";
+                ctx.shadowBlur = 20;
+                ctx.beginPath();
+                ctx.moveTo(laserCenter.x, laserCenter.y);
+                ctx.lineTo(laserCenter.x + 10000 * Math.cos(laserAngle), laserCenter.y + 10000 * Math.sin(laserAngle));
+                ctx.closePath();
+                ctx.stroke();
+
+                ctx.reset();
+                ctx.lineWidth = 5;
+                ctx.strokeStyle = "#ff0000";
+                ctx.shadowColor = "#ff0000";
+                ctx.shadowBlur = 20;
+
+                for(var n = 0; n < mirrorCollection.mirrors.length; n++)
+                {
+                    let mirror = mirrorCollection.mirrors[n];
+                    ctx.save();
+                    ctx.translate(mirror.center.x, mirror.center.y);
+                    ctx.rotate(mirror.rotation);
+
+                    if(mirror.constructor.name === "MirrorRectangle")
+                    {
+                        ctx.strokeRect(-mirror.width / 2, -mirror.height / 2, mirror.width, mirror.height);
+                    }
+
+                    if(mirror.constructor.name === "MirrorArc")
+                    {
+                        ctx.beginPath();
+                        
+                        if(mirror.innerRadius === 0)
+                        {
+                            ctx.moveTo(0, 0);
+                        }
+
+                        else
+                        {
+                            ctx.arc(0, 0, mirror.innerRadius, mirror.startingAngle, mirror.endingAngle);
+                        }
+
+                        ctx.arc(0, 0, mirror.outerRadius, mirror.endingAngle, mirror.startingAngle, true);
+                        ctx.closePath();
+                        ctx.stroke();
+                    }
+
+                    if(mirror.constructor.name === "MirrorPolygon")
+                    {
+                        let vertices = mirror.vertices;
+                        ctx.beginPath();
+                        ctx.moveTo(vertices[0].x, vertices[0].y);
+
+                        for(var m = 1; m < vertices.length; m++)
+                        {
+                            ctx.lineTo(vertices[m].x, vertices[m].y);
+                        }
+
+                        ctx.closePath();
+                        ctx.stroke();
+                    }
+
+                    ctx.restore();
+                }
+
+                request = requestAnimationFrame(render);
+            }
+
+            request = requestAnimationFrame(render);
+
+            function resize()
+            {
+                const windowWidth = window.innerWidth;
+                const windowHeight = window.innerHeight;
+                
+                if(windowWidth / windowHeight > canvasWidth / canvasHeight)
+                {
+                    canvas.style.width = `${(windowHeight / windowWidth) * (canvasWidth / canvasHeight) * 100}%`;
+                    canvas.style.height = "100%";
+                }
+                
+                else
+                {
+                    canvas.style.width = "100%";
+                    canvas.style.height = `${(windowWidth / windowHeight) * (canvasHeight / canvasWidth) * 100}%`;
+                }
+            }
+
+            resize();
+
+            function distance(p1, p2 = pointOrigin)
+            {
+                return Math.hypot(p1.x - p2.x, p1.y - p2.y);
+            }
+            
+            function distanceSquared(p1, p2)
+            {
+                return Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2);
+            }
+            
+            function distanceManhattan(p1, p2)
+            {
+                return Math.abs(p1.x - p2.x) + Math.abs(p1.y - p2.y);
+            }
+
+            function intersectSegmentSegment(line1, line2)
+            {
+                let a = line1.p1.x;
+                let b = line1.p1.y;
+                let c = line1.p2.x;
+                let d = line1.p2.y;
+                let p = line2.p1.x;
+                let q = line2.p1.y;
+                let r = line2.p2.x;
+                let s = line2.p2.y;
+                var det, gamma, lambda;
+                det = (c - a) * (s - q) - (r - p) * (d - b);
+
+                if (det === 0)
+                {
+                    return false;
+                }
+
+                else
+                {
+                    lambda = ((s - q) * (r - a) + (p - r) * (s - b)) / det;
+                    gamma = ((b - d) * (r - a) + (c - a) * (s - b)) / det;
+                    return (0 < lambda && lambda < 1) && (0 < gamma && gamma < 1);
+                }
+            };
+
+            function intersectionLineLine(line1, line2)
+            {
+                let x1 = line1.p1.x;
+                let y1 = line1.p1.y;
+                let x2 = line1.p2.x;
+                let y2 = line1.p2.y;
+                let x3 = line2.p1.x;
+                let y3 = line2.p1.y;
+                let x4 = line2.p2.x;
+                let y4 = line2.p2.y;
+
+                if ((x1 === x2 && y1 === y2) || (x3 === x4 && y3 === y4))
+                {
+                    return false;
+                }
+
+                denominator = ((y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1));
+
+                if (denominator === 0)
+                {
+                    return false;
+                }
+
+                let ua = ((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3)) / denominator;
+                let ub = ((x2 - x1) * (y1 - y3) - (y2 - y1) * (x1 - x3)) / denominator;
+
+                if (ua < 0 || ua > 1 || ub < 0 || ub > 1)
+                {
+                    return false;
+                }
+
+                let x = x1 + ua * (x2 - x1);
+                let y = y1 + ua * (y2 - y1);
+
+                return new Point(x, y);
+            }
+            
+        </script>
+    </body>
+</html>
