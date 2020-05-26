@@ -2,6 +2,7 @@
 <html>
     <head>
         <title>Laser Simulation</title>
+        <script src="./lodash.js"></script>
     </head>
     
     <body onresize="resize();">
@@ -35,6 +36,12 @@
                 {
                     this.x = x;
                     this.y = y;
+                }
+
+                addTo(p)
+                {
+                    this.x += p.x;
+                    this.y += p.y;
                 }
             }
 
@@ -73,101 +80,83 @@
                     this.mirrors = mirrors;
                 }
 
-                laser(center, angle)
+                laser(center, angle, intersections = [])
                 {
+                    if(intersections.length === 10)
+                    {
+                        return intersections;
+                    }
+
                     let closestIntersection;
                     let distanceToClosestIntersection;
 
                     for(var n = 0; n < this.mirrors.length; n++)
                     {
                         let mirror = this.mirrors[n];
+                        let laserLine = new Line(center, new Point(center.x + 10000 * Math.cos(angle), center.y + 10000 * Math.sin(angle)));
 
-                        if(mirror.constructor.name === "MirrorRectangle")
+                        for(var m = 0; m < mirror.vertices.length; m++)
                         {
-                            let laserLine = new Line(center, new Point(center.x + 10000 * Math.cos(angle), center.y + 10000 * Math.sin(angle)));
-                            let halfWidth = mirror.width / 2;
-                            let halfHeight = mirror.height / 2;
+                            let vertex = _.cloneDeep(mirror.vertices[m]);
+                            rotatePointAroundPoint(vertex, pointOrigin, mirror.rotation);
+                            vertex.addTo(mirror.center);
+                            let nextVertex = _.cloneDeep(mirror.vertices[(m + 1) % mirror.vertices.length]);
+                            rotatePointAroundPoint(nextVertex, pointOrigin, mirror.rotation);
+                            nextVertex.addTo(mirror.center);
+                            let mirrorSide = new Line(vertex, nextVertex);
 
-                            for(var x = -1; x <= 1; x += 2)
+                            if(intersectSegmentSegment(laserLine, mirrorSide))
                             {
-                                let rectangleSide = new Line(new Point(mirror.center.x + x * halfWidth, mirror.center.y - halfHeight), new Point(mirror.center.x + x * halfWidth, mirror.center.y + halfHeight));
-                                if(intersectSegmentSegment(laserLine, rectangleSide))
+                                let intersection = intersectionLineLine(laserLine, mirrorSide);
+                                let distanceToIntersection = distance(center, intersection);
+
+                                if((closestIntersection === undefined || distanceToIntersection < distanceToClosestIntersection) && distanceToIntersection > 10)
                                 {
-                                    let intersection = intersectionLineLine(laserLine, rectangleSide);
-                                    let distanceToIntersection = distance(center, intersection);
-
-                                    if(closestIntersection === undefined || distanceToIntersection < distanceToClosestIntersection)
-                                    {
-                                        closestIntersection = intersection;
-                                        distanceToClosestIntersection = distanceToIntersection;
-                                    }
-                                }
-                            }
-
-                            for(var y = -1; y <= 1; y += 2)
-                            {
-                                let rectangleSide = new Line(new Point(mirror.center.x - halfWidth, mirror.center.y + y * halfHeight), new Point(mirror.center.x + halfWidth, mirror.center.y + y * halfHeight));
-                                if(intersectSegmentSegment(laserLine, rectangleSide))
-                                {
-                                    let intersection = intersectionLineLine(laserLine, rectangleSide);
-                                    let distanceToIntersection = distance(center, intersection);
-
-                                    if(closestIntersection === undefined || distanceToIntersection < distanceToClosestIntersection)
-                                    {
-                                        closestIntersection = intersection;
-                                        distanceToClosestIntersection = distanceToIntersection;
-                                    }
+                                    closestIntersection = intersection;
+                                    distanceToClosestIntersection = distanceToIntersection;
                                 }
                             }
                         }
                     }
 
-                    if(closestIntersection === undefined || distanceToClosestIntersection < 10)
+                    if(closestIntersection === undefined)
                     {
-                        return false;
+                        return intersections;
                     }
 
-                    return closestIntersection;
+                    let newIntersections = [];
+
+                    for(var n = 0; n < intersections.length; n++)
+                    {
+                        newIntersections.push(intersections[n]);
+                    }
+
+                    newIntersections.push(closestIntersection);
+
+                    return this.laser(closestIntersection, 2 * Math.PI * Math.random(), newIntersections);
                 }
             }
 
-            class MirrorRectangle
+            class Mirror
             {
-                constructor(center, rotation, width, height)
-                {
-                    this.active = true;
-                    this.reflecting = true;
-                    this.center = center;
-                    this.rotation = rotation;
-                    this.width = width;
-                    this.height = height;
-                }
-            }
-
-            class MirrorArc
-            {
-                constructor(center, rotation, innerRadius, outerRadius, startingAngle, endingAngle)
-                {
-                    this.active = true;
-                    this.reflecting = true;
-                    this.center = center;
-                    this.rotation = rotation;
-                    this.innerRadius = innerRadius;
-                    this.outerRadius = outerRadius;
-                    this.startingAngle = startingAngle;
-                    this.endingAngle = endingAngle;
-                }
-            }
-
-            class MirrorPolygon
-            {
-                constructor(center, rotation, vertices)
+                constructor(center, rotation, vertices = [])
                 {
                     this.active = true;
                     this.reflecting = true;
                     this.center = center;
                     this.rotation = rotation;
                     this.vertices = vertices;
+                }
+
+                makeRectangle(width, height)
+                {
+                    let halfWidth = width / 2;
+                    let halfHeight = height / 2;
+                    let topLeftCorner = new Point(-halfWidth, -halfHeight);
+                    let topRightCorner = new Point(halfWidth, -halfHeight);
+                    let bottomRightCorner = new Point(halfWidth, halfHeight);
+                    let bottomLeftCorner = new Point(-halfWidth, halfHeight);
+                    this.vertices = [topLeftCorner, topRightCorner, bottomRightCorner, bottomLeftCorner];
                 }
             }
 
@@ -203,40 +192,33 @@
             const canvasHeight = canvas.height;
             const ctx = canvas.getContext("2d");
             const pointOrigin = new Point(0, 0);
-            var mirrorCollection = new MirrorCollection([new MirrorRectangle(new Point(400, 400), 0, 200, 100), new MirrorRectangle(new Point(600, 700), 0, 200, 100)]);
-            var laserCenter = new Point(400, 350);
-            var laserAngle = 0;
+            var mirror = new Mirror(new Point(400, 800), 0);
+            mirror.makeRectangle(100, 200);
+            var mirrorCollection = new MirrorCollection([mirror]);
+            var laserCenter = new Point(400, 150);
+            var laserAngle = Math.PI / 2;
 
             function render()
             {
-                let intersection = mirrorCollection.laser(laserCenter, laserAngle);
-
+                let intersections = mirrorCollection.laser(laserCenter, laserAngle);
                 ctx.reset();
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                console.log(intersection);
-                if(intersection !== false)
-                {
-                    ctx.reset();
-                    ctx.fillStyle = "#0000ff";
-                    ctx.shadowColor = "#0000ff";
-                    ctx.shadowBlur = 20;
-                    ctx.beginPath();
-                    ctx.arc(intersection.x, intersection.y, 10, 0, 2 * Math.PI);
-                    ctx.closePath();
-                    ctx.fill();
-                }
-
                 ctx.reset();
-                ctx.lineWidth = 5;
+                ctx.lineWidth = 3;
                 ctx.strokeStyle = "#00ff00";
                 ctx.shadowColor = "#00ff00";
                 ctx.shadowBlur = 20;
                 ctx.beginPath();
                 ctx.moveTo(laserCenter.x, laserCenter.y);
-                ctx.lineTo(laserCenter.x + 10000 * Math.cos(laserAngle), laserCenter.y + 10000 * Math.sin(laserAngle));
-                ctx.closePath();
+                for(var n = 0; n < intersections.length; n++)
+                {
+                    let intersection = intersections[n];
+                    ctx.lineTo(intersection.x, intersection.y);
+                }
                 ctx.stroke();
+
+                mirrorCollection.mirrors[0].rotation += 0.01;
 
                 ctx.reset();
                 ctx.lineWidth = 5;
@@ -247,49 +229,21 @@
                 for(var n = 0; n < mirrorCollection.mirrors.length; n++)
                 {
                     let mirror = mirrorCollection.mirrors[n];
+                    let vertices = mirror.vertices;
+
                     ctx.save();
                     ctx.translate(mirror.center.x, mirror.center.y);
                     ctx.rotate(mirror.rotation);
+                    ctx.beginPath();
+                    ctx.moveTo(vertices[0].x, vertices[0].y);
 
-                    if(mirror.constructor.name === "MirrorRectangle")
+                    for(var m = 1; m < vertices.length; m++)
                     {
-                        ctx.strokeRect(-mirror.width / 2, -mirror.height / 2, mirror.width, mirror.height);
+                        ctx.lineTo(vertices[m].x, vertices[m].y);
                     }
 
-                    if(mirror.constructor.name === "MirrorArc")
-                    {
-                        ctx.beginPath();
-                        
-                        if(mirror.innerRadius === 0)
-                        {
-                            ctx.moveTo(0, 0);
-                        }
-
-                        else
-                        {
-                            ctx.arc(0, 0, mirror.innerRadius, mirror.startingAngle, mirror.endingAngle);
-                        }
-
-                        ctx.arc(0, 0, mirror.outerRadius, mirror.endingAngle, mirror.startingAngle, true);
-                        ctx.closePath();
-                        ctx.stroke();
-                    }
-
-                    if(mirror.constructor.name === "MirrorPolygon")
-                    {
-                        let vertices = mirror.vertices;
-                        ctx.beginPath();
-                        ctx.moveTo(vertices[0].x, vertices[0].y);
-
-                        for(var m = 1; m < vertices.length; m++)
-                        {
-                            ctx.lineTo(vertices[m].x, vertices[m].y);
-                        }
-
-                        ctx.closePath();
-                        ctx.stroke();
-                    }
-
+                    ctx.closePath();
+                    ctx.stroke();
                     ctx.restore();
                 }
 
@@ -331,6 +285,17 @@
             function distanceManhattan(p1, p2)
             {
                 return Math.abs(p1.x - p2.x) + Math.abs(p1.y - p2.y);
+            }
+
+            function rotatePointAroundPoint(p1, p2, rotation)
+            {
+                let cosine = Math.cos(rotation);
+                let sine = Math.sin(rotation);
+                let xT = p1.x - p2.x;
+                let yT = p1.y - p2.y;
+                let result = new Point(cosine * xT - sine * yT + p2.x, sine * xT + cosine * yT + p2.y);
+                p1.x = result.x;
+                p1.y = result.y;
             }
 
             function intersectSegmentSegment(line1, line2)
