@@ -43,6 +43,34 @@
                     this.x += p.x;
                     this.y += p.y;
                 }
+
+                addToPolar(r, a)
+                {
+                    this.x += r * Math.cos(a);
+                    this.y += r * Math.sin(a);
+                }
+
+                subtractTo(p)
+                {
+                    this.x -= p.x;
+                    this.y -= p.y;
+                }
+
+                rotateAroundPoint(p, rotation)
+                {
+                    let cosine = Math.cos(rotation);
+                    let sine = Math.sin(rotation);
+                    let xD = this.x - p.x;
+                    let yD = this.y - p.y;
+                    this.x = cosine * xD - sine * yD + p.x;
+                    this.y = sine * xD + cosine * yD + p.y;
+                }
+
+                interpolateToPoint(p, t)
+                {
+                    this.x = interpolateLinear(this.x, p.x, t);
+                    this.y = interpolateLinear(this.y, p.y, t);
+                }
             }
 
             class Line
@@ -52,24 +80,39 @@
                     this.p1 = p1;
                     this.p2 = p2;
                 }
+
+                addTo(p)
+                {
+                    this.p1.addTo(p);
+                    this.p2.addTo(p);
+                }
+
+                subtractTo(p)
+                {
+                    this.p1.subtractTo(p);
+                    this.p2.subtractTo(p);
+                }
+
+                rotateAroundPoint(p, rotation)
+                {
+                    this.p1.rotateAroundPoint(p, rotation);
+                    this.p2.rotateAroundPoint(p, rotation);
+                }
+
+                getAngle()
+                {
+                    let newPoint = _.cloneDeep(this.p1);
+                    newPoint.subtractTo(this.p2);
+                    return Math.atan2(newPoint.y, newPoint.x);
+                }
             }
 
             class Circle
             {
-                constructor(center, radius)
+                constructor(position, radius)
                 {
-                    this.center = center;
+                    this.position = position;
                     this.radius = radius;
-                }
-            }
-            
-            class Rectangle
-            {
-                constructor(center, width, height)
-                {
-                    this.center = center;
-                    this.width = width;
-                    this.height = height;
                 }
             }
 
@@ -80,39 +123,42 @@
                     this.mirrors = mirrors;
                 }
 
-                laser(center, angle, intersections = [])
+                laser(laserBeam, intersections = [], sideIgnore = null)
                 {
-                    if(intersections.length === 10)
+                    if(intersections.length === LASER_MAX_BOUNCES + 1)
                     {
                         return intersections;
                     }
 
+                    let laserLine = new Line(laserBeam.position, new Point(laserBeam.position.x + LASER_RANGE * Math.cos(laserBeam.rotation), laserBeam.position.y + LASER_RANGE * Math.sin(laserBeam.rotation)));
                     let closestIntersection;
+                    let closestMirror;
+                    let closestMirrorSide;
                     let distanceToClosestIntersection;
 
                     for(var n = 0; n < this.mirrors.length; n++)
                     {
                         let mirror = this.mirrors[n];
-                        let laserLine = new Line(center, new Point(center.x + 10000 * Math.cos(angle), center.y + 10000 * Math.sin(angle)));
 
                         for(var m = 0; m < mirror.vertices.length; m++)
                         {
-                            let vertex = _.cloneDeep(mirror.vertices[m]);
-                            rotatePointAroundPoint(vertex, pointOrigin, mirror.rotation);
-                            vertex.addTo(mirror.center);
-                            let nextVertex = _.cloneDeep(mirror.vertices[(m + 1) % mirror.vertices.length]);
-                            rotatePointAroundPoint(nextVertex, pointOrigin, mirror.rotation);
-                            nextVertex.addTo(mirror.center);
-                            let mirrorSide = new Line(vertex, nextVertex);
+                            let mirrorSide = mirror.getSideAbsolute(m);
+
+                            if(_.isEqual(mirrorSide, sideIgnore))
+                            {
+                                continue;
+                            }
 
                             if(intersectSegmentSegment(laserLine, mirrorSide))
                             {
                                 let intersection = intersectionLineLine(laserLine, mirrorSide);
-                                let distanceToIntersection = distance(center, intersection);
+                                let distanceToIntersection = distance(laserBeam.position, intersection);
 
-                                if((closestIntersection === undefined || distanceToIntersection < distanceToClosestIntersection) && distanceToIntersection > 10)
+                                if((closestIntersection === undefined || distanceToIntersection < distanceToClosestIntersection))
                                 {
                                     closestIntersection = intersection;
+                                    closestMirror = mirror;
+                                    closestMirrorSide = mirrorSide;
                                     distanceToClosestIntersection = distanceToIntersection;
                                 }
                             }
@@ -121,31 +167,88 @@
 
                     if(closestIntersection === undefined)
                     {
+                        let newPoint = _.cloneDeep(laserBeam.position);
+                        newPoint.addToPolar(LASER_RANGE, laserBeam.rotation);
+                        intersections.push(newPoint);
                         return intersections;
                     }
 
-                    let newIntersections = [];
-
-                    for(var n = 0; n < intersections.length; n++)
-                    {
-                        newIntersections.push(intersections[n]);
-                    }
-
+                    let newIntersections = _.cloneDeep(intersections);
                     newIntersections.push(closestIntersection);
 
-                    return this.laser(closestIntersection, 2 * Math.PI * Math.random(), newIntersections);
+                    // angle of incidence code start
+                    let angleOfIncidence = Math.PI / 2 + laserBeam.rotation - closestMirrorSide.getAngle();
+
+                    while(angleOfIncidence > Math.PI)
+                    {
+                        angleOfIncidence -= Math.PI;
+                    }
+
+                    while(angleOfIncidence < 0)
+                    {
+                        angleOfIncidence += Math.PI;
+                    }
+
+                    if(angleOfIncidence > Math.PI / 2)
+                    {
+                        angleOfIncidence = Math.PI - angleOfIncidence;
+                    }
+
+                    angleOfIncidence = angleOfIncidence;
+
+                    console.log(angleOfIncidence * 180 / Math.PI);
+
+                    // angle of incidence code end
+
+                    if(closestMirror.reflecting)
+                    {
+                        return this.laser(new Laser(closestIntersection, 2 * closestMirrorSide.getAngle() - laserBeam.rotation), newIntersections, _.cloneDeep(closestMirrorSide));
+                    }
+
+                    else
+                    {
+                        intersections.push(closestIntersection);
+                        return intersections;
+                    }
                 }
             }
 
             class Mirror
             {
-                constructor(center, rotation, vertices = [])
+                constructor(position, rotation, vertices = [])
                 {
-                    this.active = true;
                     this.reflecting = true;
-                    this.center = center;
+                    this.position = position;
                     this.rotation = rotation;
                     this.vertices = vertices;
+                }
+
+                getSide(sideNumber)
+                {
+                    return new Line(this.vertices[sideNumber % this.vertices.length], this.vertices[(sideNumber + 1) % this.vertices.length]);
+                }
+
+                getSideAbsolute(sideNumber)
+                {
+                    let absoluteSide = _.cloneDeep(this.getSide(sideNumber));
+                    absoluteSide.rotateAroundPoint(pointOrigin, this.rotation);
+                    absoluteSide.addTo(this.position);
+                    return absoluteSide;
+                }
+
+                subdivide(vertexMultiplier = 2)
+                {
+                    for(var n = 0; n < this.vertices.length; n++)
+                    {
+                        let side = this.getSide(n);
+                        let interpolations = [];
+
+                        for(var m = 1; m < vertexMultiplier; m++)
+                        {
+                            this.vertices.splice(n + 1, 0, interpolatePointToPoint(side.p1, side.p2, m / (vertexMultiplier + 1)));
+                            n++;
+                        }
+                    }
                 }
 
                 makeRectangle(width, height)
@@ -157,6 +260,16 @@
                     let bottomRightCorner = new Point(halfWidth, halfHeight);
                     let bottomLeftCorner = new Point(-halfWidth, halfHeight);
                     this.vertices = [topLeftCorner, topRightCorner, bottomRightCorner, bottomLeftCorner];
+                }
+            }
+
+            class Laser
+            {
+                constructor(position, rotation, hue = 0)
+                {
+                    this.position = position;
+                    this.rotation = rotation;
+                    this.hue = hue;
                 }
             }
 
@@ -192,47 +305,83 @@
             const canvasHeight = canvas.height;
             const ctx = canvas.getContext("2d");
             const pointOrigin = new Point(0, 0);
+            const keysPressed = [];
+            const LASER_MAX_BOUNCES = 10;
+            const LASER_RANGE = 10000;
             var mirror = new Mirror(new Point(400, 800), 0);
             mirror.makeRectangle(100, 200);
-            var mirrorCollection = new MirrorCollection([mirror]);
-            var laserCenter = new Point(400, 150);
-            var laserAngle = Math.PI / 2;
+            var mirror2 = new Mirror(new Point(700, 700), 0);
+            mirror2.makeRectangle(300, 100);
+            var mirror3 = new Mirror(new Point(1500, 800), 45, [new Point(-200, 0), new Point(200, 0), new Point(0, 200)]);
+            var mirror4 = new Mirror(new Point(canvasWidth / 2, canvasHeight / 2), 0);
+            mirror4.makeRectangle(canvasWidth, canvasHeight);
+            mirror4.reflecting = false;
+            var mirrorCollection = new MirrorCollection([mirror, mirror2, mirror3]);
+            var lasers = [];
+            lasers.push(new Laser(new Point(400, 650), 15 * Math.PI / 180, 120));
 
             function render()
             {
-                let intersections = mirrorCollection.laser(laserCenter, laserAngle);
+                if(keysPressed.includes("ArrowLeft"))
+                {
+                    lasers[0].position.x -= 2;
+                }
+
+                if(keysPressed.includes("ArrowRight"))
+                {
+                    lasers[0].position.x += 2;
+                }
+
+                if(keysPressed.includes("ArrowUp"))
+                {
+                    lasers[0].position.y -= 2;
+                }
+
+                if(keysPressed.includes("ArrowDown"))
+                {
+                    lasers[0].position.y += 2;
+                }
+
+                if(keysPressed.includes("a"))
+                {
+                    lasers[0].rotation -= 0.02;
+                }
+
+                if(keysPressed.includes("d"))
+                {
+                    lasers[0].rotation += 0.02;
+                }
+                
                 ctx.reset();
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                ctx.reset();
-                ctx.lineWidth = 3;
-                ctx.strokeStyle = "#00ff00";
-                ctx.shadowColor = "#00ff00";
-                ctx.shadowBlur = 20;
-                ctx.beginPath();
-                ctx.moveTo(laserCenter.x, laserCenter.y);
-                for(var n = 0; n < intersections.length; n++)
-                {
-                    let intersection = intersections[n];
-                    ctx.lineTo(intersection.x, intersection.y);
-                }
-                ctx.stroke();
-
-                mirrorCollection.mirrors[0].rotation += 0.01;
-
-                ctx.reset();
-                ctx.lineWidth = 5;
-                ctx.strokeStyle = "#ff0000";
-                ctx.shadowColor = "#ff0000";
-                ctx.shadowBlur = 20;
+                mirrorCollection.mirrors[1].rotation += 0.003;
+                mirrorCollection.mirrors[2].rotation += 0.001;
+                mirrorCollection.mirrors[0].position.x += 1;
 
                 for(var n = 0; n < mirrorCollection.mirrors.length; n++)
                 {
                     let mirror = mirrorCollection.mirrors[n];
                     let vertices = mirror.vertices;
 
+                    ctx.reset();
+                    ctx.lineWidth = 5;
+                    ctx.lineJoin = "round";
+
+                    if(mirror.reflecting)
+                    {
+                        ctx.strokeStyle = "#ff0000";
+                        ctx.shadowColor = "#ff0000";
+                        ctx.shadowBlur = 20;
+                    }
+
+                    else
+                    {
+                        ctx.strokeStyle = "#222222";
+                    }
+
                     ctx.save();
-                    ctx.translate(mirror.center.x, mirror.center.y);
+                    ctx.translate(mirror.position.x, mirror.position.y);
                     ctx.rotate(mirror.rotation);
                     ctx.beginPath();
                     ctx.moveTo(vertices[0].x, vertices[0].y);
@@ -247,10 +396,39 @@
                     ctx.restore();
                 }
 
+                for(var n = 0; n < lasers.length; n++)
+                {
+                    let laser = lasers[n];
+                    let intersections = mirrorCollection.laser(laser);
+
+                    ctx.reset();
+                    ctx.lineWidth = 3;
+                    ctx.lineJoin = "round";
+                    ctx.strokeStyle = "hsl(" + laser.hue + ", 100%, 50%)";
+                    ctx.shadowColor = ctx.strokeStyle;
+                    ctx.shadowBlur = 20;
+                    ctx.beginPath();
+                    ctx.moveTo(laser.position.x, laser.position.y);
+                    
+                    for(var m = 0; m < intersections.length; m++)
+                    {
+                        let intersection = intersections[m];
+                        ctx.lineTo(intersection.x, intersection.y);
+                    }
+
+                    ctx.stroke();
+                }
+
                 request = requestAnimationFrame(render);
             }
 
             request = requestAnimationFrame(render);
+
+            resize();
+            window.onresize = resize;
+            window.onkeydown = keydown;
+            window.onkeyup = keyup;
+            //window.oncontextmenu = function(event) { event.preventDefault(); };
 
             function resize()
             {
@@ -270,7 +448,32 @@
                 }
             }
 
-            resize();
+            function keydown(event)
+            {
+                if(!event)
+                {
+                    event = window.event;
+                }
+                
+                var eventKey = event.key;
+                
+                if(keysPressed.includes(eventKey) === false)
+                {
+                    keysPressed.push(eventKey);
+                }
+            }
+            
+            function keyup(event)
+            {
+                if(!event)
+                {
+                    event = window.event;
+                }
+                
+                var eventKey = event.key;
+                
+                keysPressed.splice(keysPressed.indexOf(eventKey), 1);
+            }
 
             function distance(p1, p2 = pointOrigin)
             {
@@ -287,15 +490,24 @@
                 return Math.abs(p1.x - p2.x) + Math.abs(p1.y - p2.y);
             }
 
-            function rotatePointAroundPoint(p1, p2, rotation)
+            function interpolateLinear(startingValue, endingValue, t)
             {
-                let cosine = Math.cos(rotation);
-                let sine = Math.sin(rotation);
-                let xT = p1.x - p2.x;
-                let yT = p1.y - p2.y;
-                let result = new Point(cosine * xT - sine * yT + p2.x, sine * xT + cosine * yT + p2.y);
-                p1.x = result.x;
-                p1.y = result.y;
+                return (startingValue + (endingValue - startingValue) * t);
+            }
+
+            function interpolatePointToPoint(p1, p2, t)
+            {
+                return new Point(interpolateLinear(p1.x, p2.x, t), interpolateLinear(p1.y, p2.y, t));
+            }
+
+            function calculateAngleDifference(a1, a2)
+            {
+                var difference = a2 - a1;
+                while(difference < -Math.PI)
+                    difference += 2 * Math.PI;
+                while(difference > Math.PI)
+                    difference -= 2 * Math.PI;
+                return difference;
             }
 
             function intersectSegmentSegment(line1, line2)
