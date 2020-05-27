@@ -271,6 +271,11 @@
                     this.rotation = rotation;
                     this.hue = hue;
                 }
+
+                pointTo(p)
+                {
+                    this.rotation = Math.atan2(p.y - this.position.y, p.x - this.position.x);
+                }
             }
 
             CanvasRenderingContext2D.prototype.reset = function()
