@@ -3,10 +3,12 @@
     <head>
         <title>Laser Simulation</title>
         <script src="./lodash.js"></script>
+        <script src="./p5.js"></script>
     </head>
     
     <body onresize="resize();">
         <canvas id="canvas" width="1920" height="1080"></canvas>
+        <canvas id="canvas-buffer" class="hidden"></canvas>
 
         <style>
 
@@ -24,6 +26,12 @@
                 top: 50%;
                 left: 50%;
                 transform: translate(-50%, -50%);
+            }
+
+            .hidden
+            {
+                visibility: hidden;
+                pointer-events: none;
             }
             
         </style>
@@ -56,6 +64,12 @@
                     this.y -= p.y;
                 }
 
+                scale(xs, ys = xs)
+                {
+                    this.x *= xs;
+                    this.y *= ys;
+                }
+
                 rotateAroundPoint(p, rotation)
                 {
                     let cosine = Math.cos(rotation);
@@ -66,7 +80,13 @@
                     this.y = sine * xD + cosine * yD + p.y;
                 }
 
-                interpolateToPoint(p, t)
+                interpolateToPointLinear(p, t)
+                {
+                    this.x = interpolateLinear(this.x, p.x, t);
+                    this.y = interpolateLinear(this.y, p.y, t);
+                }
+
+                interpolateToPointQuadratic(p, t)
                 {
                     this.x = interpolateLinear(this.x, p.x, t);
                     this.y = interpolateLinear(this.y, p.y, t);
@@ -107,6 +127,7 @@
                 }
             }
 
+<<<<<<< Updated upstream
             class Circle
             {
                 constructor(position, radius)
@@ -114,6 +135,265 @@
                     this.position = position;
                     this.radius = radius;
                 }
+=======
+            class Mirror
+            {
+                constructor(position, rotation, vertices = [])
+                {
+                    this.position = position;
+                    this.rotation = rotation;
+                    this.vertices = vertices;
+                    this.reflecting = true;
+                }
+
+                getSide(sideNumber)
+                {
+                    return new Line(this.vertices[sideNumber % this.vertices.length], this.vertices[(sideNumber + 1) % this.vertices.length]);
+                }
+
+                getSideAbsolute(sideNumber)
+                {
+                    let absoluteSide = _.cloneDeep(this.getSide(sideNumber));
+                    absoluteSide.rotateAroundPoint(pointOrigin, this.rotation);
+                    absoluteSide.addTo(this.position);
+                    return absoluteSide;
+                }
+
+                getExtremes()
+                {
+                    let leftMost;
+                    let rightMost;
+                    let upMost;
+                    let downMost;
+
+                    for(var n = 0; n < this.vertices.length; n++)
+                    {
+                        let vertex = this.vertices[n];                    
+
+                        if(leftMost === undefined || vertex.x <= leftMost.x)
+                        {
+                            leftMost = vertex;
+                        }
+
+                        if(rightMost === undefined || vertex.x >= rightMost.x)
+                        {
+                            rightMost = vertex;
+                        }
+
+                        if(upMost === undefined || vertex.y <= upMost.y)
+                        {
+                            upMost = vertex;
+                        }
+
+                        if(downMost === undefined || vertex.y >= downMost.y)
+                        {
+                            downMost = vertex;
+                        }
+                    }
+
+                    return {
+                        leftMost: leftMost,
+                        rightMost: rightMost,
+                        upMost: upMost,
+                        downMost, downMost
+                    };
+                }
+
+                findArea()
+                {
+                    if(this.vertices.length < 3)
+                    {
+                        return false;
+                    }
+
+                    let extremes = this.getExtremes();
+                    canvasBuffer.width = Math.round(Math.abs(extremes.leftMost.x - extremes.rightMost.x));
+                    canvasBuffer.height = Math.round(Math.abs(extremes.upMost.y - extremes.downMost.y));
+
+                    ctxBuffer.clearRect(0, 0, canvasBuffer.width, canvasBuffer.height);
+                    ctxBuffer.beginPath();
+                    ctxBuffer.moveTo(this.vertices[0].x - extremes.leftMost.x, this.vertices[0].y - extremes.upMost.y);
+
+                    for(var n = 1; n < this.vertices.length; n++)
+                    {
+                        ctxBuffer.lineTo(this.vertices[n].x - extremes.leftMost.x, this.vertices[n].y - extremes.upMost.y);
+                    }
+                    
+                    ctxBuffer.closePath();
+                    ctxBuffer.fill();
+
+                    let data = ctxBuffer.getImageData(0, 0, canvasBuffer.width, canvasBuffer.height).data;
+                    let dataFiltered = [];
+
+                    for(var n = 0; n < data.length; n += 4)
+                    {
+                        dataFiltered.push(data[n + 3]);
+                    }
+
+                    dataFiltered = dataFiltered.filter(function(alpha)
+                    {
+                        return alpha >= 0.5;
+                    });
+
+                    return dataFiltered.length;
+                }
+
+                findCenter()
+                {
+                    let average = new Point(0, 0);
+
+                    for(var n = 0; n < this.vertices.length; n++)
+                    {
+                        let vertex = this.vertices[n];
+                        average.addTo(vertex);
+                    }
+
+                    average.scale(1 / this.vertices.length);
+
+                    return average;
+                }
+
+                subdivide(vertexMultiplier = 2)
+                {
+                    for(var n = 0; n < this.vertices.length; n++)
+                    {
+                        let side = this.getSide(n);
+                        let interpolations = [];
+
+                        for(var m = 1; m < vertexMultiplier; m++)
+                        {
+                            this.vertices.splice(n + 1, 0, interpolatePointToPoint(side.p1, side.p2, m / (vertexMultiplier + 1)));
+                            n++;
+                        }
+                    }
+                }
+
+                smoothen()
+                {
+                    if(this.vertices.length === 0)
+                    {
+                        return;
+                    }
+
+                    let initialArea = this.findArea();
+                    let average = this.findCenter();
+
+                    let distances = [];
+                    let distanceToClosestVertex;
+                    let distanceToFarthestVertex;
+
+                    for(var n = 0; n < this.vertices.length; n++)
+                    {
+                        let vertex = this.vertices[n];
+                        let distanceToVertex = distance(vertex);
+                        distances.push(distanceToVertex);
+
+                        if(distanceToClosestVertex === undefined || distanceToVertex < distanceToClosestVertex)
+                        {
+                            distanceToClosestVertex = distanceToVertex;
+                        }
+
+                        if(distanceToFarthestVertex === undefined || distanceToVertex > distanceToFarthestVertex)
+                        {
+                            distanceToFarthestVertex = distanceToVertex;
+                        }
+                    }
+
+                    for(var n = 0; n < this.vertices.length; n++)
+                    {
+                        let vertex = this.vertices[n];
+                        let distanceToVertex = distances[n];
+                        let t = (distanceToVertex - distanceToClosestVertex) / (distanceToFarthestVertex - distanceToClosestVertex);
+                        t = 0.2 * t;
+                        console.log(t);
+                        vertex.interpolateToPointLinear(average, t);
+                    }
+
+
+                    let finalArea = this.findArea();
+                }
+
+                makeRectangle(width, height)
+                {
+                    let halfWidth = width / 2;
+                    let halfHeight = height / 2;
+                    let topLeftCorner = new Point(-halfWidth, -halfHeight);
+                    let topRightCorner = new Point(halfWidth, -halfHeight);
+                    let bottomRightCorner = new Point(halfWidth, halfHeight);
+                    let bottomLeftCorner = new Point(-halfWidth, halfHeight);
+                    this.vertices = [topLeftCorner, topRightCorner, bottomRightCorner, bottomLeftCorner];
+                }
+
+                makeCircle(radius, vertexCount)
+                {
+                    this.vertices = [];
+
+                    for(var n = 0; n < vertexCount; n++)
+                    {
+                        let vertex = new Point();
+                        vertex.addToPolar(radius, n / vertexCount * 2 * Math.PI);
+                        this.vertices.push(vertex);
+                    }
+                }
+
+                makeRegularPolygon(radius, vertexCount)
+                {
+                    this.vertices = [];
+
+                    for(var n = 0; n < vertexCount; n++)
+                    {
+                        this.vertices.push(new Point(radius * Math.cos(n / vertexCount * 2 * Math.PI), radius * Math.sin(n / vertexCount * 2 * Math.PI)));
+                    }
+                }
+
+                makeBlob(vertexCount)
+                {
+                    this.vertices = [];
+
+                    for(var n = 0; n < vertexCount; n++)
+                    {
+                        let noiseRadius = p5.noise(Math.cos(n / vertexCount * 2 * Math.PI), Math.cos(n / vertexCount * 2 * Math.PI));
+                        this.vertices.push(new Point(100 * noiseRadius * Math.cos(n / vertexCount * 2 * Math.PI), 100 * noiseRadius * Math.sin(n / vertexCount * 2 * Math.PI)));
+                    }
+                }
+
+                laser(segment, sideIgnore)
+                {
+                    let closestIntersection;
+                    let distanceToClosestIntersection;
+                    let closestSide;
+
+                    for(var n = 0; n < this.vertices.length; n++)
+                    {
+                        let side = this.getSideAbsolute(n);
+
+                        if(_.isEqual(side, sideIgnore))
+                        {
+                            continue;
+                        }
+
+                        if(intersectSegmentSegment(segment, side))
+                        {
+                            let intersection = intersectionLineLine(segment, side);
+                            let distanceToIntersection = distance(segment.p1, intersection);
+
+                            if(closestIntersection === undefined ||  distanceToIntersection < distanceToClosestIntersection)
+                            {
+                                closestIntersection = intersection;
+                                distanceToClosestIntersection = distanceToIntersection;
+                                closestSide = side;
+                            }
+                        }
+                    }
+
+                    if(closestIntersection !== undefined)
+                    {
+                        return {intersection: _.cloneDeep(closestIntersection), distanceToIntersection: distanceToClosestIntersection, side: _.cloneDeep(closestSide)};
+                    }
+
+                    return false;
+                }
+>>>>>>> Stashed changes
             }
 
             class MirrorCollection
@@ -135,6 +415,10 @@
                     let closestMirror;
                     let closestMirrorSide;
                     let distanceToClosestIntersection;
+<<<<<<< Updated upstream
+=======
+                    let closestSide;
+>>>>>>> Stashed changes
 
                     for(var n = 0; n < this.mirrors.length; n++)
                     {
@@ -142,13 +426,20 @@
 
                         for(var m = 0; m < mirror.vertices.length; m++)
                         {
+<<<<<<< Updated upstream
                             let mirrorSide = mirror.getSideAbsolute(m);
 
                             if(_.isEqual(mirrorSide, sideIgnore))
+=======
+                            let side = mirror.getSideAbsolute(m);
+
+                            if(_.isEqual(side, sideIgnore))
+>>>>>>> Stashed changes
                             {
                                 continue;
                             }
 
+<<<<<<< Updated upstream
                             if(intersectSegmentSegment(laserLine, mirrorSide))
                             {
                                 let intersection = intersectionLineLine(laserLine, mirrorSide);
@@ -160,12 +451,25 @@
                                     closestMirror = mirror;
                                     closestMirrorSide = mirrorSide;
                                     distanceToClosestIntersection = distanceToIntersection;
+=======
+                            if(intersectSegmentSegment(laserLine, side))
+                            {
+                                let intersection = intersectionLineLine(laserLine, side);
+                                let distanceToIntersection = distance(laserBeam.position, intersection);
+
+                                if(closestIntersection === undefined ||  distanceToIntersection < distanceToClosestIntersection)
+                                {
+                                    closestMirror = mirror;
+                                    closestIntersection = intersection;
+                                    distanceToClosestIntersection = distanceToIntersection;
+                                    closestSide = side;
+>>>>>>> Stashed changes
                                 }
                             }
                         }
                     }
 
-                    if(closestIntersection === undefined)
+                    if(closestMirror === undefined)
                     {
                         let newPoint = _.cloneDeep(laserBeam.position);
                         newPoint.addToPolar(LASER_RANGE, laserBeam.rotation);
@@ -177,7 +481,11 @@
                     newIntersections.push(closestIntersection);
 
                     // angle of incidence code start
+<<<<<<< Updated upstream
                     let angleOfIncidence = Math.PI / 2 + laserBeam.rotation - closestMirrorSide.getAngle();
+=======
+                    let angleOfIncidence = Math.PI / 2 + laserBeam.rotation - closestSide.getAngle();
+>>>>>>> Stashed changes
 
                     while(angleOfIncidence > Math.PI)
                     {
@@ -202,7 +510,11 @@
 
                     if(closestMirror.reflecting)
                     {
+<<<<<<< Updated upstream
                         return this.laser(new Laser(closestIntersection, 2 * closestMirrorSide.getAngle() - laserBeam.rotation), newIntersections, _.cloneDeep(closestMirrorSide));
+=======
+                        return this.laser(new Laser(closestIntersection, 2 * closestSide.getAngle() - laserBeam.rotation), newIntersections, closestSide);
+>>>>>>> Stashed changes
                     }
 
                     else
@@ -308,11 +620,14 @@
             const canvas = document.getElementById("canvas");
             const canvasWidth = canvas.width;
             const canvasHeight = canvas.height;
-            const ctx = canvas.getContext("2d");
+            const ctx = canvas.getContext("2d", {alpha: false});
+            const canvasBuffer = document.getElementById("canvas-buffer");
+            const ctxBuffer = canvasBuffer.getContext("2d", {alpha: false});
             const pointOrigin = new Point(0, 0);
             const keysPressed = [];
             const LASER_MAX_BOUNCES = 10;
             const LASER_RANGE = 10000;
+<<<<<<< Updated upstream
             var mirror = new Mirror(new Point(400, 800), 0);
             mirror.makeRectangle(100, 200);
             var mirror2 = new Mirror(new Point(700, 700), 0);
@@ -324,9 +639,21 @@
             var mirrorCollection = new MirrorCollection([mirror, mirror2, mirror3]);
             var lasers = [];
             lasers.push(new Laser(new Point(400, 650), 15 * Math.PI / 180, 120));
+=======
+            var mirror = new Mirror(new Point(500, 500), 0, [new Point(-200, -200), new Point(200, -200), new Point(200, 200), new Point(-200, 200)]);
+            //mirror.makeBlob(50);
+            var mirror2 = new Mirror(new Point(1000, 600), 0);
+            mirror2.makeRegularPolygon(100, 8);
+            var mirror3 = new Mirror(new Point(1000, 1000), 0);
+            mirror3.makeRegularPolygon(100, 6);
+            var mirrorCollection = new MirrorCollection([mirror, mirror2, mirror3]);
+            var lasers = [new Laser(new Point(400, 650), 15 * Math.PI / 180, 120)];
+            var p5;
+>>>>>>> Stashed changes
 
             function render()
             {
+
                 if(keysPressed.includes("ArrowLeft"))
                 {
                     lasers[0].position.x -= 2;
@@ -427,13 +754,15 @@
                 request = requestAnimationFrame(render);
             }
 
-            request = requestAnimationFrame(render);
-
             resize();
             window.onresize = resize;
             window.onkeydown = keydown;
             window.onkeyup = keyup;
-            //window.oncontextmenu = function(event) { event.preventDefault(); };
+            window.onload = function()
+            {
+                p5 = new p5();
+                request = requestAnimationFrame(render);
+            }
 
             function resize()
             {
@@ -498,6 +827,11 @@
             function interpolateLinear(startingValue, endingValue, t)
             {
                 return (startingValue + (endingValue - startingValue) * t);
+            }
+
+            function interpolateQuadratic(startingValue, endingValue, t)
+            {
+                return interpolateLinear(startingValue, endingValue, t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
             }
 
             function interpolatePointToPoint(p1, p2, t)
