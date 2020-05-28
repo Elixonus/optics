@@ -3,7 +3,6 @@
     <head>
         <title>Laser Simulation</title>
         <script src="./lodash.js"></script>
-        <script src="./p5.js"></script>
     </head>
     
     <body onresize="resize();">
@@ -40,7 +39,7 @@
 
             class Point
             {
-                constructor(x, y)
+                constructor(x = 0, y = 0)
                 {
                     this.x = x;
                     this.y = y;
@@ -127,15 +126,6 @@
                 }
             }
 
-<<<<<<< Updated upstream
-            class Circle
-            {
-                constructor(position, radius)
-                {
-                    this.position = position;
-                    this.radius = radius;
-                }
-=======
             class Mirror
             {
                 constructor(position, rotation, vertices = [])
@@ -352,8 +342,7 @@
 
                     for(var n = 0; n < vertexCount; n++)
                     {
-                        let noiseRadius = p5.noise(Math.cos(n / vertexCount * 2 * Math.PI), Math.cos(n / vertexCount * 2 * Math.PI));
-                        this.vertices.push(new Point(100 * noiseRadius * Math.cos(n / vertexCount * 2 * Math.PI), 100 * noiseRadius * Math.sin(n / vertexCount * 2 * Math.PI)));
+
                     }
                 }
 
@@ -393,7 +382,6 @@
 
                     return false;
                 }
->>>>>>> Stashed changes
             }
 
             class MirrorCollection
@@ -411,14 +399,10 @@
                     }
 
                     let laserLine = new Line(laserBeam.position, new Point(laserBeam.position.x + LASER_RANGE * Math.cos(laserBeam.rotation), laserBeam.position.y + LASER_RANGE * Math.sin(laserBeam.rotation)));
-                    let closestIntersection;
                     let closestMirror;
-                    let closestMirrorSide;
+                    let closestIntersection;
                     let distanceToClosestIntersection;
-<<<<<<< Updated upstream
-=======
                     let closestSide;
->>>>>>> Stashed changes
 
                     for(var n = 0; n < this.mirrors.length; n++)
                     {
@@ -426,32 +410,13 @@
 
                         for(var m = 0; m < mirror.vertices.length; m++)
                         {
-<<<<<<< Updated upstream
-                            let mirrorSide = mirror.getSideAbsolute(m);
-
-                            if(_.isEqual(mirrorSide, sideIgnore))
-=======
                             let side = mirror.getSideAbsolute(m);
 
                             if(_.isEqual(side, sideIgnore))
->>>>>>> Stashed changes
                             {
                                 continue;
                             }
 
-<<<<<<< Updated upstream
-                            if(intersectSegmentSegment(laserLine, mirrorSide))
-                            {
-                                let intersection = intersectionLineLine(laserLine, mirrorSide);
-                                let distanceToIntersection = distance(laserBeam.position, intersection);
-
-                                if((closestIntersection === undefined || distanceToIntersection < distanceToClosestIntersection))
-                                {
-                                    closestIntersection = intersection;
-                                    closestMirror = mirror;
-                                    closestMirrorSide = mirrorSide;
-                                    distanceToClosestIntersection = distanceToIntersection;
-=======
                             if(intersectSegmentSegment(laserLine, side))
                             {
                                 let intersection = intersectionLineLine(laserLine, side);
@@ -463,7 +428,6 @@
                                     closestIntersection = intersection;
                                     distanceToClosestIntersection = distanceToIntersection;
                                     closestSide = side;
->>>>>>> Stashed changes
                                 }
                             }
                         }
@@ -471,9 +435,9 @@
 
                     if(closestMirror === undefined)
                     {
-                        let newPoint = _.cloneDeep(laserBeam.position);
-                        newPoint.addToPolar(LASER_RANGE, laserBeam.rotation);
-                        intersections.push(newPoint);
+                        let point = _.cloneDeep(laserBeam.position);
+                        point.addToPolar(LASER_RANGE, laserBeam.rotation);
+                        intersections.push(point);
                         return intersections;
                     }
 
@@ -481,11 +445,7 @@
                     newIntersections.push(closestIntersection);
 
                     // angle of incidence code start
-<<<<<<< Updated upstream
-                    let angleOfIncidence = Math.PI / 2 + laserBeam.rotation - closestMirrorSide.getAngle();
-=======
                     let angleOfIncidence = Math.PI / 2 + laserBeam.rotation - closestSide.getAngle();
->>>>>>> Stashed changes
 
                     while(angleOfIncidence > Math.PI)
                     {
@@ -504,17 +464,9 @@
 
                     angleOfIncidence = angleOfIncidence;
 
-                    console.log(angleOfIncidence * 180 / Math.PI);
-
-                    // angle of incidence code end
-
                     if(closestMirror.reflecting)
                     {
-<<<<<<< Updated upstream
-                        return this.laser(new Laser(closestIntersection, 2 * closestMirrorSide.getAngle() - laserBeam.rotation), newIntersections, _.cloneDeep(closestMirrorSide));
-=======
                         return this.laser(new Laser(closestIntersection, 2 * closestSide.getAngle() - laserBeam.rotation), newIntersections, closestSide);
->>>>>>> Stashed changes
                     }
 
                     else
@@ -525,7 +477,7 @@
                 }
             }
 
-            class Mirror
+/*            class Mirror
             {
                 constructor(position, rotation, vertices = [])
                 {
@@ -573,7 +525,19 @@
                     let bottomLeftCorner = new Point(-halfWidth, halfHeight);
                     this.vertices = [topLeftCorner, topRightCorner, bottomRightCorner, bottomLeftCorner];
                 }
-            }
+
+                makeCircle(radius, vertexCount)
+                {
+                    this.vertices = [];
+
+                    for(var n = 0; n < vertexCount; n++)
+                    {
+                        let vertex = new Point();
+                        vertex.addToPolar(radius, n / vertexCount * 2 * Math.PI);
+                        this.vertices.push(vertex);
+                    }
+                }
+            }*/
 
             class Laser
             {
@@ -627,19 +591,6 @@
             const keysPressed = [];
             const LASER_MAX_BOUNCES = 10;
             const LASER_RANGE = 10000;
-<<<<<<< Updated upstream
-            var mirror = new Mirror(new Point(400, 800), 0);
-            mirror.makeRectangle(100, 200);
-            var mirror2 = new Mirror(new Point(700, 700), 0);
-            mirror2.makeRectangle(300, 100);
-            var mirror3 = new Mirror(new Point(1500, 800), 45, [new Point(-200, 0), new Point(200, 0), new Point(0, 200)]);
-            var mirror4 = new Mirror(new Point(canvasWidth / 2, canvasHeight / 2), 0);
-            mirror4.makeRectangle(canvasWidth, canvasHeight);
-            mirror4.reflecting = false;
-            var mirrorCollection = new MirrorCollection([mirror, mirror2, mirror3]);
-            var lasers = [];
-            lasers.push(new Laser(new Point(400, 650), 15 * Math.PI / 180, 120));
-=======
             var mirror = new Mirror(new Point(500, 500), 0, [new Point(-200, -200), new Point(200, -200), new Point(200, 200), new Point(-200, 200)]);
             //mirror.makeBlob(50);
             var mirror2 = new Mirror(new Point(1000, 600), 0);
@@ -648,8 +599,6 @@
             mirror3.makeRegularPolygon(100, 6);
             var mirrorCollection = new MirrorCollection([mirror, mirror2, mirror3]);
             var lasers = [new Laser(new Point(400, 650), 15 * Math.PI / 180, 120)];
-            var p5;
->>>>>>> Stashed changes
 
             function render()
             {
@@ -686,10 +635,6 @@
                 
                 ctx.reset();
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-                mirrorCollection.mirrors[1].rotation += 0.003;
-                mirrorCollection.mirrors[2].rotation += 0.001;
-                mirrorCollection.mirrors[0].position.x += 1;
 
                 for(var n = 0; n < mirrorCollection.mirrors.length; n++)
                 {
@@ -760,7 +705,6 @@
             window.onkeyup = keyup;
             window.onload = function()
             {
-                p5 = new p5();
                 request = requestAnimationFrame(render);
             }
 
@@ -910,6 +854,45 @@
                 let y = y1 + ua * (y2 - y1);
 
                 return new Point(x, y);
+            }
+
+            function intersectionSegmentCircle(line, circle)
+            {
+                var a, b, c, d, u1, u2, ret, retP1, retP2, v1, v2;
+                v1 = {};
+                v2 = {};
+                v1.x = line.p2.x - line.p1.x;
+                v1.y = line.p2.y - line.p1.y;
+                v2.x = line.p1.x - circle.position.x;
+                v2.y = line.p1.y - circle.position.y;
+                b = (v1.x * v2.x + v1.y * v2.y);
+                c = 2 * (v1.x * v1.x + v1.y * v1.y);
+                b *= -2;
+                d = Math.sqrt(b * b - 2 * c * (v2.x * v2.x + v2.y * v2.y - circle.radius * circle.radius));
+                if(isNaN(d))
+                {
+                    return [];
+                }
+                u1 = (b - d) / c;
+                u2 = (b + d) / c;    
+                retP1 = {};
+                retP2 = {}  
+                ret = [];
+                if(u1 <= 1 && u1 >= 0)
+                {
+                    /*retP1.x = line.p1.x + v1.x * u1;
+                    retP1.y = line.p1.y + v1.y * u1;*/
+                    retP1 = new Point(line.p1.x + v1.x * u1, line.p1.y + v1.y * u1);
+                    ret[0] = retP1;
+                }
+                if(u2 <= 1 && u2 >= 0)
+                {
+                    /*retP2.x = line.p1.x + v1.x * u2;
+                    retP2.y = line.p1.y + v1.y * u2;*/
+                    retP2 = new Point(line.p1.x + v1.x * u2, line.p1.y + v1.y * u2);
+                    ret[ret.length] = retP2;
+                }       
+                return ret;
             }
             
         </script>
