@@ -199,7 +199,7 @@
                 getVertexAbsolute(vertexNumber)
                 {
                     let vertex = _.cloneDeep(this.getVertex(vertexNumber));
-                    vertex.rotateAroundPoint(pointOrigin);
+                    vertex.rotateAroundPoint(pointOrigin, this.rotation);
                     vertex.addTo(this.position);
                     return vertex;
                 }
@@ -264,59 +264,112 @@
 
                 getExtremesAbsolute()
                 {
-                    let extremes = this.getExremes();
-
-                    if(extremes === false)
+                    if(this.vertices.length === 0)
                     {
                         return false;
                     }
 
-                    Object.keys(extremes).forEach(function(key)
-                    {
-                        let extreme = extremes[key];
-                        extreme = getVertexAbsolute(this.vertices.indexOf(extreme));
-                    });
+                    let leftMost;
+                    let rightMost;
+                    let upMost;
+                    let downMost;
 
-                    return extremes;
+                    for(var n = 0; n < this.vertices.length; n++)
+                    {
+                        let vertex = this.getVertexAbsolute(n);
+
+                        if(leftMost === undefined || vertex.x <= leftMost.x)
+                        {
+                            leftMost = vertex;
+                        }
+
+                        if(rightMost === undefined || vertex.x >= rightMost.x)
+                        {
+                            rightMost = vertex;
+                        }
+
+                        if(upMost === undefined || vertex.y <= upMost.y)
+                        {
+                            upMost = vertex;
+                        }
+
+                        if(downMost === undefined || vertex.y >= downMost.y)
+                        {
+                            downMost = vertex;
+                        }
+                    }
+
+                    return {
+                        leftMost: leftMost,
+                        rightMost: rightMost,
+                        upMost: upMost,
+                        downMost, downMost
+                    };
+                }
+
+                pointInside(p)
+                {
+                    let pointOutside = this.getExtremes().leftMost.getSubtractTo(new Point(1, 0));
+                    let lineFromInsideToOutside = new Line(p, pointOutside);
+                    let sum = 0;
+
+                    for(var n = 0; n < this.vertices.length; n++)
+                    {
+                        let side = this.getSide(n);
+
+                        if(intersectSegmentSegment(lineFromInsideToOutside, side))
+                        {
+                            sum++;
+                        }
+                    }
+
+                    if(sum % 2 === 0)
+                    {
+                        return false;
+                    }
+
+                    return true;
+                }
+
+                pointInsideAbsolute(p)
+                {
+                    let pointOutside = this.getExtremesAbsolute().leftMost.getSubtractTo(new Point(1, 0));
+                    let lineFromInsideToOutside = new Line(p, pointOutside);
+                    let sum = 0;
+
+                    for(var n = 0; n < this.vertices.length; n++)
+                    {
+                        let side = this.getSideAbsolute(n);
+
+                        if(intersectSegmentSegment(lineFromInsideToOutside, side))
+                        {
+                            sum++;
+                        }
+                    }
+
+                    if(sum % 2 === 0)
+                    {
+                        return false;
+                    }
+
+                    return true;
                 }
 
                 findArea()
                 {
                     if(this.vertices.length < 3)
                     {
-                        return false;
+                        return 0;
                     }
 
-                    let extremes = this.getExtremes();
-                    canvasBuffer.width = Math.round(Math.abs(extremes.leftMost.x - extremes.rightMost.x));
-                    canvasBuffer.height = Math.round(Math.abs(extremes.upMost.y - extremes.downMost.y));
+                    let sum = 0;
 
-                    ctxBuffer.clearRect(0, 0, canvasBuffer.width, canvasBuffer.height);
-                    ctxBuffer.beginPath();
-                    ctxBuffer.moveTo(this.vertices[0].x - extremes.leftMost.x, this.vertices[0].y - extremes.upMost.y);
-
-                    for(var n = 1; n < this.vertices.length; n++)
+                    for(var n = 1; n <= this.vertices.length; n++)
                     {
-                        ctxBuffer.lineTo(this.vertices[n].x - extremes.leftMost.x, this.vertices[n].y - extremes.upMost.y);
-                    }
-                    
-                    ctxBuffer.closePath();
-                    ctxBuffer.fill();
-
-                    let data = ctxBuffer.getImageData(0, 0, canvasBuffer.width, canvasBuffer.height).data;
-                    let dataFiltered = [];
-
-                    for(var n = 0; n < data.length; n += 4)
-                    {
-                        dataFiltered.push(data[n + 3]);
+                        sum += this.getVertex(n).x * this.getVertex(n + 1).y - this.getVertex(n + 1).x * this.getVertex(n).y;
                     }
 
-                    dataFiltered = dataFiltered.filter(function(alpha)
-                    {
-                        return alpha >= 0.5;
-                    });
-
-                    return dataFiltered.length;
+                    return sum;
                 }
 
                 findCenter()
@@ -585,6 +638,7 @@
                     }
 
                     angleOfIncidence = angleOfIncidence;
+                    // angle of incidence code end
 
                     if(closestMirror.isReflecting)
                     {
@@ -614,30 +668,6 @@
                 }
             }
 
-            CanvasRenderingContext2D.prototype.reset = function()
-            {
-                this.direction = "ltr";
-                this.fillStyle = "#000000";
-                this.filter = "none";
-                this.font = "10px sans-serif";
-                this.globalAlpha = 1;
-                this.globalCompositeOperation = "source-over";
-                this.imageSmoothingEnabled = true;
-                this.imageSmoothingQuality = "low";
-                this.lineCap = "butt";
-                this.lineDashOffset = 0;
-                this.lineJoin = "miter";
-                this.lineWidth = 1;
-                this.miterLimit = 10;
-                this.shadowBlur = 0;
-                this.shadowColor = "rgba(0, 0, 0, 0)";
-                this.shadowOffsetX = 0;
-                this.shadowOffsetY = 0;
-                this.strokeStyle = "#000000";
-                this.textAlign = "start";
-                this.textBaseline = "alphabetic";
-            }
-
             var request;
             const requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
             const cancelAnimationFrame = window.cancelAnimationFrame || window.mozCancelAnimationFrame || window.webkitCancelAnimationFrame || window.msCancelAnimationFrame;
@@ -650,18 +680,19 @@
             const canvasBuffer = document.getElementById("canvas-buffer");
             const ctxBuffer = canvasBuffer.getContext("2d", {alpha: false});
             const pointOrigin = new Point(0, 0);
+            var camera = {position: _.cloneDeep(pointOrigin)};
             var mousePosition = new Point(0, 0);
             const keysPressed = [];
             const LASER_MAX_BOUNCES = 10;
             const LASER_RANGE = 10000;
-            var mirror = new Mirror(new Point(500, 500), 0, [new Point(-200, -200), new Point(200, -200), new Point(200, 200), new Point(-200, 200)]);
-            mirror.makeBlob(200, 0.1, 0.1, 50);
-            var mirror2 = new Mirror(new Point(1000, 600), 0);
+            var mirror = new Mirror(new Point(0, 0), 0, [new Point(-200, -200), new Point(200, -200), new Point(200, 200), new Point(-200, 200)]);
+            mirror.makeBlob(200, 0.1, 0.5, 20);
+            var mirror2 = new Mirror(new Point(100, 300), 0);
             mirror2.makeRegularPolygon(100, 8);
             var mirror3 = new Mirror(new Point(1000, 1000), 0);
             mirror3.makeRegularPolygon(100, 6);
             var mirrorCollection = new MirrorCollection([mirror, mirror2, mirror3]);
-            var lasers = [new Laser(new Point(400, 750), 15 * Math.PI / 180, 120)];
+            var lasers = [new Laser(new Point(40, 450), 15 * Math.PI / 180, 120)];
 
             function render()
             {
@@ -694,24 +725,27 @@
                 {
                     lasers[0].rotation += 0.02;
                 }
-                
-                ctx.reset();
+
+                camera.position.interpolateToPointLinear(mousePosition.getScale(0.1), 0.05);
+
+                ctx.fillStyle = "#000000";
+                ctx.shadowBlur = 0;
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.translate(canvasWidth / 2 - camera.position.x, canvasHeight / 2 - camera.position.y);
+                
+                ctx.lineWidth = 5;
+                ctx.lineJoin = "round";
+                ctx.shadowBlur = 20;
 
                 for(var n = 0; n < mirrorCollection.mirrors.length; n++)
                 {
                     let mirror = mirrorCollection.mirrors[n];
                     let vertices = mirror.vertices;
 
-                    ctx.reset();
-                    ctx.lineWidth = 5;
-                    ctx.lineJoin = "round";
-
                     if(mirror.isReflecting)
                     {
                         ctx.strokeStyle = "#ff0000";
                         ctx.shadowColor = "#ff0000";
-                        ctx.shadowBlur = 20;
                     }
 
                     else
@@ -735,17 +769,15 @@
                     ctx.restore();
                 }
 
+                ctx.lineWidth = 3;
+
                 for(var n = 0; n < lasers.length; n++)
                 {
                     let laser = lasers[n];
                     let intersections = mirrorCollection.laser(laser);
 
-                    ctx.reset();
-                    ctx.lineWidth = 3;
-                    ctx.lineJoin = "round";
                     ctx.strokeStyle = "hsl(" + laser.hue + ", 100%, 50%)";
                     ctx.shadowColor = ctx.strokeStyle;
-                    ctx.shadowBlur = 20;
                     ctx.beginPath();
                     ctx.moveTo(laser.position.x, laser.position.y);
                     
@@ -757,6 +789,8 @@
 
                     ctx.stroke();
                 }
+
+                ctx.resetTransform();
 
                 request = requestAnimationFrame(render);
             }
@@ -800,14 +834,14 @@
 
                 if(event.button === 0)
                 {
-                    let closestMirror = mirrorCollection.getClosestMirrorToPoint(mousePosition);
-
-                    if(closestMirror !== false)
+                    for(var n = 0; n < mirrorCollection.mirrors.length; n++)
                     {
-                        if(closestMirror.distanceToMirror <= 100)
+                        let mirror = mirrorCollection.mirrors[n];
+
+                        if(mirror.pointInsideAbsolute(mousePosition.getAddTo(camera.position)))
                         {
-                            closestMirror.mirror.isDragged = true;
-                            closestMirror.mirror.mouseDragOffset = mousePosition.getSubtractTo(closestMirror.mirror.position);
+                            mirror.isDragged = true;
+                            mirror.mouseDragOffset = mousePosition.getSubtractTo(mirror.position);
                         }
                     }
                 }
@@ -838,8 +872,8 @@
                 }
 
                 let rect = canvas.getBoundingClientRect();
-                mousePosition.x = map(event.clientX, rect.left, windowWidth - rect.left, 0, canvasWidth);
-                mousePosition.y = map(event.clientY, rect.top, windowHeight - rect.top, 0, canvasHeight);
+                mousePosition.x = map(event.clientX, rect.left, windowWidth - rect.left, -canvasWidth / 2, canvasWidth / 2);
+                mousePosition.y = map(event.clientY, rect.top, windowHeight - rect.top, -canvasHeight / 2, canvasHeight / 2);
 
                 let draggedMirrors = mirrorCollection.mirrors.filter(function(mirror)
                 {
@@ -1012,15 +1046,11 @@
                 ret = [];
                 if(u1 <= 1 && u1 >= 0)
                 {
-                    /*retP1.x = line.p1.x + v1.x * u1;
-                    retP1.y = line.p1.y + v1.y * u1;*/
                     retP1 = new Point(line.p1.x + v1.x * u1, line.p1.y + v1.y * u1);
                     ret[0] = retP1;
                 }
                 if(u2 <= 1 && u2 >= 0)
                 {
-                    /*retP2.x = line.p1.x + v1.x * u2;
-                    retP2.y = line.p1.y + v1.y * u2;*/
                     retP2 = new Point(line.p1.x + v1.x * u2, line.p1.y + v1.y * u2);
                     ret[ret.length] = retP2;
                 }       
