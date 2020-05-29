@@ -745,6 +745,30 @@
                     }
                 }
 
+                ctx.strokeStyle = "#222222";
+                ctx.shadowBlur = 0;
+
+                for(var n = 0; n < nonReflectingMirrors.length; n++)
+                {
+                    let mirror = nonReflectingMirrors[n];
+                    let vertices = mirror.vertices;
+
+                    ctx.save();
+                    ctx.translate(mirror.position.x, mirror.position.y);
+                    ctx.rotate(mirror.rotation);
+                    ctx.beginPath();
+                    ctx.moveTo(vertices[0].x, vertices[0].y);
+
+                    for(var m = 1; m < vertices.length; m++)
+                    {
+                        ctx.lineTo(vertices[m].x, vertices[m].y);
+                    }
+
+                    ctx.closePath();
+                    ctx.stroke();
+                    ctx.restore();
+                }
+
                 for(var n = 0; n < reflectingMirrors.length; n++)
                 {
                     let mirror = reflectingMirrors[n];
@@ -771,30 +795,6 @@
                     }
 
                     ctx.shadowColor = ctx.strokeStyle;
-
-                    ctx.save();
-                    ctx.translate(mirror.position.x, mirror.position.y);
-                    ctx.rotate(mirror.rotation);
-                    ctx.beginPath();
-                    ctx.moveTo(vertices[0].x, vertices[0].y);
-
-                    for(var m = 1; m < vertices.length; m++)
-                    {
-                        ctx.lineTo(vertices[m].x, vertices[m].y);
-                    }
-
-                    ctx.closePath();
-                    ctx.stroke();
-                    ctx.restore();
-                }
-
-                ctx.strokeStyle = "#222222";
-                ctx.shadowBlur = 0;
-
-                for(var n = 0; n < nonReflectingMirrors.length; n++)
-                {
-                    let mirror = nonReflectingMirrors[n];
-                    let vertices = mirror.vertices;
 
                     ctx.save();
                     ctx.translate(mirror.position.x, mirror.position.y);
