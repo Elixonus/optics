@@ -7,12 +7,12 @@
     
     <body onresize="resize();">
         <canvas id="canvas" width="1920" height="1080"></canvas>
-        <canvas id="canvas-buffer" class="hidden"></canvas>
 
         <style>
 
             *
             {
+                cursor: none;
                 margin: 0;
                 padding: 0;
             }
@@ -49,56 +49,37 @@
                     this.y = y;
                 }
 
+                clone()
+                {
+                    return _.cloneDeep(this);
+                }
+
                 addTo(p)
                 {
                     this.x += p.x;
                     this.y += p.y;
-                }
-
-                getAddTo(p)
-                {
-                    let result = _.cloneDeep(this);
-                    result.addTo(p);
-                    return result;
+                    return this;
                 }
 
                 addToPolar(r, a)
                 {
                     this.x += r * Math.cos(a);
                     this.y += r * Math.sin(a);
-                }
-
-                getAddToPolar(r, a)
-                {
-                    let result = _.cloneDeep(this);
-                    result.addToPolar(r, a);
-                    return result;
+                    return this;
                 }
 
                 subtractTo(p)
                 {
                     this.x -= p.x;
                     this.y -= p.y;
-                }
-
-                getSubtractTo(p)
-                {
-                    let result = _.cloneDeep(this);
-                    result.subtractTo(p);
-                    return result;
+                    return this;
                 }
 
                 scale(xs, ys = xs)
                 {
                     this.x *= xs;
                     this.y *= ys;
-                }
-
-                getScale(xs, ys = xs)
-                {
-                    let result = _.cloneDeep(this);
-                    result.scale(xs, ys);
-                    return result;
+                    return this;
                 }
 
                 rotateAroundPoint(p, rotation)
@@ -109,39 +90,28 @@
                     let yD = this.y - p.y;
                     this.x = cosine * xD - sine * yD + p.x;
                     this.y = sine * xD + cosine * yD + p.y;
-                }
-
-                getRotateAroundPoint(p, rotation)
-                {
-                    let result = _.cloneDeep(this);
-                    result.rotateAroundPoint(p, rotation);
-                    return result;
+                    return this;
                 }
 
                 interpolateToPointLinear(p, t)
                 {
                     this.x = interpolateLinear(this.x, p.x, t);
                     this.y = interpolateLinear(this.y, p.y, t);
-                }
-
-                getInterpolateToPointLinear(p, t)
-                {
-                    let result = _.cloneDeep(this);
-                    result.interpolateToPointLinear(p, t);
-                    return result;
+                    return this;
                 }
 
                 interpolateToPointQuadratic(p, t)
                 {
                     this.x = interpolateLinear(this.x, p.x, t);
                     this.y = interpolateLinear(this.y, p.y, t);
+                    return this;
                 }
 
-                getInterpolateToPointQuadratic(p, t)
+                midPointTo(p)
                 {
-                    let result = _.cloneDeep(this);
-                    result.interpolateToPointQuadratic(p, t);
-                    return result;
+                    this.x = (this.x + p.x) / 2;
+                    this.y = (this.y + p.y) / 2;
+                    return this;
                 }
             }
 
@@ -153,22 +123,30 @@
                     this.p2 = p2;
                 }
 
+                clone()
+                {
+                    return _.cloneDeep(this);
+                }
+
                 addTo(p)
                 {
                     this.p1.addTo(p);
                     this.p2.addTo(p);
+                    return this;
                 }
 
                 subtractTo(p)
                 {
                     this.p1.subtractTo(p);
                     this.p2.subtractTo(p);
+                    return this;
                 }
 
                 rotateAroundPoint(p, rotation)
                 {
                     this.p1.rotateAroundPoint(p, rotation);
                     this.p2.rotateAroundPoint(p, rotation);
+                    return this;
                 }
 
                 getAngle()
@@ -188,20 +166,23 @@
                     this.vertices = vertices;
                     this.isReflecting = true;
                     this.isDragged = false;
-                    this.mouseDragOffset;
                 }
 
                 getVertex(vertexNumber)
                 {
-                    return this.vertices[vertexNumber % this.vertices.length];
+                    let correctedVertexNumber = vertexNumber;
+
+                    while(correctedVertexNumber < 0)
+                    {
+                        correctedVertexNumber += this.vertices.length;
+                    }
+
+                    return this.vertices[correctedVertexNumber % this.vertices.length];
                 }
 
                 getVertexAbsolute(vertexNumber)
                 {
-                    let vertex = _.cloneDeep(this.getVertex(vertexNumber));
-                    vertex.rotateAroundPoint(pointOrigin, this.rotation);
-                    vertex.addTo(this.position);
-                    return vertex;
+                    return this.getVertex(vertexNumber).clone().rotateAroundPoint(pointOrigin, this.rotation).addTo(this.position);
                 }
 
                 getSide(sideNumber)
@@ -211,10 +192,7 @@
 
                 getSideAbsolute(sideNumber)
                 {
-                    let absoluteSide = _.cloneDeep(this.getSide(sideNumber));
-                    absoluteSide.rotateAroundPoint(pointOrigin, this.rotation);
-                    absoluteSide.addTo(this.position);
-                    return absoluteSide;
+                    return this.getSide(sideNumber).clone().rotateAroundPoint(pointOrigin, this.rotation).addTo(this.position);
                 }
 
                 getExtremes()
@@ -309,7 +287,7 @@
 
                 pointInside(p)
                 {
-                    let pointOutside = this.getExtremes().leftMost.getSubtractTo(new Point(1, 0));
+                    let pointOutside = this.getExtremes().leftMost.clone().subtractTo(new Point(1, 0));
                     let lineFromInsideToOutside = new Line(p, pointOutside);
                     let sum = 0;
 
@@ -333,7 +311,7 @@
 
                 pointInsideAbsolute(p)
                 {
-                    let pointOutside = this.getExtremesAbsolute().leftMost.getSubtractTo(new Point(1, 0));
+                    let pointOutside = this.getExtremesAbsolute().leftMost.clone().subtractTo(new Point(1, 0));
                     let lineFromInsideToOutside = new Line(p, pointOutside);
                     let sum = 0;
 
@@ -387,6 +365,15 @@
                     return average;
                 }
 
+                scale(xs, ys = xs)
+                {
+                    for(var n = 0; n < this.vertices.length; n++)
+                    {
+                        let vertex = this.vertices[n];
+                        vertex.scale(xs, ys);
+                    }
+                }
+
                 subdivide(vertexMultiplier = 2)
                 {
                     for(var n = 0; n < this.vertices.length; n++)
@@ -396,13 +383,13 @@
 
                         for(var m = 1; m < vertexMultiplier; m++)
                         {
-                            this.vertices.splice(n + 1, 0, interpolatePointToPoint(side.p1, side.p2, m / (vertexMultiplier + 1)));
+                            this.vertices.splice(n + 1, 0, side.p1.clone().interpolateToPointLinear(side.p2, m / (vertexMultiplier + 1)));
                             n++;
                         }
                     }
                 }
 
-                smoothen()
+                smooth(factor = 0.5, iterationsMultiplier = 1)
                 {
                     if(this.vertices.length === 0)
                     {
@@ -410,40 +397,18 @@
                     }
 
                     let initialArea = this.findArea();
-                    let average = this.findCenter();
 
-                    let distances = [];
-                    let distanceToClosestVertex;
-                    let distanceToFarthestVertex;
-
-                    for(var n = 0; n < this.vertices.length; n++)
+                    for(var n = 0; n < Math.round(this.vertices.length * iterationsMultiplier); n++)
                     {
-                        let vertex = this.vertices[n];
-                        let distanceToVertex = distance(vertex);
-                        distances.push(distanceToVertex);
-
-                        if(distanceToClosestVertex === undefined || distanceToVertex < distanceToClosestVertex)
-                        {
-                            distanceToClosestVertex = distanceToVertex;
-                        }
-
-                        if(distanceToFarthestVertex === undefined || distanceToVertex > distanceToFarthestVertex)
-                        {
-                            distanceToFarthestVertex = distanceToVertex;
-                        }
+                        let previousVertex = this.getVertex(n - 1);
+                        let vertex = this.getVertex(n);
+                        let nextVertex = this.getVertex(n + 1);
+                        let midPoint = previousVertex.clone().midPointTo(nextVertex);
+                        vertex.interpolateToPointLinear(midPoint, factor);
                     }
-
-                    for(var n = 0; n < this.vertices.length; n++)
-                    {
-                        let vertex = this.vertices[n];
-                        let distanceToVertex = distances[n];
-                        let t = (distanceToVertex - distanceToClosestVertex) / (distanceToFarthestVertex - distanceToClosestVertex);
-                        t = 0.2 * t;
-                        vertex.interpolateToPointLinear(average, t);
-                    }
-
 
                     let finalArea = this.findArea();
+                    this.scale(Math.sqrt(initialArea / finalArea));
                 }
 
                 makeRectangle(width, height)
@@ -659,7 +624,6 @@
                 {
                     this.position = position;
                     this.rotation = rotation;
-                    this.hue = hue;
                 }
 
                 pointTo(p)
@@ -677,25 +641,35 @@
             const canvasWidth = canvas.width;
             const canvasHeight = canvas.height;
             const ctx = canvas.getContext("2d", {alpha: false});
-            const canvasBuffer = document.getElementById("canvas-buffer");
-            const ctxBuffer = canvasBuffer.getContext("2d", {alpha: false});
             const pointOrigin = new Point(0, 0);
             var camera = {position: _.cloneDeep(pointOrigin)};
             var mousePosition = new Point(0, 0);
             const keysPressed = [];
+            var keysFired = false;
             const LASER_MAX_BOUNCES = 10;
             const LASER_RANGE = 10000;
             var mirror = new Mirror(new Point(0, 0), 0, [new Point(-200, -200), new Point(200, -200), new Point(200, 200), new Point(-200, 200)]);
-            mirror.makeBlob(200, 0.1, 0.5, 20);
+            mirror.makeBlob(200, 0.5, 0, 100);
             var mirror2 = new Mirror(new Point(100, 300), 0);
             mirror2.makeRegularPolygon(100, 8);
             var mirror3 = new Mirror(new Point(1000, 1000), 0);
             mirror3.makeRegularPolygon(100, 6);
             var mirrorCollection = new MirrorCollection([mirror, mirror2, mirror3]);
             var lasers = [new Laser(new Point(40, 450), 15 * Math.PI / 180, 120)];
+            var draggedMirrors = [];
 
             function render()
             {
+                draggedMirrors = mirrorCollection.mirrors.filter(function(mirror)
+                {
+                    return mirror.isDragged;
+                });
+
+                for(var n = 0; n < draggedMirrors.length; n++)
+                {
+                    draggedMirrors[n].position = mousePosition.clone().addTo(camera.position);
+                }
+
                 if(keysPressed.includes("ArrowLeft"))
                 {
                     lasers[0].position.x -= 2;
@@ -726,16 +700,16 @@
                     lasers[0].rotation += 0.02;
                 }
 
-                camera.position.interpolateToPointLinear(mousePosition.getScale(0.1), 0.05);
+                camera.position.interpolateToPointLinear(mousePosition.clone().scale(0.1), 0.05);
 
                 ctx.fillStyle = "#000000";
                 ctx.shadowBlur = 0;
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
+
                 ctx.translate(canvasWidth / 2 - camera.position.x, canvasHeight / 2 - camera.position.y);
                 
                 ctx.lineWidth = 5;
                 ctx.lineJoin = "round";
-                ctx.shadowBlur = 20;
 
                 for(var n = 0; n < mirrorCollection.mirrors.length; n++)
                 {
@@ -746,11 +720,22 @@
                     {
                         ctx.strokeStyle = "#ff0000";
                         ctx.shadowColor = "#ff0000";
+
+                        if(mirror.isDragged)
+                        {
+                            ctx.shadowBlur = 40;
+                        }
+
+                        else
+                        {
+                            ctx.shadowBlur = 20;
+                        }
                     }
 
                     else
                     {
                         ctx.strokeStyle = "#222222";
+                        ctx.shadowBlur = 0;
                     }
 
                     ctx.save();
@@ -770,13 +755,14 @@
                 }
 
                 ctx.lineWidth = 3;
+                ctx.shadowBlur = 20;
 
                 for(var n = 0; n < lasers.length; n++)
                 {
                     let laser = lasers[n];
                     let intersections = mirrorCollection.laser(laser);
 
-                    ctx.strokeStyle = "hsl(" + laser.hue + ", 100%, 50%)";
+                    ctx.strokeStyle = "hsl(120, 100%, 50%)";
                     ctx.shadowColor = ctx.strokeStyle;
                     ctx.beginPath();
                     ctx.moveTo(laser.position.x, laser.position.y);
@@ -790,7 +776,39 @@
                     ctx.stroke();
                 }
 
+                ctx.fillStyle = "#ffffff";
+                ctx.shadowBlur = 0;
+
                 ctx.resetTransform();
+                ctx.save();
+                ctx.translate(mousePosition.x + canvasWidth / 2, mousePosition.y + canvasHeight / 2);
+                ctx.beginPath();
+
+                if(draggedMirrors.length === 0)
+                {
+                    ctx.moveTo(0, 0);
+                    ctx.lineTo(10, 30);
+                    ctx.lineTo(20, 20);
+                }
+
+                else
+                {
+                    ctx.moveTo(-1, -1);
+
+                    for(var n = 0; n < 4; n++)
+                    {
+                        ctx.lineTo(-1, -10);
+                        ctx.lineTo(-5, -10);
+                        ctx.lineTo(0, -17);
+                        ctx.lineTo(5, -10);
+                        ctx.lineTo(1, -10);
+                        ctx.lineTo(1, -1);
+                        ctx.rotate(Math.PI / 2);
+                    }
+                }
+
+                ctx.fill();
+                ctx.restore();
 
                 request = requestAnimationFrame(render);
             }
@@ -800,6 +818,7 @@
             window.onmousedown = mousedown;
             window.onmouseup = mouseup;
             window.onmousemove = mousemove;
+            window.onwheel = wheel;
             window.onkeydown = keydown;
             window.onkeyup = keyup;
             window.onload = function()
@@ -838,10 +857,9 @@
                     {
                         let mirror = mirrorCollection.mirrors[n];
 
-                        if(mirror.pointInsideAbsolute(mousePosition.getAddTo(camera.position)))
+                        if(mirror.pointInsideAbsolute(mousePosition.clone().addTo(camera.position)))
                         {
                             mirror.isDragged = true;
-                            mirror.mouseDragOffset = mousePosition.getSubtractTo(mirror.position);
                         }
                     }
                 }
@@ -874,21 +892,36 @@
                 let rect = canvas.getBoundingClientRect();
                 mousePosition.x = map(event.clientX, rect.left, windowWidth - rect.left, -canvasWidth / 2, canvasWidth / 2);
                 mousePosition.y = map(event.clientY, rect.top, windowHeight - rect.top, -canvasHeight / 2, canvasHeight / 2);
+            }
 
-                let draggedMirrors = mirrorCollection.mirrors.filter(function(mirror)
+            function wheel(event)
+            {
+                if(!event)
                 {
-                    return mirror.isDragged;
-                });
+                    event = window.event;
+                }
+                
+                var delta = Math.sign(event.deltaY);
 
                 for(var n = 0; n < draggedMirrors.length; n++)
                 {
                     let draggedMirror = draggedMirrors[n];
-                    draggedMirror.position = mousePosition.getSubtractTo(draggedMirror.mouseDragOffset);
+                    draggedMirror.rotation += delta / 20;
                 }
             }
 
             function keydown(event)
             {
+                if(keysFired)
+                {
+                    return;
+                }
+
+                else
+                {
+                    keysFired = true;
+                }
+
                 if(!event)
                 {
                     event = window.event;
@@ -899,6 +932,24 @@
                 if(keysPressed.includes(eventKey) === false)
                 {
                     keysPressed.push(eventKey);
+                }
+
+                if(eventKey.toUpperCase() === "R")
+                {
+                    for(var n = 0; n < draggedMirrors.length; n++)
+                    {
+                        let draggedMirror = draggedMirrors[n];
+                        draggedMirror.isReflecting = !draggedMirror.isReflecting;
+                    }
+                }
+
+                else if(eventKey.toUpperCase() === "S")
+                {
+                    for(var n = 0; n < draggedMirrors.length; n++)
+                    {
+                        let draggedMirror = draggedMirrors[n];
+                        draggedMirror.smooth();
+                    }
                 }
             }
             
@@ -912,6 +963,7 @@
                 var eventKey = event.key;
                 
                 keysPressed.splice(keysPressed.indexOf(eventKey), 1);
+                keysFired = false;
             }
 
             function map(value, start1, stop1, start2, stop2)
@@ -942,11 +994,6 @@
             function interpolateQuadratic(startingValue, endingValue, t)
             {
                 return interpolateLinear(startingValue, endingValue, t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
-            }
-
-            function interpolatePointToPoint(p1, p2, t)
-            {
-                return new Point(interpolateLinear(p1.x, p2.x, t), interpolateLinear(p1.y, p2.y, t));
             }
 
             function calculateAngleDifference(a1, a2)
