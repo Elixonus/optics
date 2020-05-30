@@ -163,6 +163,7 @@
                 {
                     this.position = position;
                     this.rotation = rotation;
+                    this.targetRotation = this.rotation;
                     this.vertices = vertices;
                     this.isReflecting = true;
                     this.isDragged = false;
@@ -664,15 +665,20 @@
                 {
                     let mirror = mirrorCollection.mirrors[n];
 
-                    if(mirror.pointInsideAbsolute(mousePosition.clone().addTo(camera.position)))
+                    if(!mirror.isDragged)
                     {
-                        mirror.isHovered = true;
+                        if(mirror.pointInsideAbsolute(mousePosition.clone().addTo(camera.position)))
+                        {
+                            mirror.isHovered = true;
+                        }
+
+                        else
+                        {
+                            mirror.isHovered = false;
+                        }
                     }
 
-                    else
-                    {
-                        mirror.isHovered = false;
-                    }
+                    mirror.rotation = interpolateLinear(mirror.rotation, mirror.targetRotation, 0.2);
                 }
 
                 draggedMirrors = mirrorCollection.mirrors.filter(function(mirror)
@@ -919,6 +925,7 @@
                         if(mirror.pointInsideAbsolute(addedMousePosition))
                         {
                             mirror.isDragged = true;
+                            mirror.isHovered = true;
                             mirror.dragOffset = addedMousePosition.subtractTo(mirror.position);
                         }
                     }
@@ -966,7 +973,7 @@
                 for(var n = 0; n < draggedMirrors.length; n++)
                 {
                     let draggedMirror = draggedMirrors[n];
-                    draggedMirror.rotation += delta / 20;
+                    draggedMirror.targetRotation += delta / 10;
                 }
             }
 
