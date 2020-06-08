@@ -51,7 +51,14 @@
 
                 clone()
                 {
-                    return _.cloneDeep(this);
+                    return new Point(this.x, this.y);
+                }
+
+                changeTo(p)
+                {
+                    this.x = p.x;
+                    this.y = p.y;
+                    return this;
                 }
 
                 addTo(p)
@@ -73,6 +80,16 @@
                     this.x -= p.x;
                     this.y -= p.y;
                     return this;
+                }
+
+                multiplyBy(x)
+                {
+                    this.scale(x);
+                }
+
+                divideBy(x)
+                {
+                    this.scale(1 / x);
                 }
 
                 scale(xs, ys = xs)
@@ -125,7 +142,7 @@
 
                 clone()
                 {
-                    return _.cloneDeep(this);
+                    return new Line(new Point(this.p1.x, this.p1.y), new Point(this.p2.x, this.p2.y));
                 }
 
                 addTo(p)
@@ -151,7 +168,7 @@
 
                 getAngle()
                 {
-                    let newPoint = _.cloneDeep(this.p1);
+                    let newPoint = this.p1.clone();
                     newPoint.subtractTo(this.p2);
                     return Math.atan2(newPoint.y, newPoint.x);
                 }
@@ -355,7 +372,7 @@
 
                 findCenter()
                 {
-                    let average = new Point(0, 0);
+                    let average = pointOrigin.clone();
 
                     for(var n = 0; n < this.vertices.length; n++)
                     {
@@ -363,12 +380,28 @@
                         average.addTo(vertex);
                     }
 
-                    average.scale(1 / this.vertices.length);
+                    //average.scale(1 / this.vertices.length);
+                    average.divideBy(this.vertices.length);
 
                     return average;
                 }
 
-                scale(xs, ys = xs)
+                moveAnchorTo(p)
+                {
+                    this.translateVertices(this.position.clone().subtractTo(p));
+                    this.position.changeTo(p);
+                }
+
+                translateVertices(p)
+                {
+                    for(var n = 0; n < this.vertices.length; n++)
+                    {
+                        let vertex = this.vertices[n];
+                        vertex.addTo(p);
+                    }
+                }
+
+                scaleVertices(xs, ys = xs)
                 {
                     for(var n = 0; n < this.vertices.length; n++)
                     {
@@ -377,7 +410,7 @@
                     }
                 }
 
-                subdivide(vertexMultiplier = 2)
+                subdivideVertices(vertexMultiplier = 2)
                 {
                     for(var n = 0; n < this.vertices.length; n++)
                     {
@@ -392,7 +425,7 @@
                     }
                 }
 
-                smooth(factor = 0.5, iterationsMultiplier = 1)
+                smoothVertices(factor = 0.5, iterationsMultiplier = 1)
                 {
                     if(this.vertices.length === 0)
                     {
@@ -411,7 +444,7 @@
                     }
 
                     let finalArea = this.findArea();
-                    this.scale(Math.sqrt(initialArea / finalArea));
+                    this.scaleVertices(Math.sqrt(initialArea / finalArea));
                 }
 
                 makeRectangle(width, height)
@@ -459,43 +492,6 @@
                         let angle = (n + maxAngleDeviation * 2 * (Math.random() - 0.5)) / vertexCount * 2 * Math.PI;
                         this.vertices.push(new Point(radius * Math.cos(angle), radius * Math.sin(angle)));
                     }
-                }
-
-                laser(segment, sideIgnore)
-                {
-                    let closestIntersection;
-                    let distanceToClosestIntersection;
-                    let closestSide;
-
-                    for(var n = 0; n < this.vertices.length; n++)
-                    {
-                        let side = this.getSideAbsolute(n);
-
-                        if(_.isEqual(side, sideIgnore))
-                        {
-                            continue;
-                        }
-
-                        if(intersectSegmentSegment(segment, side))
-                        {
-                            let intersection = intersectionLineLine(segment, side);
-                            let distanceToIntersection = distance(segment.p1, intersection);
-
-                            if(closestIntersection === undefined ||  distanceToIntersection < distanceToClosestIntersection)
-                            {
-                                closestIntersection = intersection;
-                                distanceToClosestIntersection = distanceToIntersection;
-                                closestSide = side;
-                            }
-                        }
-                    }
-
-                    if(closestIntersection !== undefined)
-                    {
-                        return {intersection: _.cloneDeep(closestIntersection), distanceToIntersection: distanceToClosestIntersection, side: _.cloneDeep(closestSide)};
-                    }
-
-                    return false;
                 }
             }
 
@@ -578,9 +574,7 @@
 
                     if(closestMirror === undefined)
                     {
-                        let point = _.cloneDeep(laserBeam.position);
-                        point.addToPolar(LASER_RANGE, laserBeam.rotation);
-                        intersections.push(point);
+                        intersections.push(laserBeam.position.clone().addToPolar(LASER_RANGE, laserBeam.rotation));
                         return intersections;
                     }
 
@@ -645,7 +639,7 @@
             const canvasHeight = canvas.height;
             const ctx = canvas.getContext("2d", {alpha: false});
             const pointOrigin = new Point(0, 0);
-            var camera = {position: _.cloneDeep(pointOrigin)};
+            var camera = {position: pointOrigin.clone()};
             var mousePosition = new Point(0, 0);
             const keysPressed = [];
             var keysFired = false;
@@ -722,7 +716,7 @@
                     lasers[0].rotation += 0.02;
                 }
 
-                camera.position.interpolateToPointLinear(mousePosition.clone().scale(0.1), 0.05);
+                camera.position.interpolateToPointLinear(mousePosition.clone().scale(0.05), 0.05);
 
                 ctx.fillStyle = "#000000";
                 ctx.shadowBlur = 0;
@@ -1009,7 +1003,7 @@
                         for(var n = 0; n < draggedMirrors.length; n++)
                         {
                             let draggedMirror = draggedMirrors[n];
-                            draggedMirror.smooth();
+                            draggedMirror.smoothVertices();
                         }
                     }
                 }
@@ -1026,6 +1020,16 @@
                 
                 keysPressed.splice(keysPressed.indexOf(eventKey), 1);
                 keysFired = false;
+            }
+
+            function randomInteger(min = 0, max = 1)
+            {
+                return Math.floor(randomFloat(min, max + 1));
+            }
+
+            function randomFloat(min = 0, max = 1)
+            {
+                return Math.random() * (max - min) + min;
             }
 
             function clampMin(num, min)
