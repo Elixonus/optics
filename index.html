@@ -10,6 +10,11 @@
 
         <style>
 
+            h1
+            {
+                color: white;
+            }
+
             *
             {
                 cursor: none;
@@ -20,7 +25,6 @@
             body
             {
                 background-color: #000000;
-                overflow: hidden;
             }
 
             #canvas
@@ -29,6 +33,7 @@
                 top: 50%;
                 left: 50%;
                 transform: translate(-50%, -50%);
+                z-index: -1;
             }
 
             .hidden
@@ -142,7 +147,7 @@
 
                 clone()
                 {
-                    return new Line(new Point(this.p1.x, this.p1.y), new Point(this.p2.x, this.p2.y));
+                    return new Line(this.p1.clone(), this.p2.clone());
                 }
 
                 addTo(p)
@@ -174,18 +179,107 @@
                 }
             }
 
+            class Animation
+            {
+                constructor(keyframes, interpolationFunction, duration, isLooping = true)
+                {
+                    this.time = 0;
+                    this.keyframes = keyframes;
+                    this.interpolationFunction = interpolationFunction;
+                    this.duration = duration;
+                    this.isLooping = isLooping;
+                }
+
+                tick()
+                {
+                    let time = this.time;
+                    this.time++;
+
+                    if(this.isLooping)
+                    {
+                        while(this.time >= this.duration)
+                        {
+                            this.time -= this.duration;
+                        }
+                    }
+
+                    let lowKeyframe;
+
+                    for(var n = 0; n < this.keyframes.length; n++)
+                    {
+                        let keyframe = this.keyframes[n];
+                        if((lowKeyframe === undefined || keyframe.time >= lowKeyframe.time) && keyframe.time <= time)
+                        {
+                            lowKeyframe = keyframe;
+                        }
+                    }
+
+                    let highKeyframe;
+
+                    for(var n = 0; n < this.keyframes.length; n++)
+                    {
+                        let keyframe = this.keyframes[n];
+                        if((highKeyframe === undefined || keyframe.time <= highKeyframe.time) && keyframe.time >= time)
+                        {
+                            highKeyframe = keyframe;
+                        }
+                    }
+
+                    if(lowKeyframe === undefined)
+                    {
+                        return highKeyframe.value;
+                    }
+
+                    if(highKeyframe === undefined)
+                    {
+                        return lowKeyframe.value;
+                    }
+
+                    if(lowKeyframe === highKeyframe)
+                    {
+                        return lowKeyframe.value;
+                    }
+
+                    return this.interpolationFunction(lowKeyframe.value, highKeyframe.value, map(time, lowKeyframe.time, highKeyframe.time, 0, 1));
+                }
+            }
+
+            class Keyframe
+            {
+                constructor(time, value)
+                {
+                    this.time = time;
+                    this.value = value;
+                }
+            }
+
             class Mirror
             {
                 constructor(position, rotation, vertices = [])
                 {
                     this.position = position;
+                    this.positionAnimation = null;
                     this.rotation = rotation;
+                    this.rotationAnimation = null;
                     this.targetRotation = this.rotation;
                     this.vertices = vertices;
                     this.isReflecting = true;
                     this.isDragged = false;
                     this.isHovered = false;
                     this.dragOffset;
+                }
+
+                tick()
+                {
+                    if(this.positionAnimation !== null)
+                    {
+                        this.position = this.positionAnimation.tick();
+                    }
+
+                    if(this.rotationAnimation !== null)
+                    {
+                        this.rotation = this.rotationAnimation.tick();
+                    }
                 }
 
                 getVertex(vertexNumber)
@@ -495,49 +589,93 @@
                 }
             }
 
-            class MirrorCollection
+            class Scene
             {
-                constructor(mirrors)
+                constructor(lasers, mirrors)
                 {
+                    this.lasers = lasers;
                     this.mirrors = mirrors;
                 }
 
-                getClosestMirrorToPoint(p = pointOrigin)
+                addLaser(laser)
                 {
-                    let closestMirror;
-                    let distanceToClosestMirror;
+                    this.lasers.push(laser);
+                }
+
+                addLasers(lasers)
+                {
+                    this.lasers = this.lasers.concat(lasers);
+                }
+
+                addMirror(mirror)
+                {
+                    this.mirrors.push(mirror);
+                }
+
+                addMirrors(mirrors)
+                {
+                    this.mirrors = this.mirrors.concat(mirrors);
+                }
+
+                getMirrorsWithPointInside(p = pointOrigin)
+                {
+                    let mirrors = [];
 
                     for(var n = 0; n < this.mirrors.length; n++)
                     {
                         let mirror = this.mirrors[n];
-                        let distanceToMirror = distance(p, mirror.position);
 
-                        if(closestMirror === undefined || distanceToMirror < distanceToClosestMirror)
+                        if(mirror.pointInsideAbsolute(p))
                         {
-                            closestMirror = mirror;
-                            distanceToClosestMirror = distanceToMirror;
+                            mirrors.push(mirror);
                         }
                     }
 
-                    if(closestMirror === undefined)
+                    return mirrors;
+                }
+
+                getClosestObjectToPoint(p = pointOrigin, objects = [])
+                {
+                    let closestObject;
+                    let distanceToClosestObject;
+
+                    for(var n = 0; n < objects.length; n++)
+                    {
+                        let object = objects[n];
+                        let distanceToObject = distance(p, object.position);
+
+                        if(closestObject === undefined || distanceToObject < distanceToClosestObject)
+                        {
+                            closestObject = object;
+                            distanceToClosestObject = distanceToObject;
+                        }
+                    }
+
+                    if(closestObject === undefined)
                     {
                         return false;
                     }
 
                     return {
-                        mirror: closestMirror,
-                        distanceToMirror: distanceToClosestMirror
+                        object: closestObject,
+                        distanceToObject: distanceToClosestObject
                     };
                 }
 
-                laser(laserBeam, intersections = [], sideIgnore = null)
+                getClosestMirrorToPoint(p = pointOrigin)
                 {
-                    if(intersections.length === LASER_MAX_BOUNCES + 1)
+                    let closest = this.getClosestObjectToPoint(p, this.mirrors);
+                    return closest;
+                }
+
+                laser(laserRay, collisions = [], sideIgnore = null)
+                {
+                    if(collisions.length === LASER_MAX_BOUNCES + 1)
                     {
-                        return intersections;
+                        return collisions;
                     }
 
-                    let laserLine = new Line(laserBeam.position, new Point(laserBeam.position.x + LASER_RANGE * Math.cos(laserBeam.rotation), laserBeam.position.y + LASER_RANGE * Math.sin(laserBeam.rotation)));
+                    let laserLine = new Line(laserRay.position, new Point(laserRay.position.x + LASER_RANGE * Math.cos(laserRay.rotation), laserRay.position.y + LASER_RANGE * Math.sin(laserRay.rotation)));
                     let closestMirror;
                     let closestIntersection;
                     let distanceToClosestIntersection;
@@ -559,7 +697,7 @@
                             if(intersectSegmentSegment(laserLine, side))
                             {
                                 let intersection = intersectionLineLine(laserLine, side);
-                                let distanceToIntersection = distance(laserBeam.position, intersection);
+                                let distanceToIntersection = distance(laserRay.position, intersection);
 
                                 if(closestIntersection === undefined ||  distanceToIntersection < distanceToClosestIntersection)
                                 {
@@ -574,15 +712,15 @@
 
                     if(closestMirror === undefined)
                     {
-                        intersections.push(laserBeam.position.clone().addToPolar(LASER_RANGE, laserBeam.rotation));
-                        return intersections;
+                        collisions.push(laserRay.position.clone().addToPolar(LASER_RANGE, laserRay.rotation));
+                        return collisions;
                     }
 
-                    let newIntersections = _.cloneDeep(intersections);
-                    newIntersections.push(closestIntersection);
+                    let newCollisions = _.cloneDeep(collisions);
+                    newCollisions.push(closestIntersection);
 
                     // angle of incidence code start
-                    let angleOfIncidence = Math.PI / 2 + laserBeam.rotation - closestSide.getAngle();
+                    let angleOfIncidence = Math.PI / 2 + laserRay.rotation - closestSide.getAngle();
 
                     while(angleOfIncidence > Math.PI)
                     {
@@ -604,20 +742,40 @@
 
                     if(closestMirror.isReflecting)
                     {
-                        return this.laser(new Laser(closestIntersection, 2 * closestSide.getAngle() - laserBeam.rotation), newIntersections, closestSide);
+                        return this.laser(new Laser(closestIntersection, 2 * closestSide.getAngle() - laserRay.rotation), newCollisions, closestSide);
                     }
 
                     else
                     {
-                        intersections.push(closestIntersection);
-                        return intersections;
+                        collisions.push(closestIntersection);
+                        return collisions;
+                    }
+                }
+
+                illuminate()
+                {
+                    let lasersData = [];
+
+                    for(var n = 0; n < this.lasers.length; n++)
+                    {
+                        lasersData.push(this.laser(this.lasers[n]));
+                    }
+
+                    return lasersData;
+                }
+
+                tick()
+                {
+                    for(var n = 0; n < this.mirrors.length; n++)
+                    {
+                        this.mirrors[n].tick();
                     }
                 }
             }
 
             class Laser
             {
-                constructor(position, rotation, hue = 0)
+                constructor(position, rotation)
                 {
                     this.position = position;
                     this.rotation = rotation;
@@ -639,29 +797,43 @@
             const canvasHeight = canvas.height;
             const ctx = canvas.getContext("2d", {alpha: false});
             const pointOrigin = new Point(0, 0);
-            var camera = {position: pointOrigin.clone()};
-            var mousePosition = new Point(0, 0);
+            var cameraPosition = pointOrigin.clone();
+            var mousePosition = pointOrigin.clone();
             const keysPressed = [];
             var keysFired = false;
             const LASER_MAX_BOUNCES = 10;
             const LASER_RANGE = 10000;
             var mirror = new Mirror(new Point(0, 0), 0, [new Point(-200, -200), new Point(200, -200), new Point(200, 200), new Point(-200, 200)]);
             mirror.makeBlob(200, 0.2, 0, 100);
+
+
+
+
+
+
+            mirror.rotationAnimation = new Animation([new Keyframe(0, Math.PI / 4), new Keyframe(250, 0), new Keyframe(500, Math.PI / 4)], interpolateLinear, 500, true);
+
+
+
+
+
+
+
+
             var mirror2 = new Mirror(new Point(100, 300), 0);
             mirror2.makeRegularPolygon(100, 8);
-            var mirrorCollection = new MirrorCollection([mirror, mirror2]);
-            var lasers = [new Laser(new Point(40, 450), 15 * Math.PI / 180, 120)];
+            var scene = new Scene([new Laser(new Point(40, 450), 15 * Math.PI / 180)], [mirror, mirror2]);
             var draggedMirrors = [];
 
             function render()
             {
-                for(var n = 0; n < mirrorCollection.mirrors.length; n++)
+                for(var n = 0; n < scene.mirrors.length; n++)
                 {
-                    let mirror = mirrorCollection.mirrors[n];
+                    let mirror = scene.mirrors[n];
 
                     if(!mirror.isDragged)
                     {
-                        if(mirror.pointInsideAbsolute(mousePosition.clone().addTo(camera.position)))
+                        if(mirror.pointInsideAbsolute(mousePosition.clone().addTo(cameraPosition)))
                         {
                             mirror.isHovered = true;
                         }
@@ -671,11 +843,9 @@
                             mirror.isHovered = false;
                         }
                     }
-
-                    mirror.rotation = interpolateLinear(mirror.rotation, mirror.targetRotation, 0.2);
                 }
 
-                draggedMirrors = mirrorCollection.mirrors.filter(function(mirror)
+                draggedMirrors = scene.mirrors.filter(function(mirror)
                 {
                     return mirror.isDragged;
                 });
@@ -683,7 +853,8 @@
                 for(var n = 0; n < draggedMirrors.length; n++)
                 {
                     let draggedMirror = draggedMirrors[n];
-                    draggedMirror.position = mousePosition.clone().addTo(camera.position).subtractTo(draggedMirror.dragOffset);
+                    //draggedMirror.position = mousePosition.clone().addTo(cameraPosition).subtractTo(draggedMirror.dragOffset);
+                    draggedMirror.position.changeTo(mousePosition).addTo(cameraPosition).subtractTo(draggedMirror.dragOffset);
                 }
 
                 if(keysPressed.includes("ArrowLeft"))
@@ -716,13 +887,15 @@
                     lasers[0].rotation += 0.02;
                 }
 
-                camera.position.interpolateToPointLinear(mousePosition.clone().scale(0.05), 0.05);
+                cameraPosition.interpolateToPointLinear(mousePosition.clone().scale(0.05), 0.05);
+
+                scene.tick();
 
                 ctx.fillStyle = "#000000";
                 ctx.shadowBlur = 0;
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                ctx.translate(canvasWidth / 2 - camera.position.x, canvasHeight / 2 - camera.position.y);
+                ctx.translate(canvasWidth / 2 - cameraPosition.x, canvasHeight / 2 - cameraPosition.y);
                 
                 ctx.lineWidth = 5;
                 ctx.lineJoin = "round";
@@ -730,9 +903,9 @@
                 let reflectingMirrors = [];
                 let nonReflectingMirrors = [];
 
-                for(var n = 0; n < mirrorCollection.mirrors.length; n++)
+                for(var n = 0; n < scene.mirrors.length; n++)
                 {
-                    let mirror = mirrorCollection.mirrors[n];
+                    let mirror = scene.mirrors[n];
 
                     if(mirror.isReflecting)
                     {
@@ -745,90 +918,90 @@
                     }
                 }
 
-                ctx.strokeStyle = "#222222";
-                ctx.shadowBlur = 0;
+                let mirrors = scene.mirrors;
 
-                for(var n = 0; n < nonReflectingMirrors.length; n++)
+                for(var n = 0; n < 3; n++)
                 {
-                    let mirror = nonReflectingMirrors[n];
-                    let vertices = mirror.vertices;
+                    let selectedMirrors;
 
-                    ctx.save();
-                    ctx.translate(mirror.position.x, mirror.position.y);
-                    ctx.rotate(mirror.rotation);
-                    ctx.beginPath();
-                    ctx.moveTo(vertices[0].x, vertices[0].y);
-
-                    for(var m = 1; m < vertices.length; m++)
+                    if(n === 0)
                     {
-                        ctx.lineTo(vertices[m].x, vertices[m].y);
-                    }
-
-                    ctx.closePath();
-                    ctx.stroke();
-                    ctx.restore();
-                }
-
-                for(var n = 0; n < reflectingMirrors.length; n++)
-                {
-                    let mirror = reflectingMirrors[n];
-                    let vertices = mirror.vertices;
-                    ctx.strokeStyle = "#ff0000";
-
-                    if(mirror.isHovered)
-                    {
-                        if(mirror.isDragged)
+                        selectedMirrors = mirrors.filter(function(mirror)
                         {
-                            ctx.strokeStyle = "#f803fc";
-                            ctx.shadowBlur = 40;
-                        }
+                            return !mirror.isReflecting;
+                        });
 
-                        else
-                        {
-                            ctx.shadowBlur = 30;
-                        }
+                        ctx.strokeStyle = "#222222";
                     }
 
                     else
                     {
-                        ctx.shadowBlur = 20;
+                        if(n === 1)
+                        {
+                            selectedMirrors = mirrors.filter(function(mirror)
+                            {
+                                return !mirror.isDragged && mirror.isReflecting;
+                            });
+
+                            ctx.strokeStyle = "#ff0000";
+                            ctx.shadowBlur = 20;
+                        }
+
+                        else
+                        {
+                            selectedMirrors = mirrors.filter(function(mirror)
+                            {
+                                return mirror.isDragged && mirror.isReflecting;
+                            });
+
+                            ctx.strokeStyle = "#00d0ff";
+                            ctx.shadowBlur = 40;
+                        }
+
+                        ctx.shadowColor = ctx.strokeStyle;
                     }
 
-                    ctx.shadowColor = ctx.strokeStyle;
-
-                    ctx.save();
-                    ctx.translate(mirror.position.x, mirror.position.y);
-                    ctx.rotate(mirror.rotation);
-                    ctx.beginPath();
-                    ctx.moveTo(vertices[0].x, vertices[0].y);
-
-                    for(var m = 1; m < vertices.length; m++)
+                    for(var m = 0; m < selectedMirrors.length; m++)
                     {
-                        ctx.lineTo(vertices[m].x, vertices[m].y);
-                    }
+                        let mirror = selectedMirrors[m];
+                        let vertices = mirror.vertices;
+                        ctx.save();
+                        ctx.translate(mirror.position.x, mirror.position.y);
+                        ctx.rotate(mirror.rotation);
+                        ctx.beginPath();
+                        ctx.moveTo(vertices[0].x, vertices[0].y);
 
-                    ctx.closePath();
-                    ctx.stroke();
-                    ctx.restore();
+                        for(var v = 1; v < vertices.length; v++)
+                        {
+                            let vertex = vertices[v];
+                            ctx.lineTo(vertex.x, vertex.y);
+                        }
+
+                        ctx.closePath();
+                        ctx.stroke();
+                        ctx.restore();
+                    }
                 }
 
                 ctx.lineWidth = 3;
                 ctx.shadowBlur = 20;
 
-                for(var n = 0; n < lasers.length; n++)
+                let lasersCollisions = scene.illuminate();
+
+                for(var n = 0; n < lasersCollisions.length; n++)
                 {
-                    let laser = lasers[n];
-                    let intersections = mirrorCollection.laser(laser);
+                    let laser = scene.lasers[n];
+                    let laserCollisions = lasersCollisions[n];
 
                     ctx.strokeStyle = "hsl(120, 100%, 50%)";
                     ctx.shadowColor = ctx.strokeStyle;
                     ctx.beginPath();
                     ctx.moveTo(laser.position.x, laser.position.y);
                     
-                    for(var m = 0; m < intersections.length; m++)
+                    for(var m = 0; m < laserCollisions.length; m++)
                     {
-                        let intersection = intersections[m];
-                        ctx.lineTo(intersection.x, intersection.y);
+                        let laserCollision = laserCollisions[m];
+                        ctx.lineTo(laserCollision.x, laserCollision.y);
                     }
 
                     ctx.stroke();
@@ -911,17 +1084,15 @@
 
                 if(event.button === 0)
                 {
-                    for(var n = 0; n < mirrorCollection.mirrors.length; n++)
-                    {
-                        let mirror = mirrorCollection.mirrors[n];
-                        let addedMousePosition = mousePosition.clone().addTo(camera.position);
+                    let point = mousePosition.clone().addTo(cameraPosition);
+                    let closest = scene.getClosestObjectToPoint(point, scene.getMirrorsWithPointInside(point));
 
-                        if(mirror.pointInsideAbsolute(addedMousePosition))
-                        {
-                            mirror.isDragged = true;
-                            mirror.isHovered = true;
-                            mirror.dragOffset = addedMousePosition.subtractTo(mirror.position);
-                        }
+                    if(closest !== false)
+                    {
+                        let mirror = closest.object;
+                        mirror.isDragged = true;
+                        mirror.isHovered = true;
+                        mirror.dragOffset = point.subtractTo(mirror.position);
                     }
                 }
             }
@@ -935,9 +1106,9 @@
 
                 if(event.button === 0)
                 {
-                    for(var n = 0; n < mirrorCollection.mirrors.length; n++)
+                    for(var n = 0; n < scene.mirrors.length; n++)
                     {
-                        let mirror = mirrorCollection.mirrors[n];
+                        let mirror = scene.mirrors[n];
                         mirror.isDragged = false;
                     }
                 }
@@ -951,8 +1122,7 @@
                 }
 
                 let rect = canvas.getBoundingClientRect();
-                mousePosition.x = map(event.clientX, rect.left, windowWidth - rect.left, -canvasWidth / 2, canvasWidth / 2);
-                mousePosition.y = map(event.clientY, rect.top, windowHeight - rect.top, -canvasHeight / 2, canvasHeight / 2);
+                mousePosition.changeTo(new Point(map(event.clientX, rect.left, windowWidth - rect.left, -canvasWidth / 2, canvasWidth / 2), map(event.clientY, rect.top, windowHeight - rect.top, -canvasHeight / 2, canvasHeight / 2)));
             }
 
             function wheel(event)
@@ -1075,6 +1245,12 @@
             function interpolateQuadratic(startingValue, endingValue, t)
             {
                 return interpolateLinear(startingValue, endingValue, t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
+            }
+
+            function interpolateElastic(startingValue, endingValue, t)
+            {
+                const c5 = (2 * Math.PI) / 4.5;
+                return interpolateLinear(startingValue, endingValue, t === 0 ? 0 : t === 1 ? 1 : t < 0.5 ? -(Math.pow(2, 20 * t - 10) * Math.sin((20 * t - 11.125) * c5)) / 2 : (Math.pow(2, -20 * t + 10) * Math.sin((20 * t - 11.125) * c5)) / 2 + 1);
             }
 
             function calculateAngleDifference(a1, a2)
