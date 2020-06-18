@@ -176,6 +176,15 @@
                 }
             }
 
+            class Ray
+            {
+                constructor(center, rotation)
+                {
+                    this.center = center;
+                    this.rotation = rotation;
+                }
+            }
+
             class Object
             {
                 constructor(position, rotation)
@@ -772,14 +781,14 @@
                     return false;
                 }
 
-                laser(laserRay, collisions = [], sideIgnore = null)
+                laser(laser, collisions = [], sideIgnore = null)
                 {
                     if(collisions.length === LASER_MAX_COLLISIONS + 1)
                     {
                         return collisions;
                     }
-
-                    let laserLine = new Line(laserRay.position, new Point(laserRay.position.x + LASER_RANGE * Math.cos(laserRay.rotation), laserRay.position.y + LASER_RANGE * Math.sin(laserRay.rotation)));
+                    
+                    let laserLine = new Line(laser.position, new Point(laser.position.x + LASER_RANGE * Math.cos(laser.rotation), laser.position.y + LASER_RANGE * Math.sin(laser.rotation)));
                     let closestMirror;
                     let closestIntersection;
                     let distanceToClosestIntersection;
@@ -802,7 +811,7 @@
 
                             if(intersection !== false)
                             {
-                                let distanceToIntersection = distance(laserRay.position, intersection);
+                                let distanceToIntersection = distance(laser.position, intersection);
 
                                 if(closestIntersection === undefined ||  distanceToIntersection < distanceToClosestIntersection)
                                 {
@@ -817,7 +826,7 @@
 
                     if(closestMirror === undefined)
                     {
-                        collisions.push(laserRay.position.clone().addToPolar(LASER_RANGE, laserRay.rotation));
+                        collisions.push(laser.position.clone().addToPolar(LASER_RANGE, laser.rotation));
                         return collisions;
                     }
 
@@ -825,7 +834,7 @@
                     newCollisions.push(closestIntersection);
 
                     // angle of incidence code start
-                    let angleOfIncidence = Math.PI / 2 + laserRay.rotation - closestSide.getAngle();
+                    let angleOfIncidence = Math.PI / 2 + laser.rotation - closestSide.getAngle();
 
                     while(angleOfIncidence > Math.PI)
                     {
@@ -847,7 +856,7 @@
 
                     if(closestMirror.isReflecting)
                     {
-                        return this.laser(new Laser(closestIntersection, 2 * closestSide.getAngle() - laserRay.rotation), newCollisions, closestSide);
+                        return this.laser(new Laser(closestIntersection, 2 * closestSide.getAngle() - laser.rotation), newCollisions, closestSide);
                     }
 
                     else
@@ -857,7 +866,7 @@
                     }
                 }
 
-                illuminate()
+                getLaserCollisions()
                 {
                     let lasersData = [];
 
@@ -1108,7 +1117,7 @@
                 ctx.lineWidth = 3;
                 ctx.shadowBlur = getGlow(20);
 
-                let lasersCollisions = scene.illuminate();
+                let lasersCollisions = scene.getLaserCollisions();
 
                 for(var n = 0; n < lasersCollisions.length; n++)
                 {
@@ -1209,14 +1218,7 @@
                     let point = mousePosition.clone().addTo(cameraPosition);
                     let closest = scene.getClosestObjectToPoint(point, scene.getMirrorsWithPointInside(point));
 
-                    if(closest === false)
-                    {
-                        let mirror = new Mirror(point, 0);
-                        mirror.makeBlob(randomFloat(50, 150), randomFloat(0, 0.2), 0, 25);
-                        scene.addMirror(mirror);
-                    }
-
-                    else
+                    if(closest !== false)
                     {
                         let mirror = closest.object;
                         mirror.isDragged = true;
@@ -1394,7 +1396,41 @@
                 return intersectionSegmentSegment(line1, line2) !== false;
             }
 
+            function intersectionLineLine(line1, line2)
+            {
+                return intersectionStraightStraight(line1, line2, function(ua, ub)
+                {
+                    return true;
+                });
+            }
+
+            function intersectionLineSegment(line1, line2)
+            {
+                return intersectionStraightStraight(line1, line2, function(ua, ub)
+                {
+                    if(ub < 0 || ub > 1)
+                    {
+                        return false;
+                    }
+
+                    return true;
+                });
+            }
+
             function intersectionSegmentSegment(line1, line2)
+            {
+                return intersectionStraightStraight(line1, line2, function(ua, ub)
+                {
+                    if(ua < 0 || ua > 1 || ub < 0 || ub > 1)
+                    {
+                        return false;
+                    }
+
+                    return true;
+                });
+            }
+
+            function intersectionStraightStraight(line1, line2, eliminationFunction)
             {
                 let x1 = line1.p1.x;
                 let y1 = line1.p1.y;
@@ -1420,7 +1456,7 @@
                 let ua = ((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3)) / denominator
                 let ub = ((x2 - x1) * (y1 - y3) - (y2 - y1) * (x1 - x3)) / denominator
 
-                if (ua < 0 || ua > 1 || ub < 0 || ub > 1)
+                if(eliminationFunction(ua, ub) === false)
                 {
                     return false;
                 }
