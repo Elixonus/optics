@@ -10,11 +10,6 @@
 
         <style>
 
-            h1
-            {
-                color: white;
-            }
-
             *
             {
                 cursor: none;
@@ -60,7 +55,7 @@
                     return new Point(this.x, this.y);
                 }
 
-                changeTo(p)
+                setTo(p)
                 {
                     this.x = p.x;
                     this.y = p.y;
@@ -90,12 +85,12 @@
 
                 multiplyBy(x)
                 {
-                    this.scale(x);
+                    return this.scale(x);
                 }
 
                 divideBy(x)
                 {
-                    this.scale(1 / x);
+                    return this.scale(1 / x);
                 }
 
                 scale(xs, ys = xs)
@@ -191,6 +186,18 @@
                     this.rotationAnimation = null;
                 }
 
+                setPositionAnimation(positionAnimation)
+                {
+                    this.positionAnimation = positionAnimation;
+                    return this;
+                }
+
+                setRotationAnimation(rotationAnimation)
+                {
+                    this.rotationAnimation = rotationAnimation;
+                    return this;
+                }
+
                 tick()
                 {
                     if(this.positionAnimation !== null)
@@ -201,9 +208,9 @@
 
                     if(this.rotationAnimation !== null)
                     {
-                        this.rotation = this.rotationAnimation.tick()[0];
+                        this.rotation = this.rotationAnimation.tick();
                     }
-                } 
+                }
             }
 
             class Animation
@@ -255,28 +262,37 @@
 
                     if(lowKeyframe === undefined)
                     {
-                        return highKeyframe.value;
+                        return highKeyframe.values;
                     }
 
                     if(highKeyframe === undefined)
                     {
-                        return lowKeyframe.value;
+                        return lowKeyframe.values;
                     }
 
                     if(lowKeyframe === highKeyframe)
                     {
-                        return lowKeyframe.value;
+                        return lowKeyframe.values;
                     }
 
-                    let values = [];
                     let mapped = map(time, lowKeyframe.time, highKeyframe.time, 0, 1);
 
-                    for(var n = 0; n < this.keyframes[0].values.length; n++)
+                    if(Array.isArray(this.keyframes[0].values))
                     {
-                        values.push(this.interpolationFunction(lowKeyframe.values[n], highKeyframe.values[n], mapped));
+                        let values = [];
+
+                        for(var n = 0; n < this.keyframes[0].values.length; n++)
+                        {
+                            values.push(this.interpolationFunction(lowKeyframe.values[n], highKeyframe.values[n], mapped));
+                        }
+
+                        return values;
                     }
 
-                    return values;
+                    else
+                    {
+                        return this.interpolationFunction(lowKeyframe.values, highKeyframe.values, mapped);
+                    }
                 }
             }
 
@@ -504,7 +520,7 @@
                 moveAnchorTo(p)
                 {
                     this.translateVertices(this.position.clone().subtractTo(p));
-                    this.position.changeTo(p);
+                    this.position.setTo(p);
                 }
 
                 translateVertices(p)
@@ -612,11 +628,17 @@
 
             class Scene
             {
-                constructor(lasers, mirrors)
+                constructor(objects = [])
                 {
-                    this.lasers = lasers;
-                    this.mirrors = mirrors;
-                    return this;
+                    this.lasers = [];
+                    this.mirrors = [];
+
+                    if(Array.isArray(objects))
+                    {
+                        return this.addObjects(objects);
+                    }
+
+                    return this.addObject(objects);
                 }
 
                 addLaser(laser)
@@ -870,27 +892,18 @@
             var keysFired = false;
             const LASER_MAX_COLLISIONS = 10;
             const LASER_RANGE = 10000;
-            var mirror = new Mirror(new Point(0, 0), 0, [new Point(-200, -200), new Point(200, -200), new Point(200, 200), new Point(-200, 200)]);
-            mirror.makeBlob(200, 0.2, 0, 100);
+            var scene = new Scene(new Laser(new Point(100, 0), 0).setRotationAnimation(new Animation([new Keyframe(0, 0), new Keyframe(1000, 2 * Math.PI)], interpolateLinear, 1000)));
 
+            for(var x = -5; x <= 5; x++)
+            {
+                for(var y = -5; y <= 5; y++)
+                {
+                    let mirror = new Mirror(new Point(x, y).multiplyBy(200), 0);
+                    mirror.makeRectangle(100, 100);
+                    scene.addMirror(mirror);
+                }
+            }
 
-
-
-
-
-            mirror.rotationAnimation = new Animation([new Keyframe(0, [Math.PI / 4]), new Keyframe(250, [0]), new Keyframe(500, [Math.PI / 4])], interpolateLinear, 500, true);
-
-
-
-
-
-
-
-
-            var mirror2 = new Mirror(new Point(100, 300), 0);
-            mirror2.makeRegularPolygon(100, 8);
-            var scene = new Scene([new Laser(new Point(0, 0), Math.PI / 2)], [mirror, mirror2]);
-            //scene.lasers[0].positionAnimation = new AnimationPosition([new Keyframe(0, -500, -400), new Keyframe(250, 500, -400), new Keyframe(500, -500, -400)], interpolateLinear, 500, true);
             var draggedMirrors = [];
 
             function render()
@@ -922,7 +935,7 @@
                 {
                     let draggedMirror = draggedMirrors[n];
                     //draggedMirror.position = mousePosition.clone().addTo(cameraPosition).subtractTo(draggedMirror.dragOffset);
-                    draggedMirror.position.changeTo(mousePosition).addTo(cameraPosition).subtractTo(draggedMirror.dragOffset);
+                    draggedMirror.position.setTo(mousePosition).addTo(cameraPosition).subtractTo(draggedMirror.dragOffset);
                 }
 
                 if(keysPressed.includes("ArrowLeft"))
@@ -1197,7 +1210,7 @@
                 }
 
                 let rect = canvas.getBoundingClientRect();
-                mousePosition.changeTo(new Point(map(event.clientX, rect.left, windowWidth - rect.left, -canvasWidth / 2, canvasWidth / 2), map(event.clientY, rect.top, windowHeight - rect.top, -canvasHeight / 2, canvasHeight / 2)));
+                mousePosition.setTo(new Point(map(event.clientX, rect.left, windowWidth - rect.left, -canvasWidth / 2, canvasWidth / 2), map(event.clientY, rect.top, windowHeight - rect.top, -canvasHeight / 2, canvasHeight / 2)));
             }
 
             function wheel(event)
