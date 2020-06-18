@@ -202,7 +202,7 @@
                 {
                     if(this.positionAnimation !== null)
                     {
-                        let result = this.positionAnimation().tick();
+                        let result = this.positionAnimation.tick();
                         this.position = new Point(result[0], result[1]);
                     }
 
@@ -314,7 +314,6 @@
                     this.vertices = vertices;
                     this.isReflecting = true;
                     this.isDragged = false;
-                    this.isHovered = false;
                     this.dragOffset;
                     return this;
                 }
@@ -741,6 +740,38 @@
                     return closest;
                 }
 
+                getReflectingMirrors()
+                {
+                    let mirrors = [];
+
+                    for(var n = 0; n < this.mirrors.length; n++)
+                    {
+                        let mirror = this.mirrors[n];
+
+                        if(mirror.isReflecting)
+                        {
+                            mirrors.push(mirror);
+                        }
+                    }
+
+                    return mirrors;
+                }
+
+                getDraggedMirror()
+                {
+                    for(var n = 0; n < this.mirrors.length; n++)
+                    {
+                        let mirror = this.mirrors[n];
+
+                        if(mirror.isDragged)
+                        {
+                            return mirror;
+                        }
+                    }
+
+                    return false;
+                }
+
                 laser(laserRay, collisions = [], sideIgnore = null)
                 {
                     if(collisions.length === LASER_MAX_COLLISIONS + 1)
@@ -898,8 +929,18 @@
             {
                 for(var y = -5; y <= 5; y++)
                 {
-                    let mirror = new Mirror(new Point(x, y).multiplyBy(200), 0);
+                    let point = new Point(x, y).multiplyBy(200);
+                    let mirror = new Mirror(point, 0);
                     mirror.makeRectangle(100, 100);
+                    if(y % 2 === 0)
+                    {
+                        mirror.setPositionAnimation(new Animation([new Keyframe(0, [point.x, point.y]), new Keyframe(250, [point.x + 200 * Math.random(), point.y + 50 * Math.random()]), new Keyframe(500, [point.x, point.y])], interpolateLinear, 500));
+                    }
+
+                    else
+                    {
+                        mirror.setPositionAnimation(new Animation([new Keyframe(0, [point.x, point.y]), new Keyframe(250, [point.x - 200 * Math.random(), point.y - 50 * Math.random()]), new Keyframe(500, [point.x, point.y])], interpolateLinear, 500));
+                    }
                     scene.addMirror(mirror);
                 }
             }
@@ -1194,11 +1235,7 @@
 
                 if(event.button === 0)
                 {
-                    for(var n = 0; n < scene.mirrors.length; n++)
-                    {
-                        let mirror = scene.mirrors[n];
-                        mirror.isDragged = false;
-                    }
+                    scene.getDraggedMirror().isDragged = false;
                 }
             }
 
@@ -1221,12 +1258,7 @@
                 }
                 
                 var delta = Math.sign(event.deltaY);
-
-                for(var n = 0; n < draggedMirrors.length; n++)
-                {
-                    let draggedMirror = draggedMirrors[n];
-                    draggedMirror.rotation += delta / 10;
-                }
+                scene.getDraggedMirror().rotation += delta / 10;
             }
 
             function keydown(event)
