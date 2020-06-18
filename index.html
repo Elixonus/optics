@@ -52,6 +52,7 @@
                 {
                     this.x = x;
                     this.y = y;
+                    return this;
                 }
 
                 clone()
@@ -143,6 +144,7 @@
                 {
                     this.p1 = p1;
                     this.p2 = p2;
+                    return this;
                 }
 
                 clone()
@@ -193,12 +195,13 @@
                 {
                     if(this.positionAnimation !== null)
                     {
-                        this.position = this.positionAnimation.tick();
+                        let result = this.positionAnimation().tick();
+                        this.position = new Point(result[0], result[1]);
                     }
 
                     if(this.rotationAnimation !== null)
                     {
-                        this.rotation = this.rotationAnimation.tick();
+                        this.rotation = this.rotationAnimation.tick()[0];
                     }
                 } 
             }
@@ -212,6 +215,7 @@
                     this.interpolationFunction = interpolationFunction;
                     this.duration = duration;
                     this.isLooping = isLooping;
+                    return this;
                 }
 
                 tick()
@@ -226,7 +230,7 @@
                             this.time -= this.duration;
                         }
                     }
-
+                    
                     let lowKeyframe;
 
                     for(var n = 0; n < this.keyframes.length; n++)
@@ -264,46 +268,25 @@
                         return lowKeyframe.value;
                     }
 
-                    return this.interpolationFunction(lowKeyframe.value, highKeyframe.value, map(time, lowKeyframe.time, highKeyframe.time, 0, 1));
-                }
-            }
+                    let values = [];
+                    let mapped = map(time, lowKeyframe.time, highKeyframe.time, 0, 1);
 
-            class AnimationPosition
-            {
-                constructor(keyframes, interpolationFunction, duration, isLooping = true)
-                {
-                    let keyframesX = [];
-                    let keyframesY = [];
-
-                    for(var n = 0; n < keyframes.length; n++)
+                    for(var n = 0; n < this.keyframes[0].values.length; n++)
                     {
-                        let keyframe = keyframes[n];
-                        keyframesX.push(new Keyframe(keyframe.time, keyframe.value));
-                        keyframesY.push(new Keyframe(keyframe.time, keyframe.value2));
+                        values.push(this.interpolationFunction(lowKeyframe.values[n], highKeyframe.values[n], mapped));
                     }
 
-                    console.log(keyframes);
-                    this.animationX = new Animation(keyframesX, interpolationFunction, duration, isLooping);
-                    this.animationY = new Animation(keyframesY, interpolationFunction, duration, isLooping);
-                }
-
-                tick()
-                {
-                    return new Point(this.animationX.tick(), this.animationY.tick());   
+                    return values;
                 }
             }
 
             class Keyframe
             {
-                constructor(time, value, value2 = undefined)
+                constructor(time, values)
                 {
                     this.time = time;
-                    this.value = value;
-
-                    if(value2 !== undefined)
-                    {
-                        this.value2 = value2;
-                    }
+                    this.values = values;
+                    return this;
                 }
             }
 
@@ -317,6 +300,7 @@
                     this.isDragged = false;
                     this.isHovered = false;
                     this.dragOffset;
+                    return this;
                 }
 
                 getVertex(vertexNumber)
@@ -632,26 +616,31 @@
                 {
                     this.lasers = lasers;
                     this.mirrors = mirrors;
+                    return this;
                 }
 
                 addLaser(laser)
                 {
                     this.lasers.push(laser);
+                    return this;
                 }
 
                 addLasers(lasers)
                 {
                     this.lasers = this.lasers.concat(lasers);
+                    return this;
                 }
 
                 addMirror(mirror)
                 {
                     this.mirrors.push(mirror);
+                    return this;
                 }
 
                 addMirrors(mirrors)
                 {
                     this.mirrors = this.mirrors.concat(mirrors);
+                    return this;
                 }
 
                 addObject(object)
@@ -665,6 +654,8 @@
                     {
                         this.addMirror(object);
                     }
+                    
+                    return this;
                 }
 
                 addObjects(objects)
@@ -673,6 +664,8 @@
                     {
                         this.addObject(objects[n]);
                     }
+                    
+                    return this;
                 }
 
                 getMirrorsWithPointInside(p = pointOrigin)
@@ -752,9 +745,10 @@
                                 continue;
                             }
 
-                            if(intersectSegmentSegment(laserLine, side))
+                            let intersection = intersectionSegmentSegment(laserLine, side);
+
+                            if(intersection !== false)
                             {
-                                let intersection = intersectionLineLine(laserLine, side);
                                 let distanceToIntersection = distance(laserRay.position, intersection);
 
                                 if(closestIntersection === undefined ||  distanceToIntersection < distanceToClosestIntersection)
@@ -834,6 +828,15 @@
                         this.mirrors[n].tick();
                     }
                 }
+
+                load(json)
+                {
+                    let parsed = JSON.parse(json);
+                    this.lasers = parsed.lasers;
+                    this.mirrors = parsed.mirrors;
+                    
+                    return this;
+                }
             }
 
             class Laser extends Object
@@ -841,6 +844,7 @@
                 constructor(position, rotation)
                 {
                     super(position, rotation);
+                    return this;
                 }
 
                 pointTo(p)
@@ -874,8 +878,7 @@
 
 
 
-            mirror.rotationAnimation = new Animation([new Keyframe(0, Math.PI / 4), new Keyframe(250, 0), new Keyframe(500, Math.PI / 4)], interpolateLinear, 500, true);
-            mirror.positionAnimation = new AnimationPosition([new Keyframe(0, -500, 0), new Keyframe(100, 500, 0)], interpolateElastic, 120);
+            mirror.rotationAnimation = new Animation([new Keyframe(0, [Math.PI / 4]), new Keyframe(250, [0]), new Keyframe(500, [Math.PI / 4])], interpolateLinear, 500, true);
 
 
 
@@ -886,8 +889,8 @@
 
             var mirror2 = new Mirror(new Point(100, 300), 0);
             mirror2.makeRegularPolygon(100, 8);
-            var scene = new Scene([new Laser(new Point(0, 0), 15 * Math.PI / 180)], [mirror, mirror2]);
-            scene.lasers[0].rotationAnimation = new Animation([new Keyframe(0, 0), new Keyframe(100, 2 * Math.PI)], interpolateLinear, 100, true);
+            var scene = new Scene([new Laser(new Point(0, 0), Math.PI / 2)], [mirror, mirror2]);
+            //scene.lasers[0].positionAnimation = new AnimationPosition([new Keyframe(0, -500, -400), new Keyframe(250, 500, -400), new Keyframe(500, -500, -400)], interpolateLinear, 500, true);
             var draggedMirrors = [];
 
             function render()
@@ -1152,19 +1155,19 @@
                     let point = mousePosition.clone().addTo(cameraPosition);
                     let closest = scene.getClosestObjectToPoint(point, scene.getMirrorsWithPointInside(point));
 
-                    if(closest !== false)
+                    if(closest === false)
+                    {
+                        let mirror = new Mirror(point, 0);
+                        mirror.makeBlob(randomFloat(50, 150), randomFloat(0, 0.2), 0, 25);
+                        scene.addMirror(mirror);
+                    }
+
+                    else
                     {
                         let mirror = closest.object;
                         mirror.isDragged = true;
                         mirror.isHovered = true;
                         mirror.dragOffset = point.subtractTo(mirror.position);
-                    }
-
-                    else
-                    {
-                        let mirror = new Mirror(point, 0);
-                        mirror.makeBlob(randomFloat(50, 150), randomFloat(0, 0.2), 0, 25);
-                        scene.addMirror(mirror);
                     }
                 }
             }
@@ -1231,7 +1234,7 @@
                 {
                     keysFired = true;
 
-                    if(eventKey.toUpperCase() === "S")
+                    if(eventKey.toUpperCase() === "G")
                     {
                         glow = !glow;
                     }
@@ -1343,31 +1346,10 @@
 
             function intersectSegmentSegment(line1, line2)
             {
-                let a = line1.p1.x;
-                let b = line1.p1.y;
-                let c = line1.p2.x;
-                let d = line1.p2.y;
-                let p = line2.p1.x;
-                let q = line2.p1.y;
-                let r = line2.p2.x;
-                let s = line2.p2.y;
-                var det, gamma, lambda;
-                det = (c - a) * (s - q) - (r - p) * (d - b);
+                return intersectionSegmentSegment(line1, line2) !== false;
+            }
 
-                if (det === 0)
-                {
-                    return false;
-                }
-
-                else
-                {
-                    lambda = ((s - q) * (r - a) + (p - r) * (s - b)) / det;
-                    gamma = ((b - d) * (r - a) + (c - a) * (s - b)) / det;
-                    return (0 < lambda && lambda < 1) && (0 < gamma && gamma < 1);
-                }
-            };
-
-            function intersectionLineLine(line1, line2)
+            function intersectionSegmentSegment(line1, line2)
             {
                 let x1 = line1.p1.x;
                 let y1 = line1.p1.y;
@@ -1380,18 +1362,18 @@
 
                 if ((x1 === x2 && y1 === y2) || (x3 === x4 && y3 === y4))
                 {
-                    return false;
+                    return false
                 }
 
-                denominator = ((y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1));
+                denominator = ((y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1))
 
                 if (denominator === 0)
                 {
-                    return false;
+                    return false
                 }
 
-                let ua = ((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3)) / denominator;
-                let ub = ((x2 - x1) * (y1 - y3) - (y2 - y1) * (x1 - x3)) / denominator;
+                let ua = ((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3)) / denominator
+                let ub = ((x2 - x1) * (y1 - y3) - (y2 - y1) * (x1 - x3)) / denominator
 
                 if (ua < 0 || ua > 1 || ub < 0 || ub > 1)
                 {
