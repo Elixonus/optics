@@ -788,7 +788,7 @@
                         return collisions;
                     }
                     
-                    let laserLine = new Line(laser.position, new Point(laser.position.x + LASER_RANGE * Math.cos(laser.rotation), laser.position.y + LASER_RANGE * Math.sin(laser.rotation)));
+                    let laserLine = new Line(laser.position, new Point(laser.position.x + Math.cos(laser.rotation), laser.position.y + Math.sin(laser.rotation)));
                     let closestMirror;
                     let closestIntersection;
                     let distanceToClosestIntersection;
@@ -807,7 +807,7 @@
                                 continue;
                             }
 
-                            let intersection = intersectionSegmentSegment(laserLine, side);
+                            let intersection = intersectionSegmentRay(side, laserLine);
 
                             if(intersection !== false)
                             {
@@ -1422,6 +1422,19 @@
                 return intersectionStraightStraight(line1, line2, function(ua, ub)
                 {
                     if(ua < 0 || ua > 1 || ub < 0 || ub > 1)
+                    {
+                        return false;
+                    }
+
+                    return true;
+                });
+            }
+
+            function intersectionSegmentRay(line1, line2)
+            {
+                return intersectionStraightStraight(line1, line2, function(ua, ub)
+                {
+                    if(ua < 0 || ua > 1 || ub < 0)
                     {
                         return false;
                     }
