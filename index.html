@@ -142,6 +142,11 @@
                     return this;
                 }
 
+                static fromRay(center, angle)
+                {
+                    return new Line(center, center.clone().addToPolar(1, angle));
+                }
+
                 clone()
                 {
                     return new Line(this.p1.clone(), this.p2.clone());
@@ -168,20 +173,20 @@
                     return this;
                 }
 
+                getLength()
+                {
+                    return distance(this.p1, this.p2);
+                }
+
                 getAngle()
                 {
-                    let newPoint = this.p1.clone();
-                    newPoint.subtractTo(this.p2);
-                    return Math.atan2(newPoint.y, newPoint.x);
+                    let differencePoint = this.p1.clone().subtractTo(this.p2);
+                    return Math.atan2(differencePoint.y, differencePoint.x);
                 }
-            }
 
-            class Ray
-            {
-                constructor(center, rotation)
+                getAngleReflected(angleOfIncidence)
                 {
-                    this.center = center;
-                    this.rotation = rotation;
+                    return 2 * this.getAngle() - angleOfIncidence;
                 }
             }
 
@@ -788,7 +793,7 @@
                         return collisions;
                     }
                     
-                    let laserLine = new Line(laser.position, new Point(laser.position.x + Math.cos(laser.rotation), laser.position.y + Math.sin(laser.rotation)));
+                    let laserLine = Line.fromRay(laser.position, laser.rotation);
                     let closestMirror;
                     let closestIntersection;
                     let distanceToClosestIntersection;
@@ -856,7 +861,7 @@
 
                     if(closestMirror.isReflecting)
                     {
-                        return this.laser(new Laser(closestIntersection, 2 * closestSide.getAngle() - laser.rotation), newCollisions, closestSide);
+                        return this.laser(new Laser(closestIntersection, closestSide.getAngleReflected(laser.rotation)), newCollisions, closestSide);
                     }
 
                     else
