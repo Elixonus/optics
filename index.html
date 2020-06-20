@@ -338,7 +338,7 @@
                     return this;
                 }
 
-                getVertex(vertexNumber)
+                getVertex(vertexNumber, absolute = false)
                 {
                     let correctedVertexNumber = vertexNumber;
 
@@ -347,25 +347,22 @@
                         correctedVertexNumber += this.vertices.length;
                     }
 
-                    return this.vertices[correctedVertexNumber % this.vertices.length];
+                    let vertex = this.vertices[correctedVertexNumber % this.vertices.length];
+
+                    if(absolute)
+                    {
+                        vertex = vertex.clone().rotateAroundPoint(pointOrigin, this.rotation).addTo(this.position);
+                    }
+
+                    return vertex;
                 }
 
-                getVertexAbsolute(vertexNumber)
+                getSide(sideNumber, absolute = false)
                 {
-                    return this.getVertex(vertexNumber).clone().rotateAroundPoint(pointOrigin, this.rotation).addTo(this.position);
+                    return new Line(this.getVertex(sideNumber, absolute), this.getVertex(sideNumber + 1, absolute));
                 }
 
-                getSide(sideNumber)
-                {
-                    return new Line(this.vertices[sideNumber % this.vertices.length], this.vertices[(sideNumber + 1) % this.vertices.length]);
-                }
-
-                getSideAbsolute(sideNumber)
-                {
-                    return this.getSide(sideNumber).clone().rotateAroundPoint(pointOrigin, this.rotation).addTo(this.position);
-                }
-
-                getExtremes()
+                getExtremes(absolute = false)
                 {
                     if(this.vertices.length === 0)
                     {
@@ -379,7 +376,7 @@
 
                     for(var n = 0; n < this.vertices.length; n++)
                     {
-                        let vertex = this.vertices[n];                    
+                        let vertex = this.getVertex(n, absolute);                    
 
                         if(leftMost === undefined || vertex.x <= leftMost.x)
                         {
@@ -410,84 +407,15 @@
                     };
                 }
 
-                getExtremesAbsolute()
+                pointInside(p, absolute)
                 {
-                    if(this.vertices.length === 0)
-                    {
-                        return false;
-                    }
-
-                    let leftMost;
-                    let rightMost;
-                    let upMost;
-                    let downMost;
-
-                    for(var n = 0; n < this.vertices.length; n++)
-                    {
-                        let vertex = this.getVertexAbsolute(n);
-
-                        if(leftMost === undefined || vertex.x <= leftMost.x)
-                        {
-                            leftMost = vertex;
-                        }
-
-                        if(rightMost === undefined || vertex.x >= rightMost.x)
-                        {
-                            rightMost = vertex;
-                        }
-
-                        if(upMost === undefined || vertex.y <= upMost.y)
-                        {
-                            upMost = vertex;
-                        }
-
-                        if(downMost === undefined || vertex.y >= downMost.y)
-                        {
-                            downMost = vertex;
-                        }
-                    }
-
-                    return {
-                        leftMost: leftMost,
-                        rightMost: rightMost,
-                        upMost: upMost,
-                        downMost, downMost
-                    };
-                }
-
-                pointInside(p)
-                {
-                    let pointOutside = this.getExtremes().leftMost.clone().subtractTo(new Point(1, 0));
+                    let pointOutside = this.getExtremes(absolute).leftMost.clone().subtractTo(new Point(1, 0));
                     let lineFromInsideToOutside = new Line(p, pointOutside);
                     let sum = 0;
 
                     for(var n = 0; n < this.vertices.length; n++)
                     {
-                        let side = this.getSide(n);
-
-                        if(intersectSegmentSegment(lineFromInsideToOutside, side))
-                        {
-                            sum++;
-                        }
-                    }
-
-                    if(sum % 2 === 0)
-                    {
-                        return false;
-                    }
-
-                    return true;
-                }
-
-                pointInsideAbsolute(p)
-                {
-                    let pointOutside = this.getExtremesAbsolute().leftMost.clone().subtractTo(new Point(1, 0));
-                    let lineFromInsideToOutside = new Line(p, pointOutside);
-                    let sum = 0;
-
-                    for(var n = 0; n < this.vertices.length; n++)
-                    {
-                        let side = this.getSideAbsolute(n);
+                        let side = this.getSide(n, absolute);
 
                         if(intersectSegmentSegment(lineFromInsideToOutside, side))
                         {
@@ -660,6 +588,21 @@
                     return this.addObject(objects);
                 }
 
+                get draggedMirror()
+                {
+                    for(var n = 0; n < this.mirrors.length; n++)
+                    {
+                        let mirror = this.mirrors[n];
+
+                        if(mirror.isDragged)
+                        {
+                            return mirror;
+                        }
+                    }
+
+                    return false;
+                }
+
                 addLaser(laser)
                 {
                     this.lasers.push(laser);
@@ -717,7 +660,7 @@
                     {
                         let mirror = this.mirrors[n];
 
-                        if(mirror.pointInsideAbsolute(p))
+                        if(mirror.pointInside(p, true))
                         {
                             mirrors.push(mirror);
                         }
@@ -777,21 +720,6 @@
                     return mirrors;
                 }
 
-                getDraggedMirror()
-                {
-                    for(var n = 0; n < this.mirrors.length; n++)
-                    {
-                        let mirror = this.mirrors[n];
-
-                        if(mirror.isDragged)
-                        {
-                            return mirror;
-                        }
-                    }
-
-                    return false;
-                }
-
                 laser(laser, collisions = [], sideIgnore = null)
                 {
                     if(collisions.length === LASER_MAX_COLLISIONS + 1)
@@ -811,7 +739,7 @@
 
                         for(var m = 0; m < mirror.vertices.length; m++)
                         {
-                            let side = mirror.getSideAbsolute(m);
+                            let side = mirror.getSide(m, true);
 
                             if(_.isEqual(side, sideIgnore))
                             {
@@ -939,6 +867,7 @@
             const pointOrigin = new Point(0, 0);
             var cameraPosition = pointOrigin.clone();
             var mousePosition = pointOrigin.clone();
+            var mouseButtons = [false, false, false];
             const keysPressed = [];
             var keysFired = false;
             const LASER_MAX_COLLISIONS = 10;
@@ -975,7 +904,7 @@
 
                     if(!mirror.isDragged)
                     {
-                        if(mirror.pointInsideAbsolute(mousePosition.clone().addTo(cameraPosition)))
+                        if(mirror.pointInside(mousePosition.clone().addTo(cameraPosition), true))
                         {
                             mirror.isHovered = true;
                         }
@@ -1198,6 +1127,7 @@
             {
                 request = requestAnimationFrame(render);
             }
+            window.oncontextmenu = function(event) { event.preventDefault(); };
 
             function resize()
             {
@@ -1224,18 +1154,16 @@
                     event = window.event;
                 }
 
-                if(event.button === 0)
-                {
-                    let point = mousePosition.clone().addTo(cameraPosition);
-                    let closest = scene.getClosestObjectToPoint(point, scene.getMirrorsWithPointInside(point));
+                mouseButtons[event.button] = true;
+                let point = mousePosition.clone().addTo(cameraPosition);
+                let closest = scene.getClosestObjectToPoint(point, scene.getMirrorsWithPointInside(point));
 
-                    if(closest !== false)
-                    {
-                        let mirror = closest.object;
-                        mirror.isDragged = true;
-                        mirror.isHovered = true;
-                        mirror.dragOffset = point.subtractTo(mirror.position);
-                    }
+                if(closest !== false)
+                {
+                    let mirror = closest.object;
+                    mirror.isDragged = true;
+                    mirror.isHovered = true;
+                    mirror.dragOffset = point.subtractTo(mirror.position);
                 }
             }
 
@@ -1246,10 +1174,8 @@
                     event = window.event;
                 }
 
-                if(event.button === 0)
-                {
-                    scene.getDraggedMirror().isDragged = false;
-                }
+                mouseButtons[event.button] = false;
+                scene.draggedMirror.isDragged = false;
             }
 
             function mousemove(event)
@@ -1269,9 +1195,21 @@
                 {
                     event = window.event;
                 }
-                
+
                 var delta = Math.sign(event.deltaY);
-                scene.getDraggedMirror().rotation += delta / 10;
+                
+                if(scene.draggedMirror !== false)
+                {
+                    if(mouseButtons[0])
+                    {
+                        scene.draggedMirror.rotation += delta / 10;
+                    }
+
+                    if(mouseButtons[2])
+                    {
+                        scene.draggedMirror.scaleVertices(map(delta, -1, 1, 1.1, 0.9));
+                    }
+                }
             }
 
             function keydown(event)
