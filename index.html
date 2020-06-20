@@ -327,15 +327,25 @@
 
             class Mirror extends Object
             {
-                constructor(position, rotation, vertices = [])
+                constructor(type, position, rotation, vertices = [])
                 {
                     super(position, rotation);
+                    this.type = type;
                     this.vertices = vertices;
-                    this.verticesAbsolute = [];
                     this.isReflecting = true;
                     this.isDragged = false;
                     this.dragOffset;
                     return this;
+                }
+
+                static get reflective()
+                {
+                    return "reflective";
+                }
+
+                static get refractive()
+                {
+                    return "refractive";
                 }
 
                 getVertex(vertexNumber, absolute = false)
@@ -879,7 +889,7 @@
                 for(var y = -5; y <= 5; y++)
                 {
                     let point = new Point(x, y).multiplyBy(200);
-                    let mirror = new Mirror(point, 0);
+                    let mirror = new Mirror(Mirror.reflective, point, 0);
                     mirror.makeRectangle(100, 100);
                     if(y % 2 === 0)
                     {
