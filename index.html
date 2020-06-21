@@ -232,96 +232,338 @@
                 }
             }
 
-            class Animation
+            class Scene
             {
-                constructor(keyframes, interpolationFunction, duration, isLooping = true)
+                constructor(objects = [])
                 {
-                    this.time = 0;
-                    this.keyframes = keyframes;
-                    this.interpolationFunction = interpolationFunction;
-                    this.duration = duration;
-                    this.isLooping = isLooping;
+                    this.lasers = [];
+                    this.mirrors = [];
+                    this.particles = [];
+
+                    if(Array.isArray(objects))
+                    {
+                        return this.addObjects(objects);
+                    }
+
+                    return this.addObject(objects);
+                }
+
+                get draggedMirror()
+                {
+                    for(var n = 0; n < this.mirrors.length; n++)
+                    {
+                        let mirror = this.mirrors[n];
+
+                        if(mirror.isDragged)
+                        {
+                            return mirror;
+                        }
+                    }
+
+                    return false;
+                }
+
+                addLaser(laser)
+                {
+                    this.lasers.push(laser);
                     return this;
                 }
 
-                tick()
+                removeLaser(laser)
                 {
-                    let time = this.time;
-                    this.time++;
+                    this.lasers.splice(this.lasers.indexOf(laser), 1);
+                    return this;
+                }
 
-                    if(this.isLooping)
+                addLasers(lasers)
+                {
+                    this.lasers = this.lasers.concat(lasers);
+                    return this;
+                }
+
+                addMirror(mirror)
+                {
+                    this.mirrors.push(mirror);
+                    return this;
+                }
+
+                removeMirror(mirror)
+                {
+                    this.mirrors.splice(this.mirrors.indexOf(mirror), 1);
+                    return this;
+                }
+
+                addMirrors(mirrors)
+                {
+                    this.mirrors = this.mirrors.concat(mirrors);
+                    return this;
+                }
+
+                addParticle(particle)
+                {
+                    this.particles.push(particle);
+                    return this;
+                }
+
+                removeParticle(particle)
+                {
+                    this.particles.splice(this.particles.indexOf(particle), 1);
+                    return this;
+                }
+
+                addObject(object)
+                {
+                    if(object.constructor.name === "Laser")
                     {
-                        while(this.time >= this.duration)
-                        {
-                            this.time -= this.duration;
-                        }
+                        this.addLaser(object);
+                    }
+
+                    else if(object.constructor.name === "Mirror")
+                    {
+                        this.addMirror(object);
+                    }
+
+                    else if(object.constructor.name === "Particle")
+                    {
+                        this.addParticle(object);
                     }
                     
-                    let lowKeyframe;
+                    return this;
+                }
 
-                    for(var n = 0; n < this.keyframes.length; n++)
+                removeObject(object)
+                {
+                    if(object.constructor.name === "Laser")
                     {
-                        let keyframe = this.keyframes[n];
-                        if((lowKeyframe === undefined || keyframe.time >= lowKeyframe.time) && keyframe.time <= time)
+                        this.removeLaser(object);
+                    }
+
+                    if(object.constructor.name === "Mirror")
+                    {
+                        this.removeMirror(object);
+                    }
+                }
+
+                addObjects(objects)
+                {
+                    for(var n = 0; n < objects.length; n++)
+                    {
+                        this.addObject(objects[n]);
+                    }
+                    
+                    return this;
+                }
+
+                getMirrorsWithPointInside(p = pointOrigin)
+                {
+                    let mirrors = [];
+
+                    for(var n = 0; n < this.mirrors.length; n++)
+                    {
+                        let mirror = this.mirrors[n];
+
+                        if(mirror.pointInside(p, true))
                         {
-                            lowKeyframe = keyframe;
+                            mirrors.push(mirror);
                         }
                     }
 
-                    let highKeyframe;
+                    return mirrors;
+                }
 
-                    for(var n = 0; n < this.keyframes.length; n++)
+                getClosestObjectToPoint(p = pointOrigin, objects = [])
+                {
+                    let closestObject;
+                    let distanceToClosestObject;
+
+                    for(var n = 0; n < objects.length; n++)
                     {
-                        let keyframe = this.keyframes[n];
-                        if((highKeyframe === undefined || keyframe.time <= highKeyframe.time) && keyframe.time >= time)
+                        let object = objects[n];
+                        let distanceToObject = distance(p, object.position);
+
+                        if(closestObject === undefined || distanceToObject < distanceToClosestObject)
                         {
-                            highKeyframe = keyframe;
+                            closestObject = object;
+                            distanceToClosestObject = distanceToObject;
                         }
                     }
 
-                    if(lowKeyframe === undefined)
+                    if(closestObject === undefined)
                     {
-                        return highKeyframe.values;
+                        return false;
                     }
 
-                    if(highKeyframe === undefined)
+                    return {
+                        object: closestObject,
+                        distanceToObject: distanceToClosestObject
+                    };
+                }
+
+                getClosestMirrorToPoint(p = pointOrigin)
+                {
+                    let closest = this.getClosestObjectToPoint(p, this.mirrors);
+                    return closest;
+                }
+
+                getReflectingMirrors()
+                {
+                    let mirrors = [];
+
+                    for(var n = 0; n < this.mirrors.length; n++)
                     {
-                        return lowKeyframe.values;
-                    }
+                        let mirror = this.mirrors[n];
 
-                    if(lowKeyframe === highKeyframe)
-                    {
-                        return lowKeyframe.values;
-                    }
-
-                    let mapped = map(time, lowKeyframe.time, highKeyframe.time, 0, 1);
-
-                    if(Array.isArray(this.keyframes[0].values))
-                    {
-                        let values = [];
-
-                        for(var n = 0; n < this.keyframes[0].values.length; n++)
+                        if(mirror.isReflecting)
                         {
-                            values.push(this.interpolationFunction(lowKeyframe.values[n], highKeyframe.values[n], mapped));
+                            mirrors.push(mirror);
                         }
+                    }
 
-                        return values;
+                    return mirrors;
+                }
+
+                laser(laser, collisions = [], sideIgnore = null)
+                {
+                    if(collisions.length === LASER_MAX_COLLISIONS + 1)
+                    {
+                        return collisions;
+                    }
+                    
+                    let laserLine = Line.fromRay(laser.position, laser.rotation);
+                    let closestMirror;
+                    let closestIntersection;
+                    let distanceToClosestIntersection;
+                    let closestSide;
+
+                    for(var n = 0; n < this.mirrors.length; n++)
+                    {
+                        let mirror = this.mirrors[n];
+
+                        for(var m = 0; m < mirror.vertices.length; m++)
+                        {
+                            let side = mirror.getSide(m, true);
+
+                            if(_.isEqual(side, sideIgnore))
+                            {
+                                continue;
+                            }
+
+                            let intersection = intersectionSegmentRay(side, laserLine);
+
+                            if(intersection !== false)
+                            {
+                                let distanceToIntersection = distance(laser.position, intersection);
+
+                                if(closestIntersection === undefined ||  distanceToIntersection < distanceToClosestIntersection)
+                                {
+                                    closestMirror = mirror;
+                                    closestIntersection = intersection;
+                                    distanceToClosestIntersection = distanceToIntersection;
+                                    closestSide = side;
+                                }
+                            }
+                        }
+                    }
+
+                    if(closestMirror === undefined)
+                    {
+                        collisions.push(laser.position.clone().addToPolar(LASER_RANGE, laser.rotation));
+                        return collisions;
+                    }
+
+                    let newCollisions = _.cloneDeep(collisions);
+                    newCollisions.push(closestIntersection);
+
+                    // angle of incidence code start
+                    let angleOfIncidence = Math.PI / 2 + laser.rotation - closestSide.getAngle();
+
+                    while(angleOfIncidence > Math.PI)
+                    {
+                        angleOfIncidence -= Math.PI;
+                    }
+
+                    while(angleOfIncidence < 0)
+                    {
+                        angleOfIncidence += Math.PI;
+                    }
+
+                    if(angleOfIncidence > Math.PI / 2)
+                    {
+                        angleOfIncidence = Math.PI - angleOfIncidence;
+                    }
+
+                    angleOfIncidence = angleOfIncidence;
+                    // angle of incidence code end
+
+                    if(closestMirror.isReflecting)
+                    {
+                        return this.laser(new Laser(closestIntersection, closestSide.getAngleReflected(laser.rotation)), newCollisions, closestSide);
                     }
 
                     else
                     {
-                        return this.interpolationFunction(lowKeyframe.values, highKeyframe.values, mapped);
+                        collisions.push(closestIntersection);
+                        return collisions;
                     }
+                }
+
+                getLaserCollisions()
+                {
+                    let lasersData = [];
+
+                    for(var n = 0; n < this.lasers.length; n++)
+                    {
+                        lasersData.push(this.laser(this.lasers[n]));
+                    }
+
+                    return lasersData;
+                }
+
+                tick()
+                {
+                    for(var n = 0; n < this.lasers.length; n++)
+                    {
+                        this.lasers[n].tick();
+                    }
+
+                    for(var n = 0; n < this.mirrors.length; n++)
+                    {
+                        this.mirrors[n].tick();
+                    }
+
+                    for(var n = 0; n < this.particles.length; n++)
+                    {
+                        let particle = this.particles[n];
+                        particle.tick();
+
+                        if(particle.position.x < -canvas.width / 2 || particle.position.x > canvas.width / 2 || particle.position.y < -canvas.height / 2 || particle.position.y > canvas.height / 2)
+                        {
+                            this.removeParticle(particle);
+                        }
+                    }
+                }
+
+                load(json)
+                {
+                    let parsed = JSON.parse(json);
+                    this.lasers = parsed.lasers;
+                    this.mirrors = parsed.mirrors;
+                    
+                    return this;
                 }
             }
 
-            class Keyframe
+            class Laser extends Object
             {
-                constructor(time, values)
+                constructor(position, rotation)
                 {
-                    this.time = time;
-                    this.values = values;
+                    super(position, rotation);
                     return this;
+                }
+
+                pointTo(p)
+                {
+                    this.rotation = Math.atan2(p.y - this.position.y, p.x - this.position.x);
                 }
             }
 
@@ -583,284 +825,114 @@
                 }
             }
 
-            class Scene
+            class Particle
             {
-                constructor(objects = [])
+                constructor(position)
                 {
-                    this.lasers = [];
-                    this.mirrors = [];
-
-                    if(Array.isArray(objects))
-                    {
-                        return this.addObjects(objects);
-                    }
-
-                    return this.addObject(objects);
-                }
-
-                get draggedMirror()
-                {
-                    for(var n = 0; n < this.mirrors.length; n++)
-                    {
-                        let mirror = this.mirrors[n];
-
-                        if(mirror.isDragged)
-                        {
-                            return mirror;
-                        }
-                    }
-
-                    return false;
-                }
-
-                addLaser(laser)
-                {
-                    this.lasers.push(laser);
-                    return this;
-                }
-
-                addLasers(lasers)
-                {
-                    this.lasers = this.lasers.concat(lasers);
-                    return this;
-                }
-
-                addMirror(mirror)
-                {
-                    this.mirrors.push(mirror);
-                    return this;
-                }
-
-                addMirrors(mirrors)
-                {
-                    this.mirrors = this.mirrors.concat(mirrors);
-                    return this;
-                }
-
-                addObject(object)
-                {
-                    if(object.constructor.name === "Laser")
-                    {
-                        this.addLaser(object);
-                    }
-
-                    else if(object.constructor.name === "Mirror")
-                    {
-                        this.addMirror(object);
-                    }
-                    
-                    return this;
-                }
-
-                addObjects(objects)
-                {
-                    for(var n = 0; n < objects.length; n++)
-                    {
-                        this.addObject(objects[n]);
-                    }
-                    
-                    return this;
-                }
-
-                getMirrorsWithPointInside(p = pointOrigin)
-                {
-                    let mirrors = [];
-
-                    for(var n = 0; n < this.mirrors.length; n++)
-                    {
-                        let mirror = this.mirrors[n];
-
-                        if(mirror.pointInside(p, true))
-                        {
-                            mirrors.push(mirror);
-                        }
-                    }
-
-                    return mirrors;
-                }
-
-                getClosestObjectToPoint(p = pointOrigin, objects = [])
-                {
-                    let closestObject;
-                    let distanceToClosestObject;
-
-                    for(var n = 0; n < objects.length; n++)
-                    {
-                        let object = objects[n];
-                        let distanceToObject = distance(p, object.position);
-
-                        if(closestObject === undefined || distanceToObject < distanceToClosestObject)
-                        {
-                            closestObject = object;
-                            distanceToClosestObject = distanceToObject;
-                        }
-                    }
-
-                    if(closestObject === undefined)
-                    {
-                        return false;
-                    }
-
-                    return {
-                        object: closestObject,
-                        distanceToObject: distanceToClosestObject
-                    };
-                }
-
-                getClosestMirrorToPoint(p = pointOrigin)
-                {
-                    let closest = this.getClosestObjectToPoint(p, this.mirrors);
-                    return closest;
-                }
-
-                getReflectingMirrors()
-                {
-                    let mirrors = [];
-
-                    for(var n = 0; n < this.mirrors.length; n++)
-                    {
-                        let mirror = this.mirrors[n];
-
-                        if(mirror.isReflecting)
-                        {
-                            mirrors.push(mirror);
-                        }
-                    }
-
-                    return mirrors;
-                }
-
-                laser(laser, collisions = [], sideIgnore = null)
-                {
-                    if(collisions.length === LASER_MAX_COLLISIONS + 1)
-                    {
-                        return collisions;
-                    }
-                    
-                    let laserLine = Line.fromRay(laser.position, laser.rotation);
-                    let closestMirror;
-                    let closestIntersection;
-                    let distanceToClosestIntersection;
-                    let closestSide;
-
-                    for(var n = 0; n < this.mirrors.length; n++)
-                    {
-                        let mirror = this.mirrors[n];
-
-                        for(var m = 0; m < mirror.vertices.length; m++)
-                        {
-                            let side = mirror.getSide(m, true);
-
-                            if(_.isEqual(side, sideIgnore))
-                            {
-                                continue;
-                            }
-
-                            let intersection = intersectionSegmentRay(side, laserLine);
-
-                            if(intersection !== false)
-                            {
-                                let distanceToIntersection = distance(laser.position, intersection);
-
-                                if(closestIntersection === undefined ||  distanceToIntersection < distanceToClosestIntersection)
-                                {
-                                    closestMirror = mirror;
-                                    closestIntersection = intersection;
-                                    distanceToClosestIntersection = distanceToIntersection;
-                                    closestSide = side;
-                                }
-                            }
-                        }
-                    }
-
-                    if(closestMirror === undefined)
-                    {
-                        collisions.push(laser.position.clone().addToPolar(LASER_RANGE, laser.rotation));
-                        return collisions;
-                    }
-
-                    let newCollisions = _.cloneDeep(collisions);
-                    newCollisions.push(closestIntersection);
-
-                    // angle of incidence code start
-                    let angleOfIncidence = Math.PI / 2 + laser.rotation - closestSide.getAngle();
-
-                    while(angleOfIncidence > Math.PI)
-                    {
-                        angleOfIncidence -= Math.PI;
-                    }
-
-                    while(angleOfIncidence < 0)
-                    {
-                        angleOfIncidence += Math.PI;
-                    }
-
-                    if(angleOfIncidence > Math.PI / 2)
-                    {
-                        angleOfIncidence = Math.PI - angleOfIncidence;
-                    }
-
-                    angleOfIncidence = angleOfIncidence;
-                    // angle of incidence code end
-
-                    if(closestMirror.isReflecting)
-                    {
-                        return this.laser(new Laser(closestIntersection, closestSide.getAngleReflected(laser.rotation)), newCollisions, closestSide);
-                    }
-
-                    else
-                    {
-                        collisions.push(closestIntersection);
-                        return collisions;
-                    }
-                }
-
-                getLaserCollisions()
-                {
-                    let lasersData = [];
-
-                    for(var n = 0; n < this.lasers.length; n++)
-                    {
-                        lasersData.push(this.laser(this.lasers[n]));
-                    }
-
-                    return lasersData;
+                    this.position = position;
+                    this.speed = pointOrigin.clone().addTo(new Point(5 * (Math.random() - 0.5), 0));
+                    this.drag = new Point(-0.01, -0.1);
+                    this.gravity = new Point(0, 1);
                 }
 
                 tick()
                 {
-                    for(var n = 0; n < this.lasers.length; n++)
-                    {
-                        this.lasers[n].tick();
-                    }
-
-                    for(var n = 0; n < this.mirrors.length; n++)
-                    {
-                        this.mirrors[n].tick();
-                    }
-                }
-
-                load(json)
-                {
-                    let parsed = JSON.parse(json);
-                    this.lasers = parsed.lasers;
-                    this.mirrors = parsed.mirrors;
-                    
-                    return this;
+                    this.speed.addTo(this.gravity);
+                    this.speed.addTo(this.speed.clone().scale(this.drag.x, this.drag.y));
+                    this.position.addTo(this.speed);
                 }
             }
 
-            class Laser extends Object
+            class Animation
             {
-                constructor(position, rotation)
+                constructor(keyframes, interpolationFunction, duration, isLooping = true)
                 {
-                    super(position, rotation);
+                    this.time = 0;
+                    this.keyframes = keyframes;
+                    this.interpolationFunction = interpolationFunction;
+                    this.duration = duration;
+                    this.isLooping = isLooping;
                     return this;
                 }
 
-                pointTo(p)
+                tick()
                 {
-                    this.rotation = Math.atan2(p.y - this.position.y, p.x - this.position.x);
+                    let time = this.time;
+                    this.time++;
+
+                    if(this.isLooping)
+                    {
+                        while(this.time >= this.duration)
+                        {
+                            this.time -= this.duration;
+                        }
+                    }
+                    
+                    let lowKeyframe;
+
+                    for(var n = 0; n < this.keyframes.length; n++)
+                    {
+                        let keyframe = this.keyframes[n];
+                        if((lowKeyframe === undefined || keyframe.time >= lowKeyframe.time) && keyframe.time <= time)
+                        {
+                            lowKeyframe = keyframe;
+                        }
+                    }
+
+                    let highKeyframe;
+
+                    for(var n = 0; n < this.keyframes.length; n++)
+                    {
+                        let keyframe = this.keyframes[n];
+                        if((highKeyframe === undefined || keyframe.time <= highKeyframe.time) && keyframe.time >= time)
+                        {
+                            highKeyframe = keyframe;
+                        }
+                    }
+
+                    if(lowKeyframe === undefined)
+                    {
+                        return highKeyframe.values;
+                    }
+
+                    if(highKeyframe === undefined)
+                    {
+                        return lowKeyframe.values;
+                    }
+
+                    if(lowKeyframe === highKeyframe)
+                    {
+                        return lowKeyframe.values;
+                    }
+
+                    let mapped = map(time, lowKeyframe.time, highKeyframe.time, 0, 1);
+
+                    if(Array.isArray(this.keyframes[0].values))
+                    {
+                        let values = [];
+
+                        for(var n = 0; n < this.keyframes[0].values.length; n++)
+                        {
+                            values.push(this.interpolationFunction(lowKeyframe.values[n], highKeyframe.values[n], mapped));
+                        }
+
+                        return values;
+                    }
+
+                    else
+                    {
+                        return this.interpolationFunction(lowKeyframe.values, highKeyframe.values, mapped);
+                    }
+                }
+            }
+
+            class Keyframe
+            {
+                constructor(time, values)
+                {
+                    this.time = time;
+                    this.values = values;
+                    return this;
                 }
             }
 
@@ -882,29 +954,9 @@
             var keysFired = false;
             const LASER_MAX_COLLISIONS = 10;
             const LASER_RANGE = 10000;
-            var scene = new Scene(new Laser(new Point(100, 0), 0).setRotationAnimation(new Animation([new Keyframe(0, 0), new Keyframe(1000, 2 * Math.PI)], interpolateLinear, 1000)));
-
-            for(var x = -5; x <= 5; x++)
-            {
-                for(var y = -5; y <= 5; y++)
-                {
-                    let point = new Point(x, y).multiplyBy(200);
-                    let mirror = new Mirror(Mirror.reflective, point, 0);
-                    mirror.makeRectangle(100, 100);
-                    if(y % 2 === 0)
-                    {
-                        mirror.setPositionAnimation(new Animation([new Keyframe(0, [point.x, point.y]), new Keyframe(250, [point.x + 200 * Math.random(), point.y + 50 * Math.random()]), new Keyframe(500, [point.x, point.y])], interpolateLinear, 500));
-                    }
-
-                    else
-                    {
-                        mirror.setPositionAnimation(new Animation([new Keyframe(0, [point.x, point.y]), new Keyframe(250, [point.x - 200 * Math.random(), point.y - 50 * Math.random()]), new Keyframe(500, [point.x, point.y])], interpolateLinear, 500));
-                    }
-                    scene.addMirror(mirror);
-                }
-            }
-
-            var draggedMirrors = [];
+            var scene = new Scene(new Laser(new Point(100, 0), 0));
+            scene.addMirror(new Mirror(Mirror.reflective, pointOrigin.clone(), 0, [new Point(0, 0), new Point(100, 0), new Point(100, 100)]));
+            scene.mirrors[0].makeBlob(100, 0.1, 0, 50);
 
             function render()
             {
@@ -926,16 +978,9 @@
                     }
                 }
 
-                draggedMirrors = scene.mirrors.filter(function(mirror)
+                if(scene.draggedMirror !== false)
                 {
-                    return mirror.isDragged;
-                });
-
-                for(var n = 0; n < draggedMirrors.length; n++)
-                {
-                    let draggedMirror = draggedMirrors[n];
-                    //draggedMirror.position = mousePosition.clone().addTo(cameraPosition).subtractTo(draggedMirror.dragOffset);
-                    draggedMirror.position.setTo(mousePosition).addTo(cameraPosition).subtractTo(draggedMirror.dragOffset);
+                    scene.draggedMirror.position.setTo(mousePosition).addTo(cameraPosition).subtractTo(scene.draggedMirror.dragOffset);
                 }
 
                 if(keysPressed.includes("ArrowLeft"))
@@ -1083,9 +1128,39 @@
                     {
                         let laserCollision = laserCollisions[m];
                         ctx.lineTo(laserCollision.x, laserCollision.y);
+                        scene.addParticle(new Particle(laserCollision));
                     }
 
                     ctx.stroke();
+                }
+
+                ctx.fillStyle = "#00ff00";
+
+                for(var n = 0; n < scene.particles.length; n++)
+                {
+                    let particle = scene.particles[n];
+                    ctx.save();
+                    ctx.translate(particle.position.x, particle.position.y);
+                    ctx.beginPath();
+
+                    for(var m = 0; m < 3; m++)
+                    {
+                        if(m === 0)
+                        {
+                            ctx.moveTo(4, 0);
+                        }
+
+                        else
+                        {
+                            ctx.lineTo(4, 0);
+                        }
+
+                        ctx.rotate(2 * Math.PI / 3);
+                    }
+
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.restore();
                 }
 
                 ctx.fillStyle = "#ffffff";
@@ -1096,7 +1171,7 @@
                 ctx.translate(mousePosition.x + canvasWidth / 2, mousePosition.y + canvasHeight / 2);
                 ctx.beginPath();
 
-                if(draggedMirrors.length === 0)
+                if(scene.draggedMirror !== false)
                 {
                     ctx.moveTo(0, 0);
                     ctx.lineTo(10, 30);
@@ -1247,10 +1322,9 @@
 
                     else if(eventKey.toUpperCase() === "R")
                     {
-                        for(var n = 0; n < draggedMirrors.length; n++)
+                        if(scene.draggedMirror !== false)
                         {
-                            let draggedMirror = draggedMirrors[n];
-                            draggedMirror.isReflecting = !draggedMirror.isReflecting;
+                            scene.draggedMirror.isReflecting = !scene.draggedMirror.isReflecting;
                         }
                     }
                 }
