@@ -199,35 +199,55 @@
             {
                 constructor(position, rotation)
                 {
-                    this.position = position;
-                    this.positionAnimation = null;
-                    this.rotation = rotation;
-                    this.rotationAnimation = null;
+                    this.setPositionTo(position);
+                    this.setRotationTo(rotation);
                 }
 
-                setPositionAnimation(positionAnimation)
+                setPositionTo(position)
                 {
-                    this.positionAnimation = positionAnimation;
+                    if(position.constructor.name === "Point")
+                    {
+                        this.position = position;
+                    }
+
+                    else if(position.constructor.name === "Animation")
+                    {
+                        this.positionAnimation = position;
+                        this.tick();
+                    }
+
                     return this;
                 }
 
-                setRotationAnimation(rotationAnimation)
+                setRotationTo(rotation)
                 {
-                    this.rotationAnimation = rotationAnimation;
+                    if(isNaN(rotation))
+                    {
+                        this.rotationAnimation = rotation;
+                        this.tick();
+                    }
+
+                    else
+                    {
+                        this.rotation = rotation;
+                    }
+
                     return this;
                 }
 
                 tick()
                 {
-                    if(this.positionAnimation !== null)
+                    if(this.hasOwnProperty("positionAnimation"))
                     {
-                        let result = this.positionAnimation.tick();
+                        let result = this.positionAnimation.getValues();
                         this.position = new Point(result[0], result[1]);
+                        this.positionAnimation.tick();
                     }
 
-                    if(this.rotationAnimation !== null)
+                    if(this.hasOwnProperty("rotationAnimation"))
                     {
-                        this.rotation = this.rotationAnimation.tick();
+                        this.rotation = this.rotationAnimation.getValues();
+                        this.rotationAnimation.tick();
                     }
                 }
             }
@@ -855,25 +875,14 @@
                     return this;
                 }
 
-                tick()
+                getValues()
                 {
-                    let time = this.time;
-                    this.time++;
-
-                    if(this.isLooping)
-                    {
-                        while(this.time >= this.duration)
-                        {
-                            this.time -= this.duration;
-                        }
-                    }
-                    
                     let lowKeyframe;
 
                     for(var n = 0; n < this.keyframes.length; n++)
                     {
                         let keyframe = this.keyframes[n];
-                        if((lowKeyframe === undefined || keyframe.time >= lowKeyframe.time) && keyframe.time <= time)
+                        if((lowKeyframe === undefined || keyframe.time >= lowKeyframe.time) && keyframe.time <= this.time)
                         {
                             lowKeyframe = keyframe;
                         }
@@ -884,7 +893,7 @@
                     for(var n = 0; n < this.keyframes.length; n++)
                     {
                         let keyframe = this.keyframes[n];
-                        if((highKeyframe === undefined || keyframe.time <= highKeyframe.time) && keyframe.time >= time)
+                        if((highKeyframe === undefined || keyframe.time <= highKeyframe.time) && keyframe.time >= this.time)
                         {
                             highKeyframe = keyframe;
                         }
@@ -905,7 +914,7 @@
                         return lowKeyframe.values;
                     }
 
-                    let mapped = map(time, lowKeyframe.time, highKeyframe.time, 0, 1);
+                    let mapped = map(this.time, lowKeyframe.time, highKeyframe.time, 0, 1);
 
                     if(Array.isArray(this.keyframes[0].values))
                     {
@@ -922,6 +931,19 @@
                     else
                     {
                         return this.interpolationFunction(lowKeyframe.values, highKeyframe.values, mapped);
+                    }
+                }
+
+                tick()
+                {
+                    this.time++;
+
+                    if(this.isLooping)
+                    {
+                        while(this.time >= this.duration)
+                        {
+                            this.time -= this.duration;
+                        }
                     }
                 }
             }
@@ -955,7 +977,7 @@
             const LASER_MAX_COLLISIONS = 10;
             const LASER_RANGE = 10000;
             var scene = new Scene(new Laser(new Point(100, 0), 0));
-            scene.addMirror(new Mirror(Mirror.reflective, pointOrigin.clone(), 0, [new Point(0, 0), new Point(100, 0), new Point(100, 100)]));
+            scene.addMirror(new Mirror(Mirror.reflective, new Animation([new Keyframe(0, [0, 0]), new Keyframe(60, [0, 100])], interpolateLinear, 60), 0, [new Point(0, 0), new Point(100, 0), new Point(100, 100)]));
             scene.mirrors[0].makeBlob(100, 0.1, 0, 50);
 
             function render()
