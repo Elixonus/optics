@@ -1193,7 +1193,7 @@
                 ctx.translate(mousePosition.x + canvasWidth / 2, mousePosition.y + canvasHeight / 2);
                 ctx.beginPath();
 
-                if(scene.draggedMirror !== false)
+                if(scene.draggedMirror === false)
                 {
                     ctx.moveTo(0, 0);
                     ctx.lineTo(10, 30);
