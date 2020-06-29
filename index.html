@@ -424,7 +424,7 @@
                     return mirrors;
                 }
 
-                laser(laser, collisions = [], sideIgnore = null)
+                laser(laser, mirrorsInside = [], collisions = [], sideIgnore = null)
                 {
                     if(collisions.length === LASER_MAX_COLLISIONS + 1)
                     {
@@ -436,6 +436,8 @@
                     let closestIntersection;
                     let distanceToClosestIntersection;
                     let closestSide;
+
+                    let newMirrorsInside = _.clone(mirrorsInside);
 
                     for(var n = 0; n < this.mirrors.length; n++)
                     {
@@ -462,6 +464,19 @@
                                     closestIntersection = intersection;
                                     distanceToClosestIntersection = distanceToIntersection;
                                     closestSide = side;
+
+                                    if(closestMirror.isRefracting)
+                                    {
+                                        if(!newMirrorsInside.includes(closestMirror))
+                                        {
+                                            newMirrorsInside.push(closestMirror);
+                                        }
+
+                                        else
+                                        {
+                                            newMirrorsInside.splice(newMirrorsInside.indexOf(closestMirror), 1);
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -473,7 +488,7 @@
                         return collisions;
                     }
 
-                    let newCollisions = _.cloneDeep(collisions);
+                    let newCollisions = _.clone(collisions);
                     newCollisions.push(closestIntersection);
 
                     // angle of incidence code start
@@ -497,9 +512,45 @@
                     angleOfIncidence = angleOfIncidence;
                     // angle of incidence code end
 
-                    if(closestMirror.isReflecting)
+                    if(closestMirror.isNotAbsorbing)
                     {
-                        return this.laser(new Laser(closestIntersection, closestSide.getAngleReflected(laser.rotation)), newCollisions, closestSide);
+                        let resultingAngle;
+
+                        if(closestMirror.isReflecting)
+                        {
+                            resultingAngle = closestSide.getAngleReflected(laser.rotation);
+                        }
+
+                        if(closestMirror.isRefracting)
+                        {
+                            let incidentIndex = 1;
+                            let refractedIndex = 1;
+
+                            if(mirrorsInside.length > 0)
+                            {
+                                incidentIndex = average(getPropertiesOfObjects(mirrorsInside, "indexOfRefraction"));
+                            }
+
+                            if(newMirrorsInside.length > 0)
+                            {
+                                refractedIndex = average(getPropertiesOfObjects(newMirrorsInside, "indexOfRefraction"));
+                            }
+
+                            console.log(closestSide.getAngle() * 180 / Math.PI);
+                            let number = incidentIndex / refractedIndex * Math.sin(closestSide.getAngle());
+
+                            if(number >= -1 && number <= 1)
+                            {
+                                resultingAngle = -laser.rotation + Math.asin(number);
+                            }
+
+                            else
+                            {
+                                resultingAngle = 0;
+                            }
+                        }
+
+                        return this.laser(new Laser(closestIntersection, resultingAngle), newMirrorsInside, newCollisions, closestSide);
                     }
 
                     else
@@ -515,7 +566,8 @@
 
                     for(var n = 0; n < this.lasers.length; n++)
                     {
-                        lasersData.push(this.laser(this.lasers[n]));
+                        let laser = this.lasers[n];
+                        lasersData.push(this.laser(laser, this.getMirrorsWithPointInside(laser.position)));
                     }
 
                     return lasersData;
@@ -567,6 +619,7 @@
                     this.vertices = vertices;
                     this.isDragged = false;
                     this.dragOffset;
+                    this.indexOfRefraction = 2;
                     return this;
                 }
 
@@ -971,8 +1024,8 @@
             var keysFired = false;
             const LASER_MAX_COLLISIONS = 10;
             const LASER_RANGE = 10000;
-            var scene = new Scene(new Laser(new Point(100, 0), 0));
-            scene.addMirror(new Mirror(Mirror.reflective, new Point(50, 50), 0, [new Point(0, 0), new Point(100, 0), new Point(100, 100)]));
+            var scene = new Scene(new Laser(new Point(100, 0), Math.PI / 4));
+            scene.addMirror(new Mirror(Mirror.refractive, new Point(50, 50), 0, [new Point(0, 0), new Point(100, 0), new Point(100, 100)]));
             scene.mirrors[0].makeBlob(100, 0.1, 0, 50);
 
             function render()
@@ -1320,6 +1373,64 @@
                 }
 
                 return 0;
+            }
+
+            function getPropertiesOfObjects(objects, property)
+            {
+                let properties = [];
+
+                for(var n = 0; n < objects.length; n++)
+                {
+                    properties.push(objects[n][property]);
+                }
+
+                return properties;
+            }
+
+            function minimum(values)
+            {
+                let min;
+
+                for(var n = 0; n < values.length; n++)
+                {
+                    let value = values[n];
+
+                    if(min === undefined || value < min)
+                    {
+                        min = value;
+                    }
+                }
+
+                return min;
+            }
+
+            function maximum(values)
+            {
+                let max;
+
+                for(var n = 0; n < values.length; n++)
+                {
+                    let value = values[n];
+
+                    if(max === undefined || value > max)
+                    {
+                        max = value;
+                    }
+                }
+
+                return max;
+            }
+
+            function average(values)
+            {
+                let sum = 0;
+
+                for(var n = 0; n < values.length; n++)
+                {
+                    sum += values[n];
+                }
+
+                return sum / values.length;
             }
 
             function randomInteger(min = 0, max = 1)
