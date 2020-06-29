@@ -464,19 +464,6 @@
                                     closestIntersection = intersection;
                                     distanceToClosestIntersection = distanceToIntersection;
                                     closestSide = side;
-
-                                    if(closestMirror.isRefracting)
-                                    {
-                                        if(!newMirrorsInside.includes(closestMirror))
-                                        {
-                                            newMirrorsInside.push(closestMirror);
-                                        }
-
-                                        else
-                                        {
-                                            newMirrorsInside.splice(newMirrorsInside.indexOf(closestMirror), 1);
-                                        }
-                                    }
                                 }
                             }
                         }
@@ -486,6 +473,19 @@
                     {
                         collisions.push(laser.position.clone().addToPolar(LASER_RANGE, laser.rotation));
                         return collisions;
+                    }
+
+                    else if(closestMirror.isRefracting)
+                    {
+                        if(!newMirrorsInside.includes(closestMirror))
+                        {
+                            newMirrorsInside.push(closestMirror);
+                        }
+
+                        else
+                        {
+                            newMirrorsInside.splice(newMirrorsInside.indexOf(closestMirror), 1);
+                        }
                     }
 
                     let newCollisions = _.clone(collisions);
@@ -536,17 +536,16 @@
                                 refractedIndex = average(getPropertiesOfObjects(newMirrorsInside, "indexOfRefraction"));
                             }
 
-                            console.log(closestSide.getAngle() * 180 / Math.PI);
-                            let number = incidentIndex / refractedIndex * Math.sin(closestSide.getAngle());
+                            let number = incidentIndex / refractedIndex * Math.sin(laser.rotation - closestSide.getAngle() + Math.PI / 2);
 
                             if(number >= -1 && number <= 1)
                             {
-                                resultingAngle = -laser.rotation + Math.asin(number);
+                                resultingAngle = Math.asin(number) + closestSide.getAngle() - Math.PI / 2;
                             }
 
                             else
                             {
-                                resultingAngle = 0;
+                                resultingAngle = closestSide.getAngleReflected(laser.rotation);
                             }
                         }
 
@@ -1024,9 +1023,10 @@
             var keysFired = false;
             const LASER_MAX_COLLISIONS = 10;
             const LASER_RANGE = 10000;
-            var scene = new Scene(new Laser(new Point(100, 0), Math.PI / 4));
+            var scene = new Scene(new Laser(new Point(100, 0), Math.PI / 10));
             scene.addMirror(new Mirror(Mirror.refractive, new Point(50, 50), 0, [new Point(0, 0), new Point(100, 0), new Point(100, 100)]));
-            scene.mirrors[0].makeBlob(100, 0.1, 0, 50);
+            //scene.mirrors[0].makeBlob(100, 0.1, 0, 50);
+            scene.mirrors[0].makeRectangle(300, 300);
 
             function render()
             {
