@@ -258,7 +258,6 @@
                 {
                     this.lasers = [];
                     this.mirrors = [];
-                    this.particles = [];
 
                     if(Array.isArray(objects))
                     {
@@ -319,18 +318,6 @@
                     return this;
                 }
 
-                addParticle(particle)
-                {
-                    this.particles.push(particle);
-                    return this;
-                }
-
-                removeParticle(particle)
-                {
-                    this.particles.splice(this.particles.indexOf(particle), 1);
-                    return this;
-                }
-
                 addObject(object)
                 {
                     if(object.constructor.name === "Laser")
@@ -341,11 +328,6 @@
                     else if(object.constructor.name === "Mirror")
                     {
                         this.addMirror(object);
-                    }
-
-                    else if(object.constructor.name === "Particle")
-                    {
-                        this.addParticle(object);
                     }
                     
                     return this;
@@ -550,17 +532,6 @@
                     {
                         this.mirrors[n].tick();
                     }
-
-                    for(var n = 0; n < this.particles.length; n++)
-                    {
-                        let particle = this.particles[n];
-                        particle.tick();
-
-                        if(particle.position.x < -canvas.width / 2 || particle.position.x > canvas.width / 2 || particle.position.y < -canvas.height / 2 || particle.position.y > canvas.height / 2)
-                        {
-                            this.removeParticle(particle);
-                        }
-                    }
                 }
 
                 load(json)
@@ -594,7 +565,6 @@
                     super(position, rotation);
                     this.type = type;
                     this.vertices = vertices;
-                    this.isReflecting = true;
                     this.isDragged = false;
                     this.dragOffset;
                     return this;
@@ -602,12 +572,55 @@
 
                 static get reflective()
                 {
-                    return "reflective";
+                    return 0;
                 }
 
                 static get refractive()
                 {
-                    return "refractive";
+                    return 1;
+                }
+
+                static get absorbing()
+                {
+                    return 2;
+                }
+
+                get isReflecting()
+                {
+                    return this.type === 0;
+                }
+
+                get isRefracting()
+                {
+                    return this.type === 1;
+                }
+
+                get isAbsorbing()
+                {
+                    return this.type === 2;
+                }
+
+                get isNotAbsorbing()
+                {
+                    return this.type !== 2;
+                }
+
+                incrementType(amount = 1)
+                {
+                    this.setType(this.type + amount);
+                    return this;
+                }
+
+                decrementType(amount = 1)
+                {
+                    this.setType(this.type - Math.abs(amount));
+                    return this;
+                }
+
+                setType(type)
+                {
+                    this.type = (type + 1) % 3;
+                    return this;
                 }
 
                 getVertex(vertexNumber, absolute = false)
@@ -845,24 +858,6 @@
                 }
             }
 
-            class Particle
-            {
-                constructor(position)
-                {
-                    this.position = position;
-                    this.speed = pointOrigin.clone().addTo(new Point(5 * (Math.random() - 0.5), 0));
-                    this.drag = new Point(-0.01, -0.1);
-                    this.gravity = new Point(0, 1);
-                }
-
-                tick()
-                {
-                    this.speed.addTo(this.gravity);
-                    this.speed.addTo(this.speed.clone().scale(this.drag.x, this.drag.y));
-                    this.position.addTo(this.speed);
-                }
-            }
-
             class Animation
             {
                 constructor(keyframes, interpolationFunction, duration, isLooping = true)
@@ -977,29 +972,11 @@
             const LASER_MAX_COLLISIONS = 10;
             const LASER_RANGE = 10000;
             var scene = new Scene(new Laser(new Point(100, 0), 0));
-            scene.addMirror(new Mirror(Mirror.reflective, new Animation([new Keyframe(0, [0, 0]), new Keyframe(60, [0, 100])], interpolateLinear, 60), 0, [new Point(0, 0), new Point(100, 0), new Point(100, 100)]));
+            scene.addMirror(new Mirror(Mirror.reflective, new Point(50, 50), 0, [new Point(0, 0), new Point(100, 0), new Point(100, 100)]));
             scene.mirrors[0].makeBlob(100, 0.1, 0, 50);
 
             function render()
             {
-                for(var n = 0; n < scene.mirrors.length; n++)
-                {
-                    let mirror = scene.mirrors[n];
-
-                    if(!mirror.isDragged)
-                    {
-                        if(mirror.pointInside(mousePosition.clone().addTo(cameraPosition), true))
-                        {
-                            mirror.isHovered = true;
-                        }
-
-                        else
-                        {
-                            mirror.isHovered = false;
-                        }
-                    }
-                }
-
                 if(scene.draggedMirror !== false)
                 {
                     scene.draggedMirror.position.setTo(mousePosition).addTo(cameraPosition).subtractTo(scene.draggedMirror.dragOffset);
@@ -1076,7 +1053,7 @@
                     {
                         selectedMirrors = mirrors.filter(function(mirror)
                         {
-                            return !mirror.isReflecting;
+                            return !mirror.isNotAbsorbing;
                         });
 
                         ctx.strokeStyle = "#222222";
@@ -1088,7 +1065,7 @@
                         {
                             selectedMirrors = mirrors.filter(function(mirror)
                             {
-                                return !mirror.isDragged && mirror.isReflecting;
+                                return !mirror.isDragged && mirror.isNotAbsorbing;
                             });
 
                             ctx.strokeStyle = "#ff0000";
@@ -1099,7 +1076,7 @@
                         {
                             selectedMirrors = mirrors.filter(function(mirror)
                             {
-                                return mirror.isDragged && mirror.isReflecting;
+                                return mirror.isDragged && mirror.isNotAbsorbing;
                             });
 
                             ctx.strokeStyle = "#00d0ff";
@@ -1150,39 +1127,9 @@
                     {
                         let laserCollision = laserCollisions[m];
                         ctx.lineTo(laserCollision.x, laserCollision.y);
-                        scene.addParticle(new Particle(laserCollision));
                     }
 
                     ctx.stroke();
-                }
-
-                ctx.fillStyle = "#00ff00";
-
-                for(var n = 0; n < scene.particles.length; n++)
-                {
-                    let particle = scene.particles[n];
-                    ctx.save();
-                    ctx.translate(particle.position.x, particle.position.y);
-                    ctx.beginPath();
-
-                    for(var m = 0; m < 3; m++)
-                    {
-                        if(m === 0)
-                        {
-                            ctx.moveTo(4, 0);
-                        }
-
-                        else
-                        {
-                            ctx.lineTo(4, 0);
-                        }
-
-                        ctx.rotate(2 * Math.PI / 3);
-                    }
-
-                    ctx.closePath();
-                    ctx.fill();
-                    ctx.restore();
                 }
 
                 ctx.fillStyle = "#ffffff";
@@ -1346,7 +1293,7 @@
                     {
                         if(scene.draggedMirror !== false)
                         {
-                            scene.draggedMirror.isReflecting = !scene.draggedMirror.isReflecting;
+                            scene.draggedMirror.incrementType();
                         }
                     }
                 }
