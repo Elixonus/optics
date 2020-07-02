@@ -111,6 +111,21 @@
                     return this;
                 }
 
+                absolute(x = true, y = true)
+                {
+                    if(x)
+                    {
+                        this.x = Math.abs(x);
+                    }
+
+                    if(y)
+                    {
+                        this.y = Math.abs(y);
+                    }
+
+                    return this;
+                }
+
                 interpolateToPointLinear(p, t)
                 {
                     this.x = interpolateLinear(this.x, p.x, t);
@@ -130,6 +145,11 @@
                     this.x = (this.x + p.x) / 2;
                     this.y = (this.y + p.y) / 2;
                     return this;
+                }
+
+                getMagnitude()
+                {
+                    return distance(this);
                 }
             }
 
@@ -178,6 +198,12 @@
                     return this;
                 }
 
+                getPerpendicularThroughPoint(p)
+                {
+                    // not done
+                    return new Line(p, p.clone().addTo());
+                }
+
                 getLength()
                 {
                     return distance(this.p1, this.p2);
@@ -187,6 +213,36 @@
                 {
                     let differencePoint = this.p1.clone().subtractTo(this.p2);
                     return Math.atan2(differencePoint.y, differencePoint.x);
+                }
+
+                getScalarProductBetweenLine(l)
+                {
+                    let vector1 = this.p1.clone().subtractTo(this.p2);
+                    let vector2 = l.p1.clone().subtractTo(l.p2);
+                    let scalarProduct = vector1.x * vector2.x + vector1.y * vector2.y;
+                    return scalarProduct;
+                }
+
+                getCrossProductBetweenLine(l)
+                {
+                    let vector1 = this.p1.clone().subtractTo(this.p2);
+                    let vector2 = l.p1.clone().subtractTo(l.p2);
+                    return vector1.x * vector2.y - vector1.y * vector2.x;
+                }
+
+                getAngleBetweenLine(l)
+                {
+                    return Math.acos(this.getScalarProductBetweenLine(l) / (this.getLength() * l.getLength()));
+                }
+
+                getAngleBetweenLinePerpendicular(l)
+                {
+                    return Math.asin(this.getSineOfAngleBetweenLinePerpendicular(l));
+                }
+
+                getSineOfAngleBetweenLinePerpendicular(l)
+                {
+                    return Math.abs(this.getScalarProductBetweenLine(l)) / (this.getLength() * l.getLength());
                 }
 
                 getAngleReflected(angleOfIncidence)
@@ -424,11 +480,11 @@
                     return mirrors;
                 }
 
-                laser(laser, mirrorsInside = [], collisions = [], sideIgnore = null)
+                laser(laser, insideMirrors = [], intersections = [], sideIgnore = null)
                 {
-                    if(collisions.length === LASER_MAX_COLLISIONS + 1)
+                    if(intersections.length === LASER_MAX_COLLISIONS)
                     {
-                        return collisions;
+                        return intersections;
                     }
                     
                     let laserLine = Line.fromRay(laser.position, laser.rotation);
@@ -436,8 +492,6 @@
                     let closestIntersection;
                     let distanceToClosestIntersection;
                     let closestSide;
-
-                    let newMirrorsInside = _.clone(mirrorsInside);
 
                     for(var n = 0; n < this.mirrors.length; n++)
                     {
@@ -469,93 +523,83 @@
                         }
                     }
 
+                    let newIntersections = _.clone(intersections);
+
                     if(closestMirror === undefined)
                     {
-                        collisions.push(laser.position.clone().addToPolar(LASER_RANGE, laser.rotation));
-                        return collisions;
+                        newIntersections.push(laser.position.clone().addToPolar(LASER_RANGE, laser.rotation));
+                        return newIntersections;
+                    }
+
+                    newIntersections.push(closestIntersection);
+
+                    if(closestMirror.isReflecting)
+                    {
+                        return this.laser(new Laser(closestIntersection, closestSide.getAngleReflected(laser.rotation)), insideMirrors, newIntersections, closestSide);
                     }
 
                     else if(closestMirror.isRefracting)
                     {
-                        if(!newMirrorsInside.includes(closestMirror))
+                        let newInsideMirrors = _.clone(insideMirrors);
+
+                        if(!newInsideMirrors.includes(closestMirror))
                         {
-                            newMirrorsInside.push(closestMirror);
+                            newInsideMirrors.push(closestMirror);
                         }
 
                         else
                         {
-                            newMirrorsInside.splice(newMirrorsInside.indexOf(closestMirror), 1);
+                            newInsideMirrors.splice(newInsideMirrors.indexOf(closestMirror), 1);
                         }
-                    }
 
-                    let newCollisions = _.clone(collisions);
-                    newCollisions.push(closestIntersection);
+                        let incidentIndex = 1;
+                        let refractedIndex = 1;
 
-                    // angle of incidence code start
-                    let angleOfIncidence = Math.PI / 2 + laser.rotation - closestSide.getAngle();
-
-                    while(angleOfIncidence > Math.PI)
-                    {
-                        angleOfIncidence -= Math.PI;
-                    }
-
-                    while(angleOfIncidence < 0)
-                    {
-                        angleOfIncidence += Math.PI;
-                    }
-
-                    if(angleOfIncidence > Math.PI / 2)
-                    {
-                        angleOfIncidence = Math.PI - angleOfIncidence;
-                    }
-
-                    angleOfIncidence = angleOfIncidence;
-                    // angle of incidence code end
-
-                    if(closestMirror.isNotAbsorbing)
-                    {
-                        let resultingAngle;
-
-                        if(closestMirror.isReflecting)
+                        if(insideMirrors.length > 0)
                         {
-                            resultingAngle = closestSide.getAngleReflected(laser.rotation);
+                            incidentIndex = average(getPropertiesOfObjects(insideMirrors, "indexOfRefraction"));
                         }
 
-                        if(closestMirror.isRefracting)
+                        if(newInsideMirrors.length > 0)
                         {
-                            let incidentIndex = 1;
-                            let refractedIndex = 1;
-
-                            if(mirrorsInside.length > 0)
-                            {
-                                incidentIndex = average(getPropertiesOfObjects(mirrorsInside, "indexOfRefraction"));
-                            }
-
-                            if(newMirrorsInside.length > 0)
-                            {
-                                refractedIndex = average(getPropertiesOfObjects(newMirrorsInside, "indexOfRefraction"));
-                            }
-
-                            let number = incidentIndex / refractedIndex * Math.sin(laser.rotation - closestSide.getAngle() + Math.PI / 2);
-
-                            if(number >= -1 && number <= 1)
-                            {
-                                resultingAngle = Math.asin(number) + closestSide.getAngle() - Math.PI / 2;
-                            }
-
-                            else
-                            {
-                                resultingAngle = closestSide.getAngleReflected(laser.rotation);
-                            }
+                            refractedIndex = average(getPropertiesOfObjects(newInsideMirrors, "indexOfRefraction"));
                         }
 
-                        return this.laser(new Laser(closestIntersection, resultingAngle), newMirrorsInside, newCollisions, closestSide);
+                        let criticalAngle;
+                        let criticalAngleSine;
+
+                        if(incidentIndex > refractedIndex)
+                        {
+                            criticalAngleSine = refractedIndex / incidentIndex;
+                            criticalAngle = Math.asin(criticalAngleSine);
+                        }
+
+                        else
+                        {
+                            criticalAngle = Math.PI / 2;
+                            criticalAngleSine = 1;
+                        }
+
+                        let incidentAngleSine = laserLine.getSineOfAngleBetweenLinePerpendicular(closestSide);
+                        let incidentAngle = Math.asin(incidentAngleSine);
+
+                        if(incidentAngleSine >= criticalAngleSine)
+                        {
+                            newIntersections.push(closestIntersection);
+                            return newIntersections;
+                        }
+
+                        else
+                        {
+                            let refractedAngleSine = incidentAngleSine * incidentIndex / refractedIndex;
+                            let refractedAngle = Math.asin(refractedAngleSine);
+                            return this.laser(new Laser(closestIntersection, laser.rotation - Math.sign(laserLine.getScalarProductBetweenLine(closestSide)) * Math.sign(laserLine.getCrossProductBetweenLine(closestSide)) * (incidentAngle - refractedAngle)), newInsideMirrors, newIntersections, closestSide);
+                        }
                     }
 
-                    else
+                    else if(closestMirror.isAbsorbing)
                     {
-                        collisions.push(closestIntersection);
-                        return collisions;
+                        return newIntersections;
                     }
                 }
 
@@ -611,14 +655,14 @@
 
             class Mirror extends Object
             {
-                constructor(type, position, rotation, vertices = [])
+                constructor(type, indexOfRefraction, position, rotation, vertices = [])
                 {
                     super(position, rotation);
                     this.type = type;
+                    this.indexOfRefraction = indexOfRefraction;
                     this.vertices = vertices;
                     this.isDragged = false;
                     this.dragOffset;
-                    this.indexOfRefraction = 2;
                     return this;
                 }
 
@@ -675,16 +719,16 @@
                     return this;
                 }
 
-                getVertex(vertexNumber, absolute = false)
+                getVertex(vertexdeterminant, absolute = false)
                 {
-                    let correctedVertexNumber = vertexNumber;
+                    let correctedVertexdeterminant = vertexdeterminant;
 
-                    while(correctedVertexNumber < 0)
+                    while(correctedVertexdeterminant < 0)
                     {
-                        correctedVertexNumber += this.vertices.length;
+                        correctedVertexdeterminant += this.vertices.length;
                     }
 
-                    let vertex = this.vertices[correctedVertexNumber % this.vertices.length];
+                    let vertex = this.vertices[correctedVertexdeterminant % this.vertices.length];
 
                     if(absolute)
                     {
@@ -694,9 +738,9 @@
                     return vertex;
                 }
 
-                getSide(sideNumber, absolute = false)
+                getSide(sidedeterminant, absolute = false)
                 {
-                    return new Line(this.getVertex(sideNumber, absolute), this.getVertex(sideNumber + 1, absolute));
+                    return new Line(this.getVertex(sidedeterminant, absolute), this.getVertex(sidedeterminant + 1, absolute));
                 }
 
                 getExtremes(absolute = false)
@@ -1019,20 +1063,49 @@
             var cameraPosition = pointOrigin.clone();
             var mousePosition = pointOrigin.clone();
             var mouseButtons = [false, false, false];
+            var mouseMoveAction = "moveX";
             const keysPressed = [];
             var keysFired = false;
-            const LASER_MAX_COLLISIONS = 10;
+            const LASER_MAX_COLLISIONS = 50;
             const LASER_RANGE = 10000;
             var scene = new Scene(new Laser(new Point(100, 0), Math.PI / 10));
-            scene.addMirror(new Mirror(Mirror.refractive, new Point(50, 50), 0, [new Point(0, 0), new Point(100, 0), new Point(100, 100)]));
-            //scene.mirrors[0].makeBlob(100, 0.1, 0, 50);
+            scene.addMirror(new Mirror(Mirror.reflective, 1.33333, new Point(400, 50), 0, [new Point(0, 0), new Point(100, 0), new Point(100, 100)]));
+            scene.addMirror(new Mirror(Mirror.refractive, 1.515, new Point(400, 50), 0, [new Point(0, 0), new Point(100, 0), new Point(100, 100)]));
+            scene.addMirror(new Mirror(Mirror.refractive, 10, new Point(400, 50), 0, [new Point(0, 0), new Point(100, 0), new Point(100, 100)]));
             scene.mirrors[0].makeRectangle(300, 300);
+            scene.mirrors[1].makeRectangle(300, 300);
+            scene.mirrors[1].scaleVertices(2);
+            scene.mirrors[2].makeBlob(500, 0.5, 0, 200);
+            scene.mirrors[2].smoothVertices(0.5, 50);
 
             function render()
             {
                 if(scene.draggedMirror !== false)
                 {
-                    scene.draggedMirror.position.setTo(mousePosition).addTo(cameraPosition).subtractTo(scene.draggedMirror.dragOffset);
+                    if(mouseMoveAction === "move")
+                    {
+                        scene.draggedMirror.position.setTo(mousePosition).addTo(cameraPosition).subtractTo(scene.draggedMirror.dragOffset);
+                    }
+
+                    else if(mouseMoveAction === "moveX")
+                    {
+                        let y = scene.draggedMirror.position.y;
+                        scene.draggedMirror.position.setTo(mousePosition).addTo(cameraPosition).subtractTo(scene.draggedMirror.dragOffset);
+                        scene.draggedMirror.position.y = y;
+                    }
+
+                    else if(mouseMoveAction === "moveY")
+                    {
+                        let x = scene.draggedMirror.position.x;
+                        scene.draggedMirror.position.setTo(mousePosition).addTo(cameraPosition).subtractTo(scene.draggedMirror.dragOffset);
+                        scene.draggedMirror.position.x = x;
+                    }
+                    
+                    else if(mouseMoveAction === "rotate")
+                    {
+                        let line = new Line(scene.draggedMirror.position, scene.draggedMirror.position.clone().subtractTo(scene.draggedMirror.dragOffset));
+                        scene.draggedMirror.rotation = line.getAngle();
+                    }
                 }
 
                 if(keysPressed.includes("ArrowLeft"))
@@ -1337,7 +1410,22 @@
                 {
                     keysFired = true;
 
-                    if(eventKey.toUpperCase() === "G")
+                    if(eventKey.toUpperCase() === "M")
+                    {
+                        mouseMoveAction = "move";
+                    }
+
+                    else if(eventKey.toUpperCase() === "X")
+                    {
+                        mouseMoveAction = "moveX";
+                    }
+
+                    else if(eventKey.toUpperCase() === "Y")
+                    {
+                        mouseMoveAction = "moveY";
+                    }
+
+                    else if(eventKey.toUpperCase() === "G")
                     {
                         glow = !glow;
                     }
