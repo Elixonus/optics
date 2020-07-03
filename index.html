@@ -215,7 +215,7 @@
                     return Math.atan2(differencePoint.y, differencePoint.x);
                 }
 
-                getScalarProductBetweenLine(l)
+                getDotProductBetweenLine(l)
                 {
                     let vector1 = this.p1.clone().subtractTo(this.p2);
                     let vector2 = l.p1.clone().subtractTo(l.p2);
@@ -223,7 +223,7 @@
                     return scalarProduct;
                 }
 
-                getCrossProductBetweenLine(l)
+                getProjectionOfCrossProductBetweenLine(l)
                 {
                     let vector1 = this.p1.clone().subtractTo(this.p2);
                     let vector2 = l.p1.clone().subtractTo(l.p2);
@@ -232,7 +232,7 @@
 
                 getAngleBetweenLine(l)
                 {
-                    return Math.acos(this.getScalarProductBetweenLine(l) / (this.getLength() * l.getLength()));
+                    return Math.acos(this.getDotProductBetweenLine(l) / (this.getLength() * l.getLength()));
                 }
 
                 getAngleBetweenLinePerpendicular(l)
@@ -242,7 +242,7 @@
 
                 getSineOfAngleBetweenLinePerpendicular(l)
                 {
-                    return Math.abs(this.getScalarProductBetweenLine(l)) / (this.getLength() * l.getLength());
+                    return Math.abs(this.getDotProductBetweenLine(l)) / (this.getLength() * l.getLength());
                 }
 
                 getAngleReflected(angleOfIncidence)
@@ -593,7 +593,7 @@
                         {
                             let refractedAngleSine = incidentAngleSine * incidentIndex / refractedIndex;
                             let refractedAngle = Math.asin(refractedAngleSine);
-                            return this.laser(new Laser(closestIntersection, laser.rotation - Math.sign(laserLine.getScalarProductBetweenLine(closestSide)) * Math.sign(laserLine.getCrossProductBetweenLine(closestSide)) * (incidentAngle - refractedAngle)), newInsideMirrors, newIntersections, closestSide);
+                            return this.laser(new Laser(closestIntersection, laser.rotation - Math.sign(laserLine.getDotProductBetweenLine(closestSide)) * Math.sign(laserLine.getProjectionOfCrossProductBetweenLine(closestSide)) * (incidentAngle - refractedAngle)), newInsideMirrors, newIntersections, closestSide);
                         }
                     }
 
@@ -954,6 +954,29 @@
                 }
             }
 
+            class MouseAction
+            {
+                static get move()
+                {
+                    return 0;
+                }
+
+                static get moveX()
+                {
+                    return 1;
+                }
+
+                static get moveY()
+                {
+                    return 2;
+                }
+
+                static get rotate()
+                {
+                    return 3;
+                }
+            }
+
             class Animation
             {
                 constructor(keyframes, interpolationFunction, duration, isLooping = true)
@@ -1063,45 +1086,40 @@
             var cameraPosition = pointOrigin.clone();
             var mousePosition = pointOrigin.clone();
             var mouseButtons = [false, false, false];
-            var mouseMoveAction = "moveX";
+            var mouseAction = MouseAction.move;
             const keysPressed = [];
             var keysFired = false;
             const LASER_MAX_COLLISIONS = 50;
             const LASER_RANGE = 10000;
-            var scene = new Scene(new Laser(new Point(100, 0), Math.PI / 10));
-            scene.addMirror(new Mirror(Mirror.reflective, 1.33333, new Point(400, 50), 0, [new Point(0, 0), new Point(100, 0), new Point(100, 100)]));
-            scene.addMirror(new Mirror(Mirror.refractive, 1.515, new Point(400, 50), 0, [new Point(0, 0), new Point(100, 0), new Point(100, 100)]));
-            scene.addMirror(new Mirror(Mirror.refractive, 10, new Point(400, 50), 0, [new Point(0, 0), new Point(100, 0), new Point(100, 100)]));
-            scene.mirrors[0].makeRectangle(300, 300);
-            scene.mirrors[1].makeRectangle(300, 300);
-            scene.mirrors[1].scaleVertices(2);
-            scene.mirrors[2].makeBlob(500, 0.5, 0, 200);
-            scene.mirrors[2].smoothVertices(0.5, 50);
+            var scene = new Scene(new Laser(new Animation([new Keyframe(0, [-200, -400]), new Keyframe(150, [-200, 400]), new Keyframe(300, [-200, -400])], interpolateLinear, 300), 0.0000000345));
+            scene.addMirror(new Mirror(Mirror.refractive, 1.33333, new Point(400, 0), 0, [new Point(0, 0), new Point(100, 0), new Point(100, 100)]));
+            scene.mirrors[0].makeBlob(300, 0.5, 0.2, 200);
+            scene.mirrors[0].smoothVertices(0.5, 100);
 
             function render()
             {
                 if(scene.draggedMirror !== false)
                 {
-                    if(mouseMoveAction === "move")
+                    if(mouseAction === MouseAction.move)
                     {
                         scene.draggedMirror.position.setTo(mousePosition).addTo(cameraPosition).subtractTo(scene.draggedMirror.dragOffset);
                     }
 
-                    else if(mouseMoveAction === "moveX")
+                    else if(mouseAction === MouseAction.moveX)
                     {
                         let y = scene.draggedMirror.position.y;
                         scene.draggedMirror.position.setTo(mousePosition).addTo(cameraPosition).subtractTo(scene.draggedMirror.dragOffset);
                         scene.draggedMirror.position.y = y;
                     }
 
-                    else if(mouseMoveAction === "moveY")
+                    else if(mouseAction === MouseAction.moveY)
                     {
                         let x = scene.draggedMirror.position.x;
                         scene.draggedMirror.position.setTo(mousePosition).addTo(cameraPosition).subtractTo(scene.draggedMirror.dragOffset);
                         scene.draggedMirror.position.x = x;
                     }
                     
-                    else if(mouseMoveAction === "rotate")
+                    else if(mouseAction === MouseAction.rotate)
                     {
                         let line = new Line(scene.draggedMirror.position, scene.draggedMirror.position.clone().subtractTo(scene.draggedMirror.dragOffset));
                         scene.draggedMirror.rotation = line.getAngle();
@@ -1210,6 +1228,7 @@
                         }
 
                         ctx.shadowColor = ctx.strokeStyle;
+                        ctx.fillStyle = ctx.strokeStyle;
                     }
 
                     for(var m = 0; m < selectedMirrors.length; m++)
@@ -1230,6 +1249,9 @@
 
                         ctx.closePath();
                         ctx.stroke();
+                        ctx.globalAlpha = 1 - 1 / Math.pow(Math.E, 0.1 * (mirror.indexOfRefraction - 1));
+                        ctx.shadowBlur = 0;
+                        ctx.fill();
                         ctx.restore();
                     }
                 }
@@ -1275,17 +1297,52 @@
 
                 else
                 {
-                    ctx.moveTo(-1, -1);
-
-                    for(var n = 0; n < 4; n++)
+                    if(mouseAction === MouseAction.move)
                     {
-                        ctx.lineTo(-1, -10);
-                        ctx.lineTo(-5, -10);
-                        ctx.lineTo(0, -17);
-                        ctx.lineTo(5, -10);
-                        ctx.lineTo(1, -10);
-                        ctx.lineTo(1, -1);
-                        ctx.rotate(Math.PI / 2);
+                        ctx.moveTo(-1, -1);
+
+                        for(var n = 0; n < 4; n++)
+                        {
+                            ctx.lineTo(-1, -10);
+                            ctx.lineTo(-5, -10);
+                            ctx.lineTo(0, -17);
+                            ctx.lineTo(5, -10);
+                            ctx.lineTo(1, -10);
+                            ctx.lineTo(1, -1);
+                            ctx.rotate(Math.PI / 2);
+                        }
+                    }
+
+                    else if(mouseAction === MouseAction.moveX)
+                    {
+                        ctx.moveTo(-1, 1);
+
+                        for(var n = 0; n < 2; n++)
+                        {
+                            ctx.lineTo(-10, 1);
+                            ctx.lineTo(-10, 5);
+                            ctx.lineTo(-17, 0);
+                            ctx.lineTo(-10, -5);
+                            ctx.lineTo(-10, -1);
+                            ctx.lineTo(-1, -1);
+                            ctx.rotate(Math.PI);
+                        }
+                    }
+
+                    else if(mouseAction === MouseAction.moveY)
+                    {
+                        ctx.moveTo(-1, -1);
+
+                        for(var n = 0; n < 2; n++)
+                        {
+                            ctx.lineTo(-1, -10);
+                            ctx.lineTo(-5, -10);
+                            ctx.lineTo(0, -17);
+                            ctx.lineTo(5, -10);
+                            ctx.lineTo(1, -10);
+                            ctx.lineTo(1, -1);
+                            ctx.rotate(Math.PI);
+                        }
                     }
                 }
 
@@ -1412,17 +1469,17 @@
 
                     if(eventKey.toUpperCase() === "M")
                     {
-                        mouseMoveAction = "move";
+                        mouseAction = MouseAction.move;
                     }
 
                     else if(eventKey.toUpperCase() === "X")
                     {
-                        mouseMoveAction = "moveX";
+                        mouseAction = MouseAction.moveX;
                     }
 
                     else if(eventKey.toUpperCase() === "Y")
                     {
-                        mouseMoveAction = "moveY";
+                        mouseAction = MouseAction.moveY;
                     }
 
                     else if(eventKey.toUpperCase() === "G")
