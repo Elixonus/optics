@@ -257,6 +257,8 @@
                 {
                     this.setPositionTo(position);
                     this.setRotationTo(rotation);
+                    this.isDragged = false;
+                    this.dragOffset;
                 }
 
                 setPositionTo(position)
@@ -323,15 +325,17 @@
                     return this.addObject(objects);
                 }
 
-                get draggedMirror()
+                get draggedObject()
                 {
-                    for(var n = 0; n < this.mirrors.length; n++)
-                    {
-                        let mirror = this.mirrors[n];
+                    let objects = this.lasers.concat(this.mirrors);
 
-                        if(mirror.isDragged)
+                    for(var n = 0; n < objects.length; n++)
+                    {
+                        let object = objects[n];
+
+                        if(object.isDragged)
                         {
-                            return mirror;
+                            return object;
                         }
                     }
 
@@ -661,8 +665,6 @@
                     this.type = type;
                     this.indexOfRefraction = indexOfRefraction;
                     this.vertices = vertices;
-                    this.isDragged = false;
-                    this.dragOffset;
                     return this;
                 }
 
@@ -1091,72 +1093,43 @@
             var keysFired = false;
             const LASER_MAX_COLLISIONS = 50;
             const LASER_RANGE = 10000;
-            var scene = new Scene(new Laser(new Animation([new Keyframe(0, [-200, -400]), new Keyframe(150, [-200, 400]), new Keyframe(300, [-200, -400])], interpolateLinear, 300), 0.0000000345));
+            var scene = new Scene(new Laser(new Point(-200, 0), 0.0000000345));
             scene.addMirror(new Mirror(Mirror.refractive, 1.33333, new Point(400, 0), 0, [new Point(0, 0), new Point(100, 0), new Point(100, 100)]));
             scene.mirrors[0].makeBlob(300, 0.5, 0.2, 200);
             scene.mirrors[0].smoothVertices(0.5, 100);
 
             function render()
             {
-                if(scene.draggedMirror !== false)
+                if(scene.draggedObject !== false)
                 {
                     if(mouseAction === MouseAction.move)
                     {
-                        scene.draggedMirror.position.setTo(mousePosition).addTo(cameraPosition).subtractTo(scene.draggedMirror.dragOffset);
+                        scene.draggedObject.position.setTo(mousePosition).addTo(cameraPosition).subtractTo(scene.draggedObject.dragOffset);
                     }
 
                     else if(mouseAction === MouseAction.moveX)
                     {
-                        let y = scene.draggedMirror.position.y;
-                        scene.draggedMirror.position.setTo(mousePosition).addTo(cameraPosition).subtractTo(scene.draggedMirror.dragOffset);
-                        scene.draggedMirror.position.y = y;
+                        let y = scene.draggedObject.position.y;
+                        scene.draggedObject.position.setTo(mousePosition).addTo(cameraPosition).subtractTo(scene.draggedObject.dragOffset);
+                        scene.draggedObject.position.y = y;
                     }
 
                     else if(mouseAction === MouseAction.moveY)
                     {
-                        let x = scene.draggedMirror.position.x;
-                        scene.draggedMirror.position.setTo(mousePosition).addTo(cameraPosition).subtractTo(scene.draggedMirror.dragOffset);
-                        scene.draggedMirror.position.x = x;
+                        let x = scene.draggedObject.position.x;
+                        scene.draggedObject.position.setTo(mousePosition).addTo(cameraPosition).subtractTo(scene.draggedObject.dragOffset);
+                        scene.draggedObject.position.x = x;
                     }
                     
                     else if(mouseAction === MouseAction.rotate)
                     {
-                        let line = new Line(scene.draggedMirror.position, scene.draggedMirror.position.clone().subtractTo(scene.draggedMirror.dragOffset));
-                        scene.draggedMirror.rotation = line.getAngle();
+                        let line = new Line(scene.draggedObject.position, scene.draggedObject.position.clone().subtractTo(scene.draggedObject.dragOffset));
+                        scene.draggedObject.rotation = line.getAngle();
                     }
                 }
 
-                if(keysPressed.includes("ArrowLeft"))
-                {
-                    lasers[0].position.x -= 2;
-                }
-
-                if(keysPressed.includes("ArrowRight"))
-                {
-                    lasers[0].position.x += 2;
-                }
-
-                if(keysPressed.includes("ArrowUp"))
-                {
-                    lasers[0].position.y -= 2;
-                }
-
-                if(keysPressed.includes("ArrowDown"))
-                {
-                    lasers[0].position.y += 2;
-                }
-
-                if(keysPressed.includes("a"))
-                {
-                    lasers[0].rotation -= 0.02;
-                }
-
-                if(keysPressed.includes("d"))
-                {
-                    lasers[0].rotation += 0.02;
-                }
-
                 cameraPosition.interpolateToPointLinear(mousePosition.clone().scale(0.05), 0.05);
+                cameraPosition.setTo(pointOrigin.clone().addTo(new Point(700, 0)));
 
                 scene.tick();
 
@@ -1288,7 +1261,7 @@
                 ctx.translate(mousePosition.x + canvasWidth / 2, mousePosition.y + canvasHeight / 2);
                 ctx.beginPath();
 
-                if(scene.draggedMirror === false)
+                if(scene.draggedObject === false)
                 {
                     ctx.moveTo(0, 0);
                     ctx.lineTo(10, 30);
@@ -1393,14 +1366,29 @@
 
                 mouseButtons[event.button] = true;
                 let point = mousePosition.clone().addTo(cameraPosition);
-                let closest = scene.getClosestObjectToPoint(point, scene.getMirrorsWithPointInside(point));
+                let closestLaser = scene.getClosestObjectToPoint(point, scene.lasers);
+                let laser;
+
+                if(closestLaser !== false)
+                {
+                    if(closestLaser.distanceToObject <= 50)
+                    {
+                        laser = [closestLaser.object];
+                    }
+
+                    else
+                    {
+                        laser = [];
+                    }
+                }
+
+                let closest = scene.getClosestObjectToPoint(point, scene.getMirrorsWithPointInside(point).concat(laser));
 
                 if(closest !== false)
                 {
-                    let mirror = closest.object;
-                    mirror.isDragged = true;
-                    mirror.isHovered = true;
-                    mirror.dragOffset = point.subtractTo(mirror.position);
+                    let object = closest.object;
+                    object.isDragged = true;
+                    object.dragOffset = point.subtractTo(object.position);
                 }
             }
 
@@ -1412,7 +1400,7 @@
                 }
 
                 mouseButtons[event.button] = false;
-                scene.draggedMirror.isDragged = false;
+                scene.draggedObject.isDragged = false;
             }
 
             function mousemove(event)
@@ -1435,16 +1423,19 @@
 
                 var delta = Math.sign(event.deltaY);
                 
-                if(scene.draggedMirror !== false)
+                if(scene.draggedObject !== false)
                 {
                     if(mouseButtons[0])
                     {
-                        scene.draggedMirror.rotation += delta / 10;
+                        scene.draggedObject.rotation += delta / 10;
                     }
 
                     if(mouseButtons[2])
                     {
-                        scene.draggedMirror.scaleVertices(map(delta, -1, 1, 1.1, 0.9));
+                        if(scene.draggedObject.constructor.name === "Mirror")
+                        {
+                            scene.draggedObject.scaleVertices(map(delta, -1, 1, 1.1, 0.9));
+                        }
                     }
                 }
             }
@@ -1485,14 +1476,6 @@
                     else if(eventKey.toUpperCase() === "G")
                     {
                         glow = !glow;
-                    }
-
-                    else if(eventKey.toUpperCase() === "R")
-                    {
-                        if(scene.draggedMirror !== false)
-                        {
-                            scene.draggedMirror.incrementType();
-                        }
                     }
                 }
             }
