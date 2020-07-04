@@ -7,6 +7,12 @@
     
     <body onresize="resize();">
         <canvas id="canvas" width="1920" height="1080"></canvas>
+        <img id="point" class="hidden" src="./point.png">
+        <img id="dragX" class="hidden" src="./dragX.png">
+        <img id="dragY" class="hidden" src="./dragY.png">
+        <img id="drag" class="hidden" src="./drag.png">
+        <img id="rotate" class="hidden" src="./rotate.png">
+        <img id="index" class="hidden" src="./index.png">
 
         <style>
 
@@ -33,7 +39,7 @@
 
             .hidden
             {
-                visibility: hidden;
+                /*visibility: hidden;*/
                 pointer-events: none;
             }
             
@@ -66,6 +72,25 @@
                 {
                     this.x += p.x;
                     this.y += p.y;
+                    return this;
+                }
+
+                addToX(x)
+                {
+                    this.x += x;
+                    return this;
+                }
+
+                addToY(y)
+                {
+                    this.y += y;
+                    return this;
+                }
+
+                addToXY(x, y)
+                {
+                    this.x += x;
+                    this.y += y;
                     return this;
                 }
 
@@ -958,17 +983,17 @@
 
             class MouseAction
             {
-                static get move()
+                static get drag()
                 {
                     return 0;
                 }
 
-                static get moveX()
+                static get dragX()
                 {
                     return 1;
                 }
 
-                static get moveY()
+                static get dragY()
                 {
                     return 2;
                 }
@@ -1083,12 +1108,18 @@
             const canvasWidth = canvas.width;
             const canvasHeight = canvas.height;
             const ctx = canvas.getContext("2d", {alpha: false});
+            const pointImage = document.getElementById("point");
+            const dragXImage = document.getElementById("dragX");
+            const dragYImage = document.getElementById("dragY");
+            const dragImage = document.getElementById("drag");
+            const rotateImage = document.getElementById("rotate");
+            const indexImage = document.getElementById("index");
             var glow = true;
             const pointOrigin = new Point(0, 0);
             var cameraPosition = pointOrigin.clone();
             var mousePosition = pointOrigin.clone();
             var mouseButtons = [false, false, false];
-            var mouseAction = MouseAction.move;
+            var mouseAction = MouseAction.drag;
             const keysPressed = [];
             var keysFired = false;
             const LASER_MAX_COLLISIONS = 50;
@@ -1102,19 +1133,19 @@
             {
                 if(scene.draggedObject !== false)
                 {
-                    if(mouseAction === MouseAction.move)
+                    if(mouseAction === MouseAction.drag)
                     {
                         scene.draggedObject.position.setTo(mousePosition).addTo(cameraPosition).subtractTo(scene.draggedObject.dragOffset);
                     }
 
-                    else if(mouseAction === MouseAction.moveX)
+                    else if(mouseAction === MouseAction.dragX)
                     {
                         let y = scene.draggedObject.position.y;
                         scene.draggedObject.position.setTo(mousePosition).addTo(cameraPosition).subtractTo(scene.draggedObject.dragOffset);
                         scene.draggedObject.position.y = y;
                     }
 
-                    else if(mouseAction === MouseAction.moveY)
+                    else if(mouseAction === MouseAction.dragY)
                     {
                         let x = scene.draggedObject.position.x;
                         scene.draggedObject.position.setTo(mousePosition).addTo(cameraPosition).subtractTo(scene.draggedObject.dragOffset);
@@ -1129,7 +1160,6 @@
                 }
 
                 cameraPosition.interpolateToPointLinear(mousePosition.clone().scale(0.05), 0.05);
-                cameraPosition.setTo(pointOrigin.clone().addTo(new Point(700, 0)));
 
                 scene.tick();
 
@@ -1252,73 +1282,84 @@
 
                     ctx.stroke();
                 }
+                
+                ctx.resetTransform();
+
+                ctx.shadowBlur = 0;
+                ctx.translate(0, canvasHeight / 2);
+
+                let dragXColor = dragYColor = dragColor = rotateColor = indexColor = "#111111";
+
+                if(mouseAction === MouseAction.dragX)
+                {
+                    dragXColor = "#42b6f5";
+                }
+
+                else if(mouseAction === MouseAction.dragY)
+                {
+                    dragYColor = "#42b6f5";
+                }
+
+                else if(mouseAction === MouseAction.drag)
+                {
+                    dragColor = "#42b6f5";
+                }
+
+                else if(mouseAction === MouseAction.rotate)
+                {
+                    rotateColor = "#42b6f5";
+                }
+
+                ctx.fillStyle = dragXColor;
+                ctx.fillRect(0, -300, 68, 70);
+                ctx.fillStyle = dragYColor;
+                ctx.fillRect(74, -300, 68, 70);
+                ctx.fillStyle = dragColor;
+                ctx.fillRect(0, -220, 140, 140);
+                ctx.fillStyle = rotateColor;
+                ctx.fillRect(0, -70, 140, 140);
+                ctx.fillStyle = indexColor;
+                ctx.fillRect(0, 80, 140, 140);
+                ctx.drawImage(dragXImage, 17, -283, 36, 36);
+                ctx.drawImage(dragYImage, 87, -283, 36, 36);
+                ctx.drawImage(dragImage, 34, -186);
+                ctx.drawImage(rotateImage, 34, -36);
+                ctx.drawImage(indexImage, 34, 114);
+                ctx.resetTransform();
+
 
                 ctx.fillStyle = "#ffffff";
-                ctx.shadowBlur = 0;
-
-                ctx.resetTransform();
+                ctx.strokeStyle = "#000000";
+                ctx.lineWidth = 5;
                 ctx.save();
                 ctx.translate(mousePosition.x + canvasWidth / 2, mousePosition.y + canvasHeight / 2);
                 ctx.beginPath();
 
                 if(scene.draggedObject === false)
                 {
-                    ctx.moveTo(0, 0);
-                    ctx.lineTo(10, 30);
-                    ctx.lineTo(20, 20);
+                    ctx.drawImage(pointImage, -pointImage.width / 2 + 3, -3, pointImage.width / 2, pointImage.height / 2);
                 }
 
                 else
                 {
-                    if(mouseAction === MouseAction.move)
+                    if(mouseAction === MouseAction.drag)
                     {
-                        ctx.moveTo(-1, -1);
-
-                        for(var n = 0; n < 4; n++)
-                        {
-                            ctx.lineTo(-1, -10);
-                            ctx.lineTo(-5, -10);
-                            ctx.lineTo(0, -17);
-                            ctx.lineTo(5, -10);
-                            ctx.lineTo(1, -10);
-                            ctx.lineTo(1, -1);
-                            ctx.rotate(Math.PI / 2);
-                        }
+                        ctx.drawImage(dragImage, -dragImage.width / 4, -dragImage.height / 4, dragImage.width / 2, dragImage.height / 2);
                     }
 
-                    else if(mouseAction === MouseAction.moveX)
+                    else if(mouseAction === MouseAction.dragX)
                     {
-                        ctx.moveTo(-1, 1);
-
-                        for(var n = 0; n < 2; n++)
-                        {
-                            ctx.lineTo(-10, 1);
-                            ctx.lineTo(-10, 5);
-                            ctx.lineTo(-17, 0);
-                            ctx.lineTo(-10, -5);
-                            ctx.lineTo(-10, -1);
-                            ctx.lineTo(-1, -1);
-                            ctx.rotate(Math.PI);
-                        }
+                        ctx.drawImage(dragXImage, -dragXImage.width / 4, -dragXImage.height / 4, dragXImage.width / 2, dragXImage.height / 2);
                     }
 
-                    else if(mouseAction === MouseAction.moveY)
+                    else if(mouseAction === MouseAction.dragY)
                     {
-                        ctx.moveTo(-1, -1);
-
-                        for(var n = 0; n < 2; n++)
-                        {
-                            ctx.lineTo(-1, -10);
-                            ctx.lineTo(-5, -10);
-                            ctx.lineTo(0, -17);
-                            ctx.lineTo(5, -10);
-                            ctx.lineTo(1, -10);
-                            ctx.lineTo(1, -1);
-                            ctx.rotate(Math.PI);
-                        }
+                        ctx.drawImage(dragYImage, -dragYImage.width / 4, -dragYImage.height / 4, dragYImage.width / 2, dragYImage.height / 2);
                     }
                 }
 
+                ctx.closePath();
+                ctx.stroke();
                 ctx.fill();
                 ctx.restore();
 
@@ -1460,17 +1501,22 @@
 
                     if(eventKey.toUpperCase() === "M")
                     {
-                        mouseAction = MouseAction.move;
+                        mouseAction = MouseAction.drag;
                     }
 
                     else if(eventKey.toUpperCase() === "X")
                     {
-                        mouseAction = MouseAction.moveX;
+                        mouseAction = MouseAction.dragX;
                     }
 
                     else if(eventKey.toUpperCase() === "Y")
                     {
-                        mouseAction = MouseAction.moveY;
+                        mouseAction = MouseAction.dragY;
+                    }
+
+                    else if(eventKey.toUpperCase() === "R")
+                    {
+                        mouseAction = MouseAction.rotate;
                     }
 
                     else if(eventKey.toUpperCase() === "G")
