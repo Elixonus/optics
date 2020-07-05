@@ -89,9 +89,7 @@
 
                 addToXY(x, y)
                 {
-                    this.x += x;
-                    this.y += y;
-                    return this;
+                    return this.addToX(x).addToY(y);
                 }
 
                 addToPolar(r, a)
@@ -103,9 +101,22 @@
 
                 subtractTo(p)
                 {
-                    this.x -= p.x;
-                    this.y -= p.y;
-                    return this;
+                    return this.addToXY(-p.x, -p.y);
+                }
+
+                subtractToX(x)
+                {
+                    return this.addToX(-x);
+                }
+
+                subtractToY(y)
+                {
+                    return this.addToY(-y);
+                }
+
+                subtractToXY(x, y)
+                {
+                    return this.subtractToX(x).subtractToY(y);
                 }
 
                 multiplyBy(x)
@@ -1282,6 +1293,42 @@
 
                     ctx.stroke();
                 }
+
+                ctx.shadowBlur = 0;
+
+                if(scene.draggedObject !== false)
+                {
+                    let text;
+
+                    if(mouseAction === MouseAction.dragX)
+                    {
+                        text = "x: " + Math.round(scene.draggedObject.position.x);
+                    }
+
+                    if(mouseAction === MouseAction.dragY)
+                    {
+                        text = "y: " + Math.round(-scene.draggedObject.position.y);
+                    }
+
+                    if(mouseAction === MouseAction.drag)
+                    {
+                        text = "x: " + Math.round(scene.draggedObject.position.x) + ", y: " + Math.round(-scene.draggedObject.position.y);
+                    }
+
+                    if(mouseAction === MouseAction.rotate)
+                    {
+                        text = "r: " + Math.round(scene.draggedObject.rotation);
+                    }
+
+                    let textWidth = ctx.measureText(text).width;
+
+                    ctx.fillStyle = "#000000";
+                    ctx.fillRect(scene.draggedObject.position.x - textWidth / 2 - 5, scene.draggedObject.position.y - 25 - 5, textWidth + 10, 50 + 10);
+
+                    ctx.fillStyle = "#ffffff";
+                    ctx.font = "50px Verdana";
+                    ctx.fillText(text, scene.draggedObject.position.x - textWidth / 2, scene.draggedObject.position.y + 25);
+                }
                 
                 ctx.resetTransform();
 
@@ -1337,7 +1384,7 @@
 
                 if(scene.draggedObject === false)
                 {
-                    ctx.drawImage(pointImage, -pointImage.width / 2 + 3, -3, pointImage.width / 2, pointImage.height / 2);
+                    ctx.drawImage(pointImage, -3, -3, pointImage.width / 2, pointImage.height / 2);
                 }
 
                 else
