@@ -200,7 +200,12 @@
 
                 getMagnitude()
                 {
-                    return distance(this);
+                    return this.getDistanceTo();
+                }
+
+                getDistanceTo(p = pointOrigin)
+                {
+                    return Math.hypot(this.x - p.x, this.y - p.y);
                 }
             }
 
@@ -1079,6 +1084,11 @@
                 {
                     return 3;
                 }
+
+                static get index()
+                {
+                    return 4;
+                }
             }
 
             class Animation
@@ -1202,7 +1212,7 @@
             const LASER_MAX_COLLISIONS = 50;
             const LASER_RANGE = 10000;
             var scene = new Scene(new Laser(new Point(-200, 0), 0.0000000345));
-            scene.addMirror(new Mirror(Mirror.refractive, 1.33333, new Animation([new Keyframe(0, [200, -100]), new Keyframe(60, [200, 100]), new Keyframe(120, [200, -100])], interpolateLinear, 120), 0, [new Point(0, 0), new Point(100, 0), new Point(100, 100)]));
+            scene.addMirror(new Mirror(Mirror.refractive, 1.33333, new Point(300, 0), 0, [new Point(0, 0), new Point(100, 0), new Point(100, 100)]));
             scene.mirrors[0].makeBlob(150, 0.5, 0.2, 200);
             scene.mirrors[0].smoothVertices(0.5, 100);
 
@@ -1233,6 +1243,12 @@
                     {
                         let line = new Line(scene.draggedObject.position.clone().subtractTo(cameraPosition), mousePosition);
                         scene.draggedObject.rotation = modulus(line.getAngle(), 2 * Math.PI);
+                    }
+
+                    else if(mouseAction === MouseAction.index)
+                    {
+                        console.log(distance(scene.draggedObject.position.clone().subtractTo(cameraPosition), mousePosition) / 100);
+                        scene.draggedObject.indexOfRefraction = 1 + distance(scene.draggedObject.position.clone().subtractTo(cameraPosition), mousePosition) / 100;
                     }
                 }
 
@@ -1401,6 +1417,11 @@
                         text = "r: " + Math.floor((2 * Math.PI - scene.draggedObject.rotation) * 180 / Math.PI);
                     }
 
+                    if(mouseAction === MouseAction.index)
+                    {
+                        text = "n: " + Math.round(100 * scene.draggedObject.indexOfRefraction) / 100;
+                    }
+
                     let textWidth = ctx.measureText(text).width;
 
                     ctx.fillStyle = "#000000";
@@ -1436,6 +1457,11 @@
                 else if(mouseAction === MouseAction.rotate)
                 {
                     rotateColor = "#42b6f5";
+                }
+
+                else if(mouseAction === MouseAction.index)
+                {
+                    indexColor = "#42b6f5";
                 }
 
                 ctx.fillStyle = dragXColor;
@@ -1488,6 +1514,11 @@
                     else if(mouseAction === MouseAction.rotate)
                     {
                         ctx.drawImage(rotateImage, -dragYImage.width / 4, -dragYImage.height / 4, dragYImage.width / 2, dragYImage.height / 2);
+                    }
+
+                    else if(mouseAction === MouseAction.index)
+                    {
+                        ctx.drawImage(indexImage, -indexImage.width / 4, -indexImage.height / 4, indexImage.width / 2, indexImage.height / 2);
                     }
                 }
 
@@ -1658,6 +1689,11 @@
                     else if(eventKey.toUpperCase() === "R")
                     {
                         mouseAction = MouseAction.rotate;
+                    }
+
+                    else if(eventKey.toUpperCase() === "N")
+                    {
+                        mouseAction = MouseAction.index;
                     }
                 }
             }
