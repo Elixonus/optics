@@ -1378,7 +1378,7 @@
 
                     if(mouseAction === MouseAction.rotate)
                     {
-                        text = "r: " + Math.round((2 * Math.PI - scene.draggedObject.rotation) * 180 / Math.PI);
+                        text = "r: " + Math.floor((2 * Math.PI - scene.draggedObject.rotation) * 180 / Math.PI);
                     }
 
                     let textWidth = ctx.measureText(text).width;
