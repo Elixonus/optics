@@ -39,7 +39,7 @@
 
             .hidden
             {
-                /*visibility: hidden;*/
+                visibility: hidden;
                 pointer-events: none;
             }
             
@@ -293,8 +293,9 @@
                 {
                     this.setPositionTo(position);
                     this.setRotationTo(rotation);
-                    this.isDragged = false;
                     this.dragOffset;
+                    this.dragPosition;
+                    this.dragRotation;
                 }
 
                 setPositionTo(position)
@@ -350,8 +351,11 @@
             {
                 constructor(objects = [])
                 {
-                    this.lasers = [];
-                    this.mirrors = [];
+                    this._lasers = [];
+                    this._mirrors = [];
+                    this.draggedLaser = false;
+                    this.draggedMirror = false;
+                    this.draggedObject = false;
 
                     if(Array.isArray(objects))
                     {
@@ -361,21 +365,63 @@
                     return this.addObject(objects);
                 }
 
-                get draggedObject()
+                set lasers(value)
                 {
-                    let objects = this.lasers.concat(this.mirrors);
+                    //alert
+                    this._lasers = value;
 
-                    for(var n = 0; n < objects.length; n++)
+                    if(this.draggedObject.constructor.name === "Laser")
                     {
-                        let object = objects[n];
+                        let index = this._lasers.indexOf(this.draggedObject);
 
-                        if(object.isDragged)
+                        if(index === -1)
                         {
-                            return object;
+                            this.draggedLaser = false;
+                            this.draggedObject = false;
                         }
                     }
+                }
 
-                    return false;
+                get lasers()
+                {
+                    return this._lasers;
+                }
+
+                set mirrors(value)
+                {
+                    //alert
+                    this._mirrors = value;
+
+                    if(this.draggedObject.constructor.name === "Mirror")
+                    {
+                        let index = this._mirrors.indexOf(this.draggedObject);
+
+                        if(index === -1)
+                        {
+                            this.draggedMirror = false;
+                            this.draggedObject = false;
+                        }
+                    }
+                }
+
+                get mirrors()
+                {
+                    return this._mirrors;
+                }
+
+                setDraggedObjectTo(object)
+                {
+                    if(object.constructor.name === "Laser")
+                    {
+                        this.draggedLaser = object;
+                    }
+
+                    else if(object.constructor.name === "Mirror")
+                    {
+                        this.draggedMirror = object;
+                    }
+
+                    this.draggedObject = object;
                 }
 
                 addLaser(laser)
@@ -1136,8 +1182,8 @@
             const LASER_MAX_COLLISIONS = 50;
             const LASER_RANGE = 10000;
             var scene = new Scene(new Laser(new Point(-200, 0), 0.0000000345));
-            scene.addMirror(new Mirror(Mirror.refractive, 1.33333, new Point(400, 0), 0, [new Point(0, 0), new Point(100, 0), new Point(100, 100)]));
-            scene.mirrors[0].makeBlob(300, 0.5, 0.2, 200);
+            scene.addMirror(new Mirror(Mirror.refractive, 1.33333, new Animation([new Keyframe(0, [200, -100]), new Keyframe(60, [200, 100]), new Keyframe(120, [200, -100])], interpolateLinear, 120), 0, [new Point(0, 0), new Point(100, 0), new Point(100, 100)]));
+            scene.mirrors[0].makeBlob(150, 0.5, 0.2, 200);
             scene.mirrors[0].smoothVertices(0.5, 100);
 
             function render()
@@ -1165,8 +1211,8 @@
                     
                     else if(mouseAction === MouseAction.rotate)
                     {
-                        let line = new Line(scene.draggedObject.position, scene.draggedObject.position.clone().subtractTo(scene.draggedObject.dragOffset));
-                        scene.draggedObject.rotation = line.getAngle();
+                        let line = new Line(scene.draggedObject.position.clone().subtractTo(cameraPosition), mousePosition);
+                        scene.draggedObject.rotation = modulus(line.getAngle(), 2 * Math.PI);
                     }
                 }
 
@@ -1223,8 +1269,18 @@
                         {
                             selectedMirrors = mirrors.filter(function(mirror)
                             {
-                                return !mirror.isDragged && mirror.isNotAbsorbing;
+                                return mirror.isNotAbsorbing;
                             });
+
+                            if(scene.draggedMirror !== false)
+                            {
+                                let index = selectedMirrors.indexOf(scene.draggedMirror);
+
+                                if(index !== -1)
+                                {
+                                    selectedMirrors.splice(index, 1);
+                                }
+                            }
 
                             ctx.strokeStyle = "#ff0000";
                             ctx.shadowBlur = getGlow(20);
@@ -1232,10 +1288,15 @@
 
                         else
                         {
-                            selectedMirrors = mirrors.filter(function(mirror)
+                            if(scene.draggedMirror === false)
                             {
-                                return mirror.isDragged && mirror.isNotAbsorbing;
-                            });
+                                selectedMirrors = [];
+                            }
+
+                            else
+                            {
+                                selectedMirrors = [scene.draggedMirror];
+                            }
 
                             ctx.strokeStyle = "#00d0ff";
                             ctx.shadowBlur = getGlow(40);
@@ -1317,7 +1378,7 @@
 
                     if(mouseAction === MouseAction.rotate)
                     {
-                        text = "r: " + Math.round(scene.draggedObject.rotation);
+                        text = "r: " + Math.round((2 * Math.PI - scene.draggedObject.rotation) * 180 / Math.PI);
                     }
 
                     let textWidth = ctx.measureText(text).width;
@@ -1403,6 +1464,11 @@
                     {
                         ctx.drawImage(dragYImage, -dragYImage.width / 4, -dragYImage.height / 4, dragYImage.width / 2, dragYImage.height / 2);
                     }
+
+                    else if(mouseAction === MouseAction.rotate)
+                    {
+                        ctx.drawImage(rotateImage, -dragYImage.width / 4, -dragYImage.height / 4, dragYImage.width / 2, dragYImage.height / 2);
+                    }
                 }
 
                 ctx.closePath();
@@ -1475,8 +1541,10 @@
                 if(closest !== false)
                 {
                     let object = closest.object;
-                    object.isDragged = true;
+                    scene.setDraggedObjectTo(object);
                     object.dragOffset = point.subtractTo(object.position);
+                    object.dragPosition = object.position.clone();
+                    object.dragRotation = object.rotation;
                 }
             }
 
@@ -1488,7 +1556,7 @@
                 }
 
                 mouseButtons[event.button] = false;
-                scene.draggedObject.isDragged = false;
+                scene.draggedObject = false;
             }
 
             function mousemove(event)
@@ -1546,29 +1614,30 @@
                 {
                     keysFired = true;
 
-                    if(eventKey.toUpperCase() === "M")
+                    if(eventKey.toUpperCase() === "G")
                     {
                         mouseAction = MouseAction.drag;
                     }
 
                     else if(eventKey.toUpperCase() === "X")
                     {
-                        mouseAction = MouseAction.dragX;
+                        if(mouseAction === MouseAction.drag || mouseAction === MouseAction.dragY)
+                        {
+                            mouseAction = MouseAction.dragX;
+                        }
                     }
 
                     else if(eventKey.toUpperCase() === "Y")
                     {
-                        mouseAction = MouseAction.dragY;
+                        if(mouseAction === MouseAction.drag || mouseAction === MouseAction.dragX)
+                        {
+                            mouseAction = MouseAction.dragY;
+                        }
                     }
 
                     else if(eventKey.toUpperCase() === "R")
                     {
                         mouseAction = MouseAction.rotate;
-                    }
-
-                    else if(eventKey.toUpperCase() === "G")
-                    {
-                        glow = !glow;
                     }
                 }
             }
@@ -1848,6 +1917,10 @@
                 }       
                 return ret;
             }
+
+            function modulus(dividend, divisor) {
+                return ((dividend%divisor)+divisor)%divisor;
+            };
             
         </script>
     </body>
