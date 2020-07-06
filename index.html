@@ -121,19 +121,34 @@
 
                 multiplyBy(x)
                 {
-                    return this.scale(x);
+                    return this.scaleXY(x);
                 }
 
                 divideBy(x)
                 {
-                    return this.scale(1 / x);
+                    return this.scaleXY(1 / x);
                 }
 
-                scale(xs, ys = xs)
+                scale(p)
                 {
-                    this.x *= xs;
-                    this.y *= ys;
+                    return this.scaleXY(p.x, p.y);
+                }
+
+                scaleX(x)
+                {
+                    this.x *= x;
                     return this;
+                }
+
+                scaleY(y)
+                {
+                    this.y *= y;
+                    return this;
+                }
+
+                scaleXY(x, y = x)
+                {
+                    return this.scaleX(x).scaleY(y);
                 }
 
                 rotateAroundPoint(p, rotation)
@@ -296,6 +311,7 @@
                     this.dragOffset;
                     this.dragPosition;
                     this.dragRotation;
+                    this.tick();
                 }
 
                 setPositionTo(position)
@@ -308,7 +324,6 @@
                     else if(position.constructor.name === "Animation")
                     {
                         this.positionAnimation = position;
-                        this.tick();
                     }
 
                     return this;
@@ -319,7 +334,6 @@
                     if(isNaN(rotation))
                     {
                         this.rotationAnimation = rotation;
-                        this.tick();
                     }
 
                     else
@@ -334,8 +348,8 @@
                 {
                     if(this.hasOwnProperty("positionAnimation"))
                     {
-                        let result = this.positionAnimation.getValues();
-                        this.position = new Point(result[0], result[1]);
+                        let values = this.positionAnimation.getValues();
+                        this.position = new Point(values[0], values[1]);
                         this.positionAnimation.tick();
                     }
 
@@ -411,6 +425,12 @@
 
                 setDraggedObjectTo(object)
                 {
+                    if(object === false)
+                    {
+                        this.draggedLaser = this.draggedMirror = this.draggedObject = false;
+                        return;
+                    }
+
                     if(object.constructor.name === "Laser")
                     {
                         this.draggedLaser = object;
@@ -949,7 +969,7 @@
                     for(var n = 0; n < this.vertices.length; n++)
                     {
                         let vertex = this.vertices[n];
-                        vertex.scale(xs, ys);
+                        vertex.scaleXY(xs, ys);
                     }
                 }
 
@@ -1216,7 +1236,7 @@
                     }
                 }
 
-                cameraPosition.interpolateToPointLinear(mousePosition.clone().scale(0.05), 0.05);
+                cameraPosition.interpolateToPointLinear(mousePosition.clone().scaleXY(0.05), 0.05);
 
                 scene.tick();
 
@@ -1525,7 +1545,7 @@
 
                 if(closestLaser !== false)
                 {
-                    if(closestLaser.distanceToObject <= 50)
+                    if(closestLaser.distanceToObject <= 100)
                     {
                         laser = [closestLaser.object];
                     }
@@ -1556,7 +1576,7 @@
                 }
 
                 mouseButtons[event.button] = false;
-                scene.draggedObject = false;
+                scene.setDraggedObjectTo(false);
             }
 
             function mousemove(event)
