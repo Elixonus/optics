@@ -307,6 +307,138 @@
                 }
             }
 
+            class Polygon
+            {
+                constructor(vertices)
+                {
+                    this.vertices = vertices;
+                }
+
+                set vertices(value)
+                {
+                    delete this._leftVertex;
+                    delete this._rightVertex;
+                    delete this._topVertex;
+                    delete this._bottomVertex;
+                    this._vertices = value;
+                    this._sides = [];
+
+                    for(var n = 0; n < this.vertices.length; n++)
+                    {
+                        let vertex = this.vertices[n];
+
+                        if(this.leftVertex === undefined || vertex.x < this.leftVertex.x)
+                        {
+                            this._leftVertex = vertex;
+                        }
+
+                        if(this.rightVertex === undefined || vertex.x > this.rightVertex.x)
+                        {
+                            this._rightVertex = vertex;
+                        }
+
+                        if(this.topVertex === undefined || vertex.y < this.topVertex.y)
+                        {
+                            this._topVertex = vertex;
+                        }
+
+                        if(this.bottomVertex === undefined || vertex.y > this.bottomVertex.y)
+                        {
+                            this._bottomVertex = vertex;
+                        }
+
+                        let nextVertex = this.vertices[(n + 1) % this.vertices.length];
+                        this._sides.push(new Line(vertex, nextVertex));
+                    }
+                }
+
+                get vertices()
+                {
+                    return this._vertices;
+                }
+
+                set sides(value)
+                {
+
+                }
+
+                get sides()
+                {
+                    return this._sides;
+                }
+
+                set leftVertex(value)
+                {
+
+                }
+
+                get leftVertex()
+                {
+                    return this._leftVertex;
+                }
+
+                set rightVertex(value)
+                {
+                    
+                }
+
+                get rightVertex()
+                {
+                    return this._rightVertex;
+                }
+
+                set topVertex(value)
+                {
+
+                }
+
+                get topVertex()
+                {
+                    return this._topVertex;
+                }
+
+                set bottomVertex(value)
+                {
+
+                }
+
+                get bottomVertex()
+                {
+                    return this._bottomVertex;
+                }
+
+                isPointInside(p, inclusive = true)
+                {
+                    let pointOutside = this.leftVertex.clone().subtractTo(new Point(1, 0));
+                    let lineFromInsideToOutside = new Line(p, pointOutside);
+                    let sum = 0;
+
+                    for(var n = 0; n < this.vertices.length; n++)
+                    {
+                        let side = this.sides[n];
+                        let intersection = intersectionSegmentSegment(lineFromInsideToOutside, side, inclusive, true, true, true);
+
+                        if(intersection !== false)
+                        {
+                            if(_.isEqual(intersection, side.p2))
+                            {
+                                n++;
+                                console.log("test");
+                            }
+
+                            sum++;
+                        }
+                    }
+
+                    if(sum % 2 === 0)
+                    {
+                        return false;
+                    }
+
+                    return true;
+                }
+            }
+
             class Object
             {
                 constructor(position, rotation)
@@ -316,6 +448,7 @@
                     this.dragOffset;
                     this.dragPosition;
                     this.dragRotation;
+                    this.dragIndexOfRefraction;
                     this.tick();
                 }
 
@@ -617,7 +750,7 @@
                                 continue;
                             }
 
-                            let intersection = intersectionSegmentRay(side, laserLine);
+                            let intersection = intersectionSegmentRay(side, laserLine, false, false, false);
 
                             if(intersection !== false)
                             {
@@ -828,16 +961,16 @@
                     return this;
                 }
 
-                getVertex(vertexdeterminant, absolute = false)
+                getVertex(vertexNumber, absolute = false)
                 {
-                    let correctedVertexdeterminant = vertexdeterminant;
+                    let correctedVertexNumber = vertexNumber;
 
-                    while(correctedVertexdeterminant < 0)
+                    while(correctedVertexNumber < 0)
                     {
-                        correctedVertexdeterminant += this.vertices.length;
+                        correctedVertexNumber += this.vertices.length;
                     }
 
-                    let vertex = this.vertices[correctedVertexdeterminant % this.vertices.length];
+                    let vertex = this.vertices[correctedVertexNumber % this.vertices.length];
 
                     if(absolute)
                     {
@@ -847,9 +980,9 @@
                     return vertex;
                 }
 
-                getSide(sidedeterminant, absolute = false)
+                getSide(sideNumber, absolute = false)
                 {
-                    return new Line(this.getVertex(sidedeterminant, absolute), this.getVertex(sidedeterminant + 1, absolute));
+                    return new Line(this.getVertex(sideNumber, absolute), this.getVertex(sideNumber + 1, absolute));
                 }
 
                 getExtremes(absolute = false)
@@ -1038,13 +1171,13 @@
                     }
                 }
 
-                makeRegularPolygon(radius, vertexCount)
+                makeRegularPolygon(radius, sideCount)
                 {
                     this.vertices = [];
 
-                    for(var n = 0; n < vertexCount; n++)
+                    for(var n = 0; n < sideCount; n++)
                     {
-                        let angle = n / vertexCount * 2 * Math.PI;
+                        let angle = n / sideCount * 2 * Math.PI;
                         this.vertices.push(new Point(radius * Math.cos(angle), radius * Math.sin(angle)));
                     }
                 }
@@ -1211,10 +1344,8 @@
             var keysFired = false;
             const LASER_MAX_COLLISIONS = 50;
             const LASER_RANGE = 10000;
-            var scene = new Scene(new Laser(new Point(-200, 0), 0.0000000345));
-            scene.addMirror(new Mirror(Mirror.refractive, 1.33333, new Point(300, 0), 0, [new Point(0, 0), new Point(100, 0), new Point(100, 100)]));
-            scene.mirrors[0].makeBlob(150, 0.5, 0.2, 200);
-            scene.mirrors[0].smoothVertices(0.5, 100);
+            var scene = new Scene(new Laser(new Point(0, 0), 0));
+            scene.addMirror(new Mirror(Mirror.refractive, 1.33333, new Point(400, 0), 0, [new Point(-100, 0), new Point(0, 100), new Point(100, 0), new Point(0, -100)]));
 
             function render()
             {
@@ -1247,12 +1378,16 @@
 
                     else if(mouseAction === MouseAction.index)
                     {
-                        console.log(distance(scene.draggedObject.position.clone().subtractTo(cameraPosition), mousePosition) / 100);
-                        scene.draggedObject.indexOfRefraction = 1 + distance(scene.draggedObject.position.clone().subtractTo(cameraPosition), mousePosition) / 100;
+                        if(scene.draggedObject.constructor.name === "Mirror")
+                        {
+                            scene.draggedMirror.indexOfRefraction = clampMin(scene.draggedMirror.dragIndexOfRefraction + (scene.draggedMirror.mousePositionOnDrag.y - mousePosition.y) / 100, 1);
+                        }
+
+                        //scene.draggedObject.indexOfRefraction = 1 + distance(scene.draggedObject.position.clone().subtractTo(cameraPosition), mousePosition) / 100;
                     }
                 }
 
-                cameraPosition.interpolateToPointLinear(mousePosition.clone().scaleXY(0.05), 0.05);
+                cameraPosition.interpolateToPointLinear(mousePosition.clone().scaleXY(0.05).addToY(200), 0.05);
 
                 scene.tick();
 
@@ -1396,6 +1531,7 @@
                 if(scene.draggedObject !== false)
                 {
                     let text;
+                    let doDrawText = true;
 
                     if(mouseAction === MouseAction.dragX)
                     {
@@ -1419,17 +1555,28 @@
 
                     if(mouseAction === MouseAction.index)
                     {
-                        text = "n: " + Math.round(100 * scene.draggedObject.indexOfRefraction) / 100;
+                        if(scene.draggedObject.constructor.name === "Mirror")
+                        {
+                            text = "n: " + Math.round(100 * scene.draggedObject.indexOfRefraction) / 100;
+                        }
+
+                        else
+                        {
+                            doDrawText = false;
+                        }
                     }
 
-                    let textWidth = ctx.measureText(text).width;
+                    if(doDrawText)
+                    {
+                        let textWidth = ctx.measureText(text).width;
 
-                    ctx.fillStyle = "#000000";
-                    ctx.fillRect(scene.draggedObject.position.x - textWidth / 2 - 5, scene.draggedObject.position.y - 25 - 5, textWidth + 10, 50 + 10);
+                        ctx.fillStyle = "#000000";
+                        ctx.fillRect(scene.draggedObject.position.x - textWidth / 2 - 5, scene.draggedObject.position.y - 25 - 5, textWidth + 10, 50 + 10);
 
-                    ctx.fillStyle = "#ffffff";
-                    ctx.font = "50px Verdana";
-                    ctx.fillText(text, scene.draggedObject.position.x - textWidth / 2, scene.draggedObject.position.y + 25);
+                        ctx.fillStyle = "#ffffff";
+                        ctx.font = "50px Verdana";
+                        ctx.fillText(text, scene.draggedObject.position.x - textWidth / 2, scene.draggedObject.position.y + 25);
+                    }
                 }
                 
                 ctx.resetTransform();
@@ -1594,8 +1741,14 @@
                     let object = closest.object;
                     scene.setDraggedObjectTo(object);
                     object.dragOffset = point.subtractTo(object.position);
+                    object.mousePositionOnDrag = mousePosition.clone();
                     object.dragPosition = object.position.clone();
                     object.dragRotation = object.rotation;
+
+                    if(object.constructor.name === "Mirror")
+                    {
+                        object.dragIndexOfRefraction = object.indexOfRefraction;
+                    }
                 }
             }
 
@@ -1850,9 +2003,9 @@
                 return difference;
             }
 
-            function intersectSegmentSegment(line1, line2)
+            function intersectSegmentSegment(line1, line2, line1p1inclusive = true, line1p2inclusive = true, line2p1inclusive = true, line2p2inclusive = true)
             {
-                return intersectionSegmentSegment(line1, line2) !== false;
+                return intersectionSegmentSegment(line1, line2, line1p1inclusive, line1p2inclusive, line2p1inclusive, line2p2inclusive) !== false;
             }
 
             function intersectionLineLine(line1, line2)
@@ -1876,7 +2029,7 @@
                 });
             }
 
-            function intersectionSegmentSegment(line1, line2)
+            function intersectionSegmentSegment(line1, line2, line1p1inclusive = true, line1p2inclusive = true, line2p1inclusive = true, line2p2inclusive = true)
             {
                 return intersectionStraightStraight(line1, line2, function(ua, ub)
                 {
@@ -1885,15 +2038,50 @@
                         return false;
                     }
 
+                    if(ua === 0 && line1p1inclusive === false)
+                    {
+                        return false;
+                    }
+
+                    if(ua === 1 && line1p2inclusive === false)
+                    {
+                        return false;
+                    }
+
+                    if(ub === 0 && line2p1inclusive === false)
+                    {
+                        return false;
+                    }
+
+                    if(ub === 1 && line2p2inclusive === false)
+                    {
+                        return false;
+                    }
+
                     return true;
                 });
             }
 
-            function intersectionSegmentRay(line1, line2)
+            function intersectionSegmentRay(line1, line2, line1p1inclusive = true, line1p2inclusive = true, line2p1inclusive = true)
             {
                 return intersectionStraightStraight(line1, line2, function(ua, ub)
                 {
                     if(ua < 0 || ua > 1 || ub < 0)
+                    {
+                        return false;
+                    }
+
+                    if(ua === 0 && line1p1inclusive === false)
+                    {
+                        return false;
+                    }
+
+                    if(ua === 1 && line1p2inclusive === false)
+                    {
+                        return false;
+                    }
+
+                    if(ub === 0 && line2p1inclusive === false)
                     {
                         return false;
                     }
