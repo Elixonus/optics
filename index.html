@@ -2,7 +2,6 @@
 <html>
     <head>
         <title>Laser Simulation</title>
-        <script src="./lodash.js"></script>
     </head>
     
     <body onresize="resize();">
@@ -59,6 +58,11 @@
                 clone()
                 {
                     return new Point(this.x, this.y);
+                }
+				
+                isEqual(p)
+                {
+                    return (this.x == p.x && this.y == p.y);
                 }
 
                 setTo(p)
@@ -232,6 +236,11 @@
                 {
                     return new Line(this.p1.clone(), this.p2.clone());
                 }
+                
+                isEqual(l)
+                {
+                    return (this.p1.isEqual(l.p1) && this.p2.isEqual(l.p2))
+                }
 
                 addTo(p)
                 {
@@ -374,36 +383,6 @@
                 get bottomVertex()
                 {
                     return this._bottomVertex;
-                }
-
-                isPointInside(p, inclusive = true)
-                {
-                    let pointOutside = this.leftVertex.clone().subtractTo(new Point(1, 0));
-                    let lineFromInsideToOutside = new Line(p, pointOutside);
-                    let sum = 0;
-
-                    for(var n = 0; n < this.vertices.length; n++)
-                    {
-                        let side = this.sides[n];
-                        let intersection = intersectionSegmentSegment(lineFromInsideToOutside, side, inclusive, true, true, true);
-
-                        if(intersection !== false)
-                        {
-                            if(_.isEqual(intersection, side.p2))
-                            {
-                                n++;
-                            }
-
-                            sum++;
-                        }
-                    }
-
-                    if(sum % 2 === 0)
-                    {
-                        return false;
-                    }
-
-                    return true;
                 }
             }
 
@@ -722,7 +701,7 @@
                         {
                             let side = mirror.getSide(m, true);
 
-                            if(_.isEqual(side, sideIgnore))
+                            if(sideIgnore !== null && side.isEqual(sideIgnore))
                             {
                                 continue;
                             }
@@ -744,7 +723,11 @@
                         }
                     }
 
-                    let newIntersections = _.clone(intersections);
+                    let newIntersections = []
+                    for(var n = 0; n < intersections.length; n++)
+                    {
+                        newIntersections[n] = intersections[n].clone();
+                    }
 
                     if(closestMirror === undefined)
                     {
@@ -761,8 +744,12 @@
 
                     else if(closestMirror.isRefracting)
                     {
-                        let newInsideMirrors = _.clone(insideMirrors);
-
+                        let newInsideMirrors = [];
+                        for(var n = 0; n < insideMirrors.length; n++)
+                        {
+                            newInsideMirrors[n] = insideMirrors[n];
+                        }
+                        
                         if(!newInsideMirrors.includes(closestMirror))
                         {
                             newInsideMirrors.push(closestMirror);
