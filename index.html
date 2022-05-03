@@ -855,49 +855,33 @@
 
             class Mirror extends Object
             {
-                constructor(type, indexOfRefraction, position, rotation, vertices = [], closedShape = true)
+                constructor(indexOfRefraction, position, rotation, vertices = [], closedShape = true)
                 {
                     super(position, rotation);
-                    this.type = type;
                     this.indexOfRefraction = indexOfRefraction;
                     this.vertices = vertices;
                     this.closedShape = closedShape;
                     return this;
                 }
 
-                static get reflective()
-                {
-                    return 0;
-                }
-
-                static get refractive()
-                {
-                    return 1;
-                }
-
-                static get absorbing()
-                {
-                    return 2;
-                }
-
                 get isReflecting()
                 {
-                    return this.type === 0;
+                    return this.indexOfRefraction <= 0 && this.indexOfRefraction > -1;
                 }
 
                 get isRefracting()
                 {
-                    return this.type === 1;
+                    return this.indexOfRefraction > 0;
                 }
 
                 get isAbsorbing()
                 {
-                    return this.type === 2;
+                    return this.indexOfRefraction <= -1;
                 }
 
                 get isNotAbsorbing()
                 {
-                    return this.type !== 2;
+                    return !this.isAbsorbing;
                 }
 
                 incrementType(amount = 1)
@@ -909,12 +893,6 @@
                 decrementType(amount = 1)
                 {
                     this.setType(this.type - Math.abs(amount));
-                    return this;
-                }
-
-                setType(type)
-                {
-                    this.type = (type + 1) % 3;
                     return this;
                 }
 
@@ -1669,10 +1647,10 @@
                 {
                     case 1:
                         scene.lasers = [new Laser(new Point(100, -250), Math.PI / 4)];
-                        scene.mirrors = [new Mirror(Mirror.reflective, 1, new Point(595, -275), Math.PI / 4, [new Point(-200, -200), new Point(200, -200), new Point(200, 200), new Point(-200, 200)]), new Mirror(Mirror.reflective, 1, new Point(-300, 375), 0, [new Point(-150, 150), new Point(150, 150), new Point(0, -113)]), new Mirror(Mirror.reflective, 1, new Point(-600, -100), Math.PI / 10, [new Point(-20, -200), new Point(20, -200), new Point(20, 200), new Point(-20, 200)])];
-                        var circle = new Mirror(Mirror.refractive, 3, new Point(100, 50), 0);
+                        scene.mirrors = [new Mirror(1, new Point(595, -275), Math.PI / 4, [new Point(-200, -200), new Point(200, -200), new Point(200, 200), new Point(-200, 200)]), new Mirror(-0.5, new Point(-300, 375), 0, [new Point(-150, 150), new Point(150, 150), new Point(0, -113)]), new Mirror(-0.5, new Point(-600, -100), Math.PI / 10, [new Point(-20, -200), new Point(20, -200), new Point(20, 200), new Point(-20, 200)])];
+                        var circle = new Mirror(3, new Point(100, 50), 0);
                         circle.makeCircle(150, 500);
-                        var polygon = new Mirror(Mirror.absorbing, 1, new Point(600, 400), 0);
+                        var polygon = new Mirror(-2, new Point(600, 400), 0);
                         polygon.makeRegularPolygon(150, 5);
                         scene.mirrors.push(circle, polygon);
                         break;
@@ -1693,14 +1671,14 @@
                         break;
                     case 3:
                         scene.lasers = [new Laser(new Point(-700, -300), Math.PI / 10)];
-                        var blob = new Mirror(Mirror.reflective, 1, new Point(0, 0), new Animation([new Keyframe(0, 0), new Keyframe(2500, 2 * Math.PI)], interpolateLinear, 2500));
+                        var blob = new Mirror(-0.5, new Point(0, 0), new Animation([new Keyframe(0, 0), new Keyframe(2500, 2 * Math.PI)], interpolateLinear, 2500));
                         blob.makeBlob(300, 0.5, 0.5, 100);
                         blob.smoothVertices(0.5, 10);
                         scene.mirrors = [blob];
                         break;
                     case 4:
                         scene.lasers = [new Laser(new Point(-500, -100), 0)];
-                        var parabola = new Mirror(Mirror.reflective, 1, new Point(500, 0), 0);
+                        var parabola = new Mirror(-0.5, new Point(500, 0), 0);
                         parabola.makeParabola(-200, 600, 100);
                         parabola.vertices.push(new Point(100, 300), new Point(100, -300));
                         parabola.closedShape = true;
