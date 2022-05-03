@@ -866,34 +866,22 @@
 
                 get isReflecting()
                 {
-                    return this.indexOfRefraction <= 0 && this.indexOfRefraction > -1;
+                    return this.indexOfRefraction < 1 && this.indexOfRefraction >= 0;
                 }
 
                 get isRefracting()
                 {
-                    return this.indexOfRefraction > 0;
+                    return this.indexOfRefraction >= 1;
                 }
 
                 get isAbsorbing()
                 {
-                    return this.indexOfRefraction <= -1;
+                    return this.indexOfRefraction < 0;
                 }
 
                 get isNotAbsorbing()
                 {
                     return !this.isAbsorbing;
-                }
-
-                incrementType(amount = 1)
-                {
-                    this.setType(this.type + amount);
-                    return this;
-                }
-
-                decrementType(amount = 1)
-                {
-                    this.setType(this.type - Math.abs(amount));
-                    return this;
                 }
 
                 getVertex(vertexNumber, absolute = false)
