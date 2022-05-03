@@ -1322,7 +1322,7 @@
                     {
                         if(scene.draggedObject.constructor.name === "Mirror")
                         {
-                            scene.draggedMirror.indexOfRefraction = clampMin(scene.draggedMirror.dragIndexOfRefraction + (scene.draggedMirror.mousePositionOnDrag.y - mousePosition.y) / 100, 1);
+                            scene.draggedMirror.indexOfRefraction = clampMin(scene.draggedMirror.dragIndexOfRefraction + (scene.draggedMirror.mousePositionOnDrag.y - mousePosition.y) / 100, -2);
                         }
                     }
                 }
@@ -1457,9 +1457,13 @@
                         }
                         
                         ctx.stroke();
-                        ctx.globalAlpha = 1 - 1 / Math.pow(Math.E, 0.1 * (mirror.indexOfRefraction - 1));
-                        ctx.shadowBlur = 0;
-                        ctx.fill();
+
+                        if(mirror.isRefracting)
+                        {
+                            ctx.globalAlpha = 1 - 1 / Math.pow(Math.E, 0.1 * (mirror.indexOfRefraction - 1));
+                            ctx.shadowBlur = 0;
+                            ctx.fill();
+                        }
                         ctx.restore();
                     }
                 }
@@ -1519,7 +1523,20 @@
                     {
                         if(scene.draggedObject.constructor.name === "Mirror")
                         {
-                            text = "n: " + Math.round(100 * scene.draggedObject.indexOfRefraction) / 100;
+                            if(scene.draggedObject.isRefracting)
+                            {
+                                text = "IOR: " + Math.round(100 * scene.draggedObject.indexOfRefraction) / 100;
+                            }
+
+                            if(scene.draggedObject.isReflecting)
+                            {
+                                text = "Reflect";
+                            }
+
+                            if(scene.draggedObject.isAbsorbing)
+                            {
+                                text = "Absorb";
+                            }
                         }
 
                         else
@@ -1651,7 +1668,7 @@
                             for(var y = -1; y <= 1; y++)
                             {
                                 var position = new Point(300 * x, 300 * y);
-                                var square = new Mirror(Mirror.refractive, 3, new Animation([new Keyframe(0, [position.x, position.y]), new Keyframe(90 + 20 * Math.random(), [position.x + 40 + 20 * Math.random(), position.y + 40 + 20 * Math.random()]), new Keyframe(200, [position.x, position.y])], interpolateElastic, 200), new Animation([new Keyframe(0, 0), new Keyframe(20, Math.PI / 100), new Keyframe(40, 0)], interpolateLinear, 40));
+                                var square = new Mirror(3, new Animation([new Keyframe(0, [position.x, position.y]), new Keyframe(90 + 20 * Math.random(), [position.x + 40 + 20 * Math.random(), position.y + 40 + 20 * Math.random()]), new Keyframe(200, [position.x, position.y])], interpolateElastic, 200), new Animation([new Keyframe(0, 0), new Keyframe(20, Math.PI / 100), new Keyframe(40, 0)], interpolateLinear, 40));
                                 square.makeRectangle(150, 150);
                                 scene.mirrors.push(square);
                             }
