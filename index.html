@@ -864,14 +864,29 @@
                     return this;
                 }
 
-                get isReflecting()
+                static get refracting()
                 {
-                    return this.indexOfRefraction < 1 && this.indexOfRefraction >= 0;
+                    return 1.5;
+                }
+
+                static get reflecting()
+                {
+                    return 0.5;
+                }
+
+                static get absorbing()
+                {
+                    return -0.5;
                 }
 
                 get isRefracting()
                 {
                     return this.indexOfRefraction >= 1;
+                }
+
+                get isReflecting()
+                {
+                    return this.indexOfRefraction < 1 && this.indexOfRefraction >= 0;
                 }
 
                 get isAbsorbing()
@@ -1129,7 +1144,7 @@
 
                     for(var n = 0; n < vertexCount; n++)
                     {
-                        let radius = clampMin(averageRadius + maxRadiusDeviation * averageRadius * 2 * (Math.random() - 0.5), 0);
+                        let radius = clampMin(averageRadius + maxRadiusDeviation * averageRadius * 2 * (Math.random() - 0.5), -1);
                         let angle = (n + maxAngleDeviation * 2 * (Math.random() - 0.5)) / vertexCount * 2 * Math.PI;
                         this.vertices.push(new Point(radius * Math.cos(angle), radius * Math.sin(angle)));
                     }
@@ -1516,7 +1531,7 @@
 
                     if(mouseAction === MouseAction.rotate)
                     {
-                        text = "r: " + Math.floor((2 * Math.PI - scene.draggedObject.rotation) * 180 / Math.PI);
+                        text = "r: " + Math.floor((2 * Math.PI - scene.draggedObject.rotation) * 180 / Math.PI) + "°";
                     }
 
                     if(mouseAction === MouseAction.index)
@@ -1525,17 +1540,17 @@
                         {
                             if(scene.draggedObject.isRefracting)
                             {
-                                text = "IOR: " + Math.round(100 * scene.draggedObject.indexOfRefraction) / 100;
+                                text = "Refractive, IOR: " + Math.round(100 * scene.draggedObject.indexOfRefraction) / 100;
                             }
 
                             if(scene.draggedObject.isReflecting)
                             {
-                                text = "Reflect";
+                                text = "Reflective";
                             }
 
                             if(scene.draggedObject.isAbsorbing)
                             {
-                                text = "Absorb";
+                                text = "Absorbtive";
                             }
                         }
 
@@ -1652,10 +1667,14 @@
                 {
                     case 1:
                         scene.lasers = [new Laser(new Point(100, -250), Math.PI / 4)];
-                        scene.mirrors = [new Mirror(1, new Point(595, -275), Math.PI / 4, [new Point(-200, -200), new Point(200, -200), new Point(200, 200), new Point(-200, 200)]), new Mirror(-0.5, new Point(-300, 375), 0, [new Point(-150, 150), new Point(150, 150), new Point(0, -113)]), new Mirror(-0.5, new Point(-600, -100), Math.PI / 10, [new Point(-20, -200), new Point(20, -200), new Point(20, 200), new Point(-20, 200)])];
+                        scene.mirrors = [
+                            new Mirror(Mirror.absorbing, new Point(595, -275), Math.PI / 4, [new Point(-200, -200), new Point(200, -200), new Point(200, 200), new Point(-200, 200)]),
+                            new Mirror(Mirror.absorbing, new Point(-300, 375), 0, [new Point(-150, 150), new Point(150, 150), new Point(0, -113)]),
+                            new Mirror(Mirror.absorbing, new Point(-600, -100), Math.PI / 10, [new Point(-20, -200), new Point(20, -200), new Point(20, 200), new Point(-20, 200)])
+                        ];
                         var circle = new Mirror(3, new Point(100, 50), 0);
                         circle.makeCircle(150, 500);
-                        var polygon = new Mirror(-2, new Point(600, 400), 0);
+                        var polygon = new Mirror(Mirror.absorbing, new Point(600, 400), 0);
                         polygon.makeRegularPolygon(150, 5);
                         scene.mirrors.push(circle, polygon);
                         break;
@@ -1676,14 +1695,14 @@
                         break;
                     case 3:
                         scene.lasers = [new Laser(new Point(-700, -300), Math.PI / 10)];
-                        var blob = new Mirror(-0.5, new Point(0, 0), new Animation([new Keyframe(0, 0), new Keyframe(2500, 2 * Math.PI)], interpolateLinear, 2500));
+                        var blob = new Mirror(Mirror.reflecting, new Point(0, 0), new Animation([new Keyframe(0, 0), new Keyframe(2500, 2 * Math.PI)], interpolateLinear, 2500));
                         blob.makeBlob(300, 0.5, 0.5, 100);
                         blob.smoothVertices(0.5, 10);
                         scene.mirrors = [blob];
                         break;
                     case 4:
                         scene.lasers = [new Laser(new Point(-500, -100), 0)];
-                        var parabola = new Mirror(-0.5, new Point(500, 0), 0);
+                        var parabola = new Mirror(Mirror.reflecting, new Point(500, 0), 0);
                         parabola.makeParabola(-200, 600, 100);
                         parabola.vertices.push(new Point(100, 300), new Point(100, -300));
                         parabola.closedShape = true;
