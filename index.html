@@ -1885,7 +1885,7 @@
                 {
                     keysFired = true;
 
-                    if(eventKey.toUpperCase() === "G")
+                    if(eventKey.toUpperCase() === "T")
                     {
                         mouseAction = MouseAction.drag;
                     }
@@ -1916,36 +1916,41 @@
                         mouseAction = MouseAction.object;
                     }
 
-                    else if(eventKey.toUpperCase() === " ")
+                    else if(eventKey === " ")
                     {
                         mirror = new Mirror(Mirror.reflecting, mousePosition.clone(), randomFloat(0, 2 * Math.PI));
                         mirror.makeRegularPolygon(randomFloat(150, 200), randomInteger(3, 6));
                         scene.addMirror(mirror);
                     }
+
+                    else if(eventKey === "Backspace" || eventKey === "Delete")
+                    {
+                        scene.reset();
+                    }
+
+                    else if(eventKey.toUpperCase() === "Z")
+                    {
+                        glow = !glow;
+                    }
                     
-                    else if(eventKey.toUpperCase() === "1")
+                    else if(eventKey === "1")
                     {
                         loadExample(1);
                     }
                     
-                    else if(eventKey.toUpperCase() === "2")
+                    else if(eventKey === "2")
                     {
                         loadExample(2);
                     }
                     
-                    else if(eventKey.toUpperCase() === "3")
+                    else if(eventKey === "3")
                     {
                         loadExample(3);
                     }
                     
-                    else if(eventKey.toUpperCase() === "4")
+                    else if(eventKey === "4")
                     {
                         loadExample(4);
-                    }
-                    
-                    else if(eventKey.toUpperCase() === "5")
-                    {
-                        
                     }
                 }
             }
