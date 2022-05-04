@@ -7,6 +7,7 @@
     
     <body onresize="resize();">
         <canvas id="canvas" width="1920" height="1080"></canvas>
+        <img id="laser" class="hidden" src="./laser.png">
         <img id="point" class="hidden" src="./point.png">
         <img id="dragX" class="hidden" src="./dragX.png">
         <img id="dragY" class="hidden" src="./dragY.png">
@@ -1296,6 +1297,7 @@
             const canvasWidth = canvas.width;
             const canvasHeight = canvas.height;
             const ctx = canvas.getContext("2d", {alpha: false});
+            const laserImage = document.getElementById("laser");
             const pointImage = document.getElementById("point");
             const dragXImage = document.getElementById("dragX");
             const dragYImage = document.getElementById("dragY");
@@ -1375,7 +1377,7 @@
                     cameraPosition.y += 10;
                 }
 
-                ctx.fillStyle = "#000000";
+                ctx.fillStyle = "#aaaaff";
                 ctx.shadowBlur = 0;
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -1495,7 +1497,6 @@
                 }
 
                 ctx.lineWidth = 3;
-                ctx.shadowBlur = getGlow(20);
 
                 let lasersCollisions = scene.getLaserCollisions();
 
@@ -1506,6 +1507,7 @@
 
                     ctx.strokeStyle = "hsl(120, 100%, 50%)";
                     ctx.shadowColor = ctx.strokeStyle;
+                    ctx.shadowBlur = getGlow(20);
                     ctx.beginPath();
                     ctx.moveTo(laser.position.x, laser.position.y);
                     
@@ -1516,9 +1518,15 @@
                     }
 
                     ctx.stroke();
+                    ctx.shadowBlur = 0;
+
+                    ctx.save();
+                    ctx.translate(laser.position.x, laser.position.y);
+                    ctx.rotate(laser.rotation);
+                    ctx.drawImage(laserImage, -laserImage.width / 3, -laserImage.height / 6, laserImage.width / 3, laserImage.height / 3);
+                    ctx.restore();
                 }
 
-                ctx.shadowBlur = 0;
 
                 if(scene.draggedObject !== false)
                 {
@@ -1573,14 +1581,29 @@
 
                     if(doDrawText)
                     {
+                        let extraSpace = 0;
+                        
+                        if(scene.draggedObject.constructor.name === "Laser")
+                        {
+                            if(scene.draggedObject.rotation < Math.PI)
+                            {
+                                extraSpace = -70;
+                            }
+
+                            else
+                            {
+                                extraSpace = 70;
+                            }
+                        }
+
                         let textWidth = ctx.measureText(text).width;
 
                         ctx.fillStyle = "#000000";
-                        ctx.fillRect(scene.draggedObject.position.x - textWidth / 2 - 5, scene.draggedObject.position.y - 25 - 5, textWidth + 10, 50 + 10);
+                        ctx.fillRect(scene.draggedObject.position.x - textWidth / 2 - 5, scene.draggedObject.position.y - 25 - 5 + extraSpace, textWidth + 10, 50 + 10);
 
                         ctx.fillStyle = "#ffffff";
                         ctx.font = "50px Verdana";
-                        ctx.fillText(text, scene.draggedObject.position.x - textWidth / 2, scene.draggedObject.position.y + 25);
+                        ctx.fillText(text, scene.draggedObject.position.x - textWidth / 2, scene.draggedObject.position.y + 25 + extraSpace);
                     }
                 }
                 
@@ -1588,6 +1611,9 @@
 
                 ctx.shadowBlur = 0;
                 ctx.translate(0, canvasHeight / 2);
+
+                ctx.fillStyle = "#222222";
+                ctx.fillRect(0 - 10, -300 - 10, 140 + 20, 520 + 20);
 
                 let dragXColor = dragYColor = dragColor = rotateColor = objectColor = "#111111";
 
