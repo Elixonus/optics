@@ -474,7 +474,7 @@
 
                     if(this.draggedObject.constructor.name === "Laser")
                     {
-                        let index = this._lasers.indexOf(this.draggedObject);
+                        let index = this._lasers.indexOf(this.draggedLaser);
 
                         if(index === -1)
                         {
@@ -495,7 +495,7 @@
 
                     if(this.draggedObject.constructor.name === "Mirror")
                     {
-                        let index = this._mirrors.indexOf(this.draggedObject);
+                        let index = this._mirrors.indexOf(this.draggedMirror);
 
                         if(index === -1)
                         {
@@ -523,7 +523,9 @@
                 {
                     if(object === false)
                     {
-                        this.draggedLaser = this.draggedMirror = this.draggedObject = false;
+                        this.draggedLaser = false;
+                        this.draggedMirror = false;
+                        this.draggedObject = false;
                         return;
                     }
 
@@ -853,9 +855,10 @@
 
             class Laser extends Object
             {
-                constructor(position, rotation)
+                constructor(position, rotation, brightness = 1)
                 {
                     super(position, rotation);
+                    this.brightness = 1;
                     return this;
                 }
 
@@ -1352,6 +1355,11 @@
                         {
                             scene.draggedMirror.indexOfRefraction = clampMin(scene.draggedMirror.dragIndexOfRefraction + (scene.draggedMirror.mousePositionOnDrag.y - mousePosition.y) / 100, -2);
                         }
+
+                        else if(scene.draggedObject.constructor.name === "Laser")
+                        {
+                            scene.draggedLaser.brightness = clamp(scene.draggedLaser.dragBrightness + (scene.draggedLaser.mousePositionOnDrag.y - mousePosition.y) / 300, 0, 1);
+                        }
                     }
                 }
 
@@ -1508,6 +1516,7 @@
                     ctx.strokeStyle = "hsl(120, 100%, 50%)";
                     ctx.shadowColor = ctx.strokeStyle;
                     ctx.shadowBlur = getGlow(20);
+                    ctx.globalAlpha = Math.round(laser.brightness);
                     ctx.beginPath();
                     ctx.moveTo(laser.position.x, laser.position.y);
                     
@@ -1519,6 +1528,7 @@
 
                     ctx.stroke();
                     ctx.shadowBlur = 0;
+                    ctx.globalAlpha = 1;
 
                     ctx.save();
                     ctx.translate(laser.position.x, laser.position.y);
@@ -1557,25 +1567,33 @@
                     {
                         if(scene.draggedObject.constructor.name === "Mirror")
                         {
-                            if(scene.draggedObject.isRefracting)
+                            if(scene.draggedMirror.isRefracting)
                             {
                                 text = "Refractive, IOR: " + Math.round(100 * scene.draggedObject.indexOfRefraction) / 100;
                             }
 
-                            if(scene.draggedObject.isReflecting)
+                            if(scene.draggedMirror.isReflecting)
                             {
                                 text = "Reflective";
                             }
 
-                            if(scene.draggedObject.isAbsorbing)
+                            if(scene.draggedMirror.isAbsorbing)
                             {
                                 text = "Absorbtive";
                             }
                         }
 
-                        else
+                        else if(scene.draggedObject.constructor.name === "Laser")
                         {
-                            doDrawText = false;
+                            if(scene.draggedLaser.brightness >= 0.5)
+                            {
+                                text = "Laser: ON";
+                            }
+
+                            else
+                            {
+                                text = "Laser: OFF";
+                            }
                         }
                     }
 
@@ -1585,7 +1603,7 @@
                         
                         if(scene.draggedObject.constructor.name === "Laser")
                         {
-                            if(scene.draggedObject.rotation < Math.PI)
+                            if(scene.draggedLaser.rotation < Math.PI)
                             {
                                 extraSpace = -70;
                             }
@@ -1708,10 +1726,11 @@
             
             function loadExample(n)
             {
+                scene.reset();
+
                 switch(n)
                 {
                     case 1:
-                        scene.reset();
                         var laser = new Laser(new Point(100, -250), Math.PI / 4)
                         scene.lasers.push(laser);
                         var triangle = new Mirror(Mirror.absorbing, new Point(-300, 375), 0)
@@ -1730,7 +1749,6 @@
                         scene.mirrors.push(triangle, square, rectangle, polygon, circle);
                         break;
                     case 2:
-                        scene.reset();
                         var laser = new Laser(new Point(-150, -200), Math.PI / 10);
                         scene.lasers.push(laser)
                         scene.mirrors = [];
@@ -1767,6 +1785,20 @@
                         parabola.closedShape = true;
                         scene.mirrors = [parabola];
                         break;
+                    case 5:
+                        scene.lasers = [new Laser(new Point(-100, 350), 1 * Math.PI)];
+                        scene.mirrors = [
+                            new Mirror(Mirror.reflecting, new Point(350, 300), 1.2 * Math.PI),
+                            new Mirror(Mirror.reflecting, new Point(-300, -400), 1.9 * Math.PI),
+                            new Mirror(Mirror.reflecting, new Point(400, -300), 1.1 * Math.PI),
+                            new Mirror(Mirror.reflecting, new Point(0, 0), 0.7 * Math.PI),
+                            new Mirror(Mirror.reflecting, new Point(-500, 300), 0.3 * Math.PI),
+                        ];
+                        scene.mirrors[0].makeRectangle(300, 50);
+                        scene.mirrors[1].makeRectangle(300, 50);
+                        scene.mirrors[2].makeRectangle(300, 50);
+                        scene.mirrors[3].makeRectangle(300, 50);
+                        scene.mirrors[4].makeRectangle(300, 50);
                 }
             }
 
@@ -1816,7 +1848,7 @@
 
                 if(closestLaser !== false)
                 {
-                    if(closestLaser.distanceToObject <= 100)
+                    if(closestLaser.distanceToObject <= 200)
                     {
                         laser = [closestLaser.object];
                     }
@@ -1841,6 +1873,11 @@
                     if(object.constructor.name === "Mirror")
                     {
                         object.dragIndexOfRefraction = object.indexOfRefraction;
+                    }
+
+                    if(object.constructor.name === "Laser")
+                    {
+                        object.dragBrightness = object.brightness;
                     }
                 }
             }
@@ -1977,6 +2014,11 @@
                     else if(eventKey === "4")
                     {
                         loadExample(4);
+                    }
+
+                    else if(eventKey === "5")
+                    {
+                        loadExample(5);
                     }
                 }
             }
