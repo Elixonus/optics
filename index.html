@@ -1406,7 +1406,7 @@
                             return !mirror.isNotAbsorbing;
                         });
 
-                        ctx.strokeStyle = "#222222";
+                        ctx.strokeStyle = "#333333";
                     }
 
                     else
@@ -1628,7 +1628,15 @@
 
                 if(scene.draggedObject === false)
                 {
-                    ctx.drawImage(pointImage, -3, -3, pointImage.width / 2, pointImage.height / 2);
+                    if(!keysPressed.includes(" "))
+                    {
+                        ctx.drawImage(pointImage, -pointImage.width / 4, -pointImage.height / 4, pointImage.width / 2, pointImage.height / 2);
+                    }
+
+                    else
+                    {
+                        ctx.drawImage(objectImage, -objectImage.width / 4, -objectImage.height / 4, objectImage.width / 2, objectImage.height / 2);
+                    }
                 }
 
                 else
@@ -1883,6 +1891,13 @@
                     else if(eventKey.toUpperCase() === "O")
                     {
                         mouseAction = MouseAction.object;
+                    }
+
+                    else if(eventKey.toUpperCase() === " ")
+                    {
+                        mirror = new Mirror(Mirror.reflecting, mousePosition.clone(), randomFloat(0, 2 * Math.PI));
+                        mirror.makeRegularPolygon(randomFloat(150, 200), randomInteger(3, 6));
+                        scene.addMirror(mirror);
                     }
                     
                     else if(eventKey.toUpperCase() === "1")
@@ -2223,8 +2238,9 @@
                 return ret;
             }
 
-            function modulus(dividend, divisor) {
-                return ((dividend%divisor)+divisor)%divisor;
+            function modulus(dividend, divisor)
+            {
+                return ((dividend % divisor) + divisor) % divisor;
             };
             
         </script>
