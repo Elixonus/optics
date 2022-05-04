@@ -2,7 +2,7 @@
 <html>
     <head>
         <title>Laser Simulation</title>
-        <link rel="icon" type="image/x-icon" href="favicon.ico">
+        <link rel="icon" type="image/x-icon" href="./favicon.ico">
     </head>
     
     <body onresize="resize();">
@@ -1177,7 +1177,7 @@
                     return 3;
                 }
 
-                static get index()
+                static get object()
                 {
                     return 4;
                 }
@@ -1335,7 +1335,7 @@
                         scene.draggedObject.rotation = modulus(line.getAngle(), 2 * Math.PI);
                     }
 
-                    else if(mouseAction === MouseAction.index)
+                    else if(mouseAction === MouseAction.object)
                     {
                         if(scene.draggedObject.constructor.name === "Mirror")
                         {
@@ -1536,7 +1536,7 @@
                         text = "r: " + Math.floor((2 * Math.PI - scene.draggedObject.rotation) * 180 / Math.PI) + "°";
                     }
 
-                    if(mouseAction === MouseAction.index)
+                    if(mouseAction === MouseAction.object)
                     {
                         if(scene.draggedObject.constructor.name === "Mirror")
                         {
@@ -1580,7 +1580,7 @@
                 ctx.shadowBlur = 0;
                 ctx.translate(0, canvasHeight / 2);
 
-                let dragXColor = dragYColor = dragColor = rotateColor = indexColor = "#111111";
+                let dragXColor = dragYColor = dragColor = rotateColor = objectColor = "#111111";
 
                 if(mouseAction === MouseAction.dragX)
                 {
@@ -1602,9 +1602,9 @@
                     rotateColor = "#42b6f5";
                 }
 
-                else if(mouseAction === MouseAction.index)
+                else if(mouseAction === MouseAction.object)
                 {
-                    indexColor = "#42b6f5";
+                    objectColor = "#42b6f5";
                 }
 
                 ctx.fillStyle = dragXColor;
@@ -1615,7 +1615,7 @@
                 ctx.fillRect(0, -220, 140, 140);
                 ctx.fillStyle = rotateColor;
                 ctx.fillRect(0, -70, 140, 140);
-                ctx.fillStyle = indexColor;
+                ctx.fillStyle = objectColor;
                 ctx.fillRect(0, 80, 140, 140);
                 ctx.drawImage(dragXImage, 17, -283, 36, 36);
                 ctx.drawImage(dragYImage, 87, -283, 36, 36);
@@ -1653,7 +1653,7 @@
                         ctx.drawImage(rotateImage, -dragYImage.width / 4, -dragYImage.height / 4, dragYImage.width / 2, dragYImage.height / 2);
                     }
 
-                    else if(mouseAction === MouseAction.index)
+                    else if(mouseAction === MouseAction.object)
                     {
                         ctx.drawImage(objectImage, -objectImage.width / 4, -objectImage.height / 4, objectImage.width / 2, objectImage.height / 2);
                     }
@@ -1880,9 +1880,9 @@
                         mouseAction = MouseAction.rotate;
                     }
 
-                    else if(eventKey.toUpperCase() === "N")
+                    else if(eventKey.toUpperCase() === "O")
                     {
-                        mouseAction = MouseAction.index;
+                        mouseAction = MouseAction.object;
                     }
                     
                     else if(eventKey.toUpperCase() === "1")
