@@ -509,6 +509,15 @@
                     return this._mirrors;
                 }
 
+                reset()
+                {
+                    this.lasers = [];
+                    this.mirrors = [];
+                    this.draggedLaser = false;
+                    this.draggedMirror = false;
+                    this.draggedObject = false;
+                }
+
                 setDraggedObjectTo(object)
                 {
                     if(object === false)
@@ -1676,17 +1685,22 @@
                 switch(n)
                 {
                     case 1:
+                        scene.reset();
                         scene.lasers = [new Laser(new Point(100, -250), Math.PI / 4)];
-                        scene.mirrors = [
-                            new Mirror(Mirror.absorbing, new Point(595, -275), Math.PI / 4, [new Point(-200, -200), new Point(200, -200), new Point(200, 200), new Point(-200, 200)]),
-                            new Mirror(Mirror.absorbing, new Point(-300, 375), 0, [new Point(-150, 150), new Point(150, 150), new Point(0, -113)]),
-                            new Mirror(Mirror.absorbing, new Point(-600, -100), Math.PI / 10, [new Point(-20, -200), new Point(20, -200), new Point(20, 200), new Point(-20, 200)])
-                        ];
-                        var circle = new Mirror(3, new Point(100, 50), 0);
-                        circle.makeCircle(150, 500);
+                        var triangle = new Mirror(Mirror.absorbing, new Point(-300, 375), 0)
+                        triangle.makeRegularPolygon(150, 3);
+                        triangle.setRotationTo(Math.PI / 10);
+                        var square = new Mirror(Mirror.absorbing, new Point(595, -275), Math.PI / 4)
+                        square.makeRectangle(400, 400);
+                        square.setRotationTo(Math.PI / 4);
+                        var rectangle = new Mirror(Mirror.absorbing, new Point(-600, -100), Math.PI / 10)
+                        rectangle.makeRectangle(40, 400);
+                        rectangle.setRotationTo(Math.PI / 10);
                         var polygon = new Mirror(Mirror.absorbing, new Point(600, 400), 0);
                         polygon.makeRegularPolygon(150, 5);
-                        scene.mirrors.push(circle, polygon);
+                        var circle = new Mirror(3, new Point(100, 50), 0);
+                        circle.makeCircle(150, 500);
+                        scene.mirrors.push(triangle, square, rectangle, polygon, circle);
                         break;
                     case 2:
                         scene.lasers = [new Laser(new Point(-150, -200), Math.PI / 10)];
