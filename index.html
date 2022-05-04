@@ -1686,14 +1686,15 @@
                 {
                     case 1:
                         scene.reset();
-                        scene.lasers = [new Laser(new Point(100, -250), Math.PI / 4)];
+                        var laser = new Laser(new Point(100, -250), Math.PI / 4)
+                        scene.lasers.push(laser);
                         var triangle = new Mirror(Mirror.absorbing, new Point(-300, 375), 0)
                         triangle.makeRegularPolygon(150, 3);
                         triangle.setRotationTo(Math.PI / 10);
                         var square = new Mirror(Mirror.absorbing, new Point(595, -275), Math.PI / 4)
                         square.makeRectangle(400, 400);
                         square.setRotationTo(Math.PI / 4);
-                        var rectangle = new Mirror(Mirror.absorbing, new Point(-600, -100), Math.PI / 10)
+                        var rectangle = new Mirror(Mirror.reflecting, new Point(-600, -100), Math.PI / 10)
                         rectangle.makeRectangle(40, 400);
                         rectangle.setRotationTo(Math.PI / 10);
                         var polygon = new Mirror(Mirror.absorbing, new Point(600, 400), 0);
@@ -1703,7 +1704,9 @@
                         scene.mirrors.push(triangle, square, rectangle, polygon, circle);
                         break;
                     case 2:
-                        scene.lasers = [new Laser(new Point(-150, -200), Math.PI / 10)];
+                        scene.reset();
+                        var laser = new Laser(new Point(-150, -200), Math.PI / 10);
+                        scene.lasers.push(laser)
                         scene.mirrors = [];
                         
                         for(var x = -2; x <= 2; x++)
@@ -1719,14 +1722,20 @@
                         break;
                     case 3:
                         scene.lasers = [new Laser(new Point(-700, -300), Math.PI / 10)];
-                        var blob = new Mirror(Mirror.reflecting, new Point(0, 0), new Animation([new Keyframe(0, 0), new Keyframe(2500, 2 * Math.PI)], interpolateLinear, 2500));
+                        var blob = new Mirror(Mirror.reflecting, new Point(0, 0), new Animation([new Keyframe(0, 0), new Keyframe(2500, 7 * Math.PI)], interpolateLinear, 2500));
                         blob.makeBlob(300, 0.5, 0.5, 100);
                         blob.smoothVertices(0.5, 10);
                         scene.mirrors = [blob];
                         break;
                     case 4:
-                        scene.lasers = [new Laser(new Point(-500, -100), 0)];
-                        var parabola = new Mirror(Mirror.reflecting, new Point(500, 0), 0);
+                        scene.lasers = [
+                            new Laser(new Point(-100, -200), 0),
+                            new Laser(new Point(-100, -100), 0),
+                            new Laser(new Point(-100, -0), 0),
+                            new Laser(new Point(-100, 100), 0),
+                            new Laser(new Point(-100, 200), 0),
+                        ];
+                        var parabola = new Mirror(Mirror.reflecting, new Point(300, 0), 0);
                         parabola.makeParabola(-200, 600, 100);
                         parabola.vertices.push(new Point(100, 300), new Point(100, -300));
                         parabola.closedShape = true;
