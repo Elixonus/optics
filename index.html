@@ -7,6 +7,7 @@
     
     <body onresize="resize();">
         <canvas id="canvas" width="1920" height="1080"></canvas>
+        <img id="home" class="hidden" src="./home.png">
         <img id="laser" class="hidden" src="./laser.png">
         <img id="point" class="hidden" src="./point.png">
         <img id="dragX" class="hidden" src="./dragX.png">
@@ -1299,6 +1300,7 @@
             const canvasWidth = canvas.width;
             const canvasHeight = canvas.height;
             const ctx = canvas.getContext("2d", {alpha: false});
+            const homeImage = document.getElementById("home");
             const laserImage = document.getElementById("laser");
             const pointImage = document.getElementById("point");
             const dragXImage = document.getElementById("dragX");
@@ -1317,6 +1319,7 @@
             const LASER_MAX_COLLISIONS = 50;
             const LASER_RANGE = 10000;
             var scene = new Scene(new Laser(new Point(0, -100), 0));
+            var time = 0;
             loadExample(1);
 
             function render()
@@ -1675,6 +1678,23 @@
                 ctx.drawImage(rotateImage, 34, -36);
                 ctx.drawImage(objectImage, 34, 114);
                 ctx.resetTransform();
+
+                if(time < 120)
+                {
+                    if(time < 60)
+                    {
+                        ctx.globalAlpha = 1;
+                    }
+                    
+                    else
+                    {
+                        ctx.globalAlpha = (1 - (time - 60) / 60);
+                    }
+
+                    ctx.drawImage(homeImage, 0, 0);
+                    ctx.globalAlpha = 1;
+                }
+
                 ctx.save();
                 ctx.translate(mousePosition.x + canvasWidth / 2, mousePosition.y + canvasHeight / 2);
 
@@ -1720,6 +1740,7 @@
                 }
 
                 ctx.restore();
+                time += 1;
                 request = requestAnimationFrame(render);
             }
             
