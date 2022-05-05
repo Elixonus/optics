@@ -1,6 +1,10 @@
 # opticsJS
 Small and light real-time ray optics simulation that implements reflection and refraction phenomena.
 
+Designed mostly for education and not professional use.
+
+![Wallpaper](home.png)
+
 ## User Interface
 
 ### Input
@@ -17,14 +21,11 @@ For mirrors, this is used to cycle the type of interference from refractive, ref
 If the mirror is in refractive mode, the index of refraction can be dialed up and down with the mouse.
 
 ### Output
-All of the three types of mirror are displayed differently.
-
-Absorbing mirrors have a gray contour.
-
-Reflecting mirrors have a red contour and no color filled in.
-
-Refracting mirrors have a red contour and color filled in.  
-The higher the refractive index of the object, the more visible the inside color.
+Three types of mirror are displayed differently.
+* Absorbing mirrors have a gray contour.
+* Reflecting mirrors have a red contour and no color filled in.
+* Refracting mirrors have a red contour and color filled in.  
+The higher the refractive index of the object is, the more visible the inside color.
 
 ## Keybindings
 
@@ -50,3 +51,8 @@ Delete - Remove all the lasers and mirrors from the scene.
 Number Keys - Load a predefined scene in the program.
 
 Z - Toggle quality/performance.
+
+## Limitations
+To avoid crashes, the maximum collisions per each laser is set to 50.
+
+In rare cases, when a laser hits a corner there is a small chance that the laser simply passes through instead of the right behavior of reflecting.
