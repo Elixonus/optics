@@ -5,7 +5,7 @@ Small and light real-time ray optics simulation that implements reflection and r
 
 ![Wallpaper](home.png)
 
-## User Interface :pinching_hand:
+## :pinching_hand: User Interface
 
 ### Input
 There are three different mouse tools to interact with the lasers and mirrors. The bar on the left shows which tool is currently activated.
@@ -27,9 +27,9 @@ Three types of mirror are displayed differently.
 * Refracting mirrors have a red contour and color filled in.  
 The higher the refractive index of the object is, the more visible the inside color.
 
-## Keybindings :key:
+## :key: Keybindings
 
-### Tools :gear:
+### :gear: Tools
 T - Translation mode
 
 X - Horizontal translation submode (only works once in translation mode)
@@ -40,7 +40,7 @@ R - Rotation mode
 
 O - Object mode 
 
-### Camera :camera:
+### :camera: Camera
 Arrow Keys - Move the camera.
 
 ### Extra
@@ -52,7 +52,7 @@ Number Keys - Load a predefined scene in the program.
 
 Z - Toggle quality/performance.
 
-## Limitations :lock:
+## :lock: Limitations
 To avoid crashes, the maximum collisions per each laser is set to 50.
 
 In rare cases, when a laser hits a corner there is a small chance that the laser simply passes through instead of the right behavior of reflecting.
