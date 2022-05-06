@@ -1,5 +1,5 @@
 # opticsJS :mag:
-Small and light real-time ray optics simulation that implements reflection and refraction phenomena.
+:bulb: Small and light real-time ray optics simulation that implements reflection and refraction phenomena.
 
 :books: Designed mostly for education and not professional use.
 
