@@ -1,5 +1,5 @@
 # opticsJS :mag:
-:bulb: Small and light real-time ray optics simulation that implements reflection and refraction phenomena.
+Lightweight real-time ray optics simulation that implements the physics phenomena of reflection and refraction.
 
 :books: Designed mostly for education and not professional use.
 
@@ -29,7 +29,7 @@ The higher the refractive index of the object is, the more visible the inside co
 
 ## :key: Keybindings
 
-### :gear: Tools
+### Tools
 T - Translation mode
 
 X - Horizontal translation submode (only works once in translation mode)
@@ -40,7 +40,7 @@ R - Rotation mode
 
 O - Object mode 
 
-### :camera: Camera
+### Camera
 Arrow Keys - Move the camera.
 
 ### Extra
