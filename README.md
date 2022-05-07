@@ -30,27 +30,27 @@ The higher the refractive index of the object is, the more visible the inside co
 ## :key: Keybindings
 
 ### Tools
-T - Translation mode
+```T``` - Translation mode
 
-X - Horizontal translation submode (only works once in translation mode)
+```X``` - Horizontal translation submode (only works once in translation mode)
 
-Y - Vertical translation submode (only works when in translation mode)
+```Y``` - Vertical translation submode (only works when in translation mode)
 
-R - Rotation mode
+```R``` - Rotation mode
 
-O - Object mode 
+```O``` - Object mode 
 
 ### Camera
-Arrow Keys - Move the camera.
+```(Arrow Keys)``` - Move the camera.
 
 ### Extra
-Space - Instantiate a random polygon from where the mouse is located.
+```(Space)``` - Instantiate a random polygon from where the mouse is located.
 
-Delete - Remove all the lasers and mirrors from the scene.
+```(Delete)``` - Remove all the lasers and mirrors from the scene.
 
-Number Keys - Load a predefined scene in the program.
+```(Number Keys)``` - Load a predefined scene in the program.
 
-Z - Toggle quality/performance.
+```Z``` - Toggle quality/performance.
 
 ## :lock: Limitations
 To avoid crashes, the maximum collisions per each laser is set to 50.
