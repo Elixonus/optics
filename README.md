@@ -3,7 +3,7 @@ Lightweight real-time ray optics simulation that implements the physics phenomen
 
 :books: Designed mostly for education and not professional use.
 
-![Wallpaper](home.png)
+![Wallpaper](./images/home.png)
 
 ## :pinching_hand: User Interface
 
