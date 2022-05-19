@@ -1648,7 +1648,7 @@ function render()
 
     if(scene.draggedObject === false)
     {
-        if(!keysPressed.includes(" "))
+        if(!(keysPressed.includes("m") || keysPressed.includes("M") || keysPressed.includes("l") || keysPressed.includes("L")))
         {
             ctx.drawImage(pointImage, -pointImage.width / 4, -pointImage.height / 4, pointImage.width / 2, pointImage.height / 2);
         }
@@ -1947,11 +1947,17 @@ function keydown(event)
             mouseAction = MouseAction.object;
         }
 
-        else if(eventKey === " ")
+        else if(eventKey.toUpperCase() === "M")
         {
             mirror = new Mirror(Mirror.reflecting, mousePosition.clone(), randomFloat(0, 2 * Math.PI));
             mirror.makeRegularPolygon(randomFloat(150, 200), randomInteger(3, 6));
             scene.addMirror(mirror);
+        }
+
+        else if(eventKey.toUpperCase() === "L")
+        {
+            laser = new Laser(mousePosition.clone(), randomFloat(0, 2 * Math.PI));
+            scene.addLaser(laser);
         }
 
         else if(eventKey === "Backspace" || eventKey === "Delete")
