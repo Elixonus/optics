@@ -1510,7 +1510,7 @@ function render()
 
         if(mouseAction === MouseAction.rotate)
         {
-            text = "r: " + Math.floor((2 * Math.PI - scene.draggedObject.rotation) * 180 / Math.PI) + "°";
+            text = "r: " + Math.floor((2 * Math.PI - scene.draggedObject.rotation) * 180 / Math.PI) + " deg";
         }
 
         if(mouseAction === MouseAction.object)
