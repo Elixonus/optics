@@ -1256,6 +1256,11 @@ const dragYImage = document.getElementById("dragY");
 const dragImage = document.getElementById("drag");
 const rotateImage = document.getElementById("rotate");
 const objectImage = document.getElementById("object");
+const xImage = document.getElementById("x");
+const yImage = document.getElementById("y");
+const tImage = document.getElementById("t");
+const rImage = document.getElementById("r");
+const oImage = document.getElementById("o");
 var glow = true;
 const pointOrigin = new Point(0, 0);
 var cameraPosition = pointOrigin.clone();
@@ -1264,6 +1269,7 @@ var mouseButtons = [false, false, false];
 var mouseAction = MouseAction.drag;
 const keysPressed = [];
 var keysFired = false;
+var keysHelp = 0
 const LASER_MAX_COLLISIONS = 50;
 const LASER_RANGE = 10000;
 var scene = new Scene(new Laser(new Point(0, -100), 0));
@@ -1620,11 +1626,40 @@ function render()
     ctx.fillRect(0, -70, 140, 140);
     ctx.fillStyle = objectColor;
     ctx.fillRect(0, 80, 140, 140);
+
+    if(!(distance(new Point(mousePosition.x + 960, mousePosition.y), new Point(0, 0)) < 300 && !mouseButtons[0]))
+    {
+        keysHelp -= 0.05
+
+        if(keysHelp < 0)
+        {
+            keysHelp = 0;
+        }
+    }
+    
+    else
+    {
+        keysHelp += 0.05
+
+        if(keysHelp > 1)
+        {
+            keysHelp = 1;
+        }
+    }
+
+    ctx.globalAlpha = keysHelp;
+    ctx.drawImage(xImage, 17, -283, 36, 36);
+    ctx.drawImage(yImage, 87, -283, 36, 36);
+    ctx.drawImage(tImage, 34, -186);
+    ctx.drawImage(rImage, 34, -36);
+    ctx.drawImage(oImage, 34, 114);
+    ctx.globalAlpha = 1 - keysHelp;
     ctx.drawImage(dragXImage, 17, -283, 36, 36);
     ctx.drawImage(dragYImage, 87, -283, 36, 36);
     ctx.drawImage(dragImage, 34, -186);
     ctx.drawImage(rotateImage, 34, -36);
     ctx.drawImage(objectImage, 34, 114);
+    ctx.globalAlpha = 1;
     ctx.resetTransform();
 
     if(time < 120)
