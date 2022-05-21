@@ -1792,7 +1792,7 @@ function render()
 
     if(scene.draggedObject === false)
     {
-        if(!(keysPressed.includes("m") || keysPressed.includes("M") || keysPressed.includes("l") || keysPressed.includes("L")))
+        if(!(keysPressed.includes("l") || keysPressed.includes("L") || keysPressed.includes("m") || keysPressed.includes("M") || keysPressed.includes("g") || keysPressed.includes("G")))
         {
             ctx.drawImage(pointImage, -18, -18, 36, 36);
         }
@@ -2122,6 +2122,12 @@ function keydown(event)
         else if(eventKey.toUpperCase() === "G")
         {
             guide = new Guide(mousePosition.clone(), 0);
+
+            if(scene.guides.length >= 2)
+            {
+                scene.removeGuide(scene.guides[0]);
+            }
+
             scene.addGuide(guide);
         }
 
