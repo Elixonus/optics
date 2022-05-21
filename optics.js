@@ -1313,6 +1313,7 @@ const canvasHeight = canvas.height;
 const ctx = canvas.getContext("2d", {alpha: false});
 const homeImage = document.getElementById("home");
 const laserImage = document.getElementById("laser");
+const rulerImage = document.getElementById("ruler");
 const protractorImage = document.getElementById("protractor");
 const pointImage = document.getElementById("point");
 const dragXImage = document.getElementById("dragX");
@@ -1568,7 +1569,17 @@ function render()
         ctx.save();
         ctx.translate(guide.position.x, guide.position.y);
         ctx.rotate(guide.rotation);
-        ctx.drawImage(protractorImage, -200, -200, 400, 400)
+
+        if(guide.guidance <= 0.5)
+        {
+            ctx.drawImage(rulerImage, -200, -200, 400, 400);
+        }
+
+        else
+        {
+            ctx.drawImage(protractorImage, -200, -200, 400, 400);
+        }
+
         ctx.restore();
     }
 
