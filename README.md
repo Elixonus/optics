@@ -1,11 +1,11 @@
-# opticsJS :mag:
+# opticsJS 🔍
 Lightweight real-time **ray optics simulation** that implements the physics phenomena of reflection and refraction.
 
-:books: Designed mostly for **education** and not professional use.
+📚 Designed mostly for **education** and not professional use.
 
 ![Wallpaper](./images/home.png)
 
-## :ok_hand: User Interface
+## 👌 User Interface
 
 ### Input
 There are three different mouse tools to interact with the lasers and mirrors. The bar on the left shows which tool is currently activated.
@@ -28,7 +28,7 @@ Three types of mirror are displayed differently.
 * **Refracting** mirrors have a red contour and color filled in.  
 The higher the refractive index of the object is, the more visible the inside color.
 
-## :key: Keybindings
+## 🔑 Keybindings
 
 ### Tools
 ```T``` - Translation mode
@@ -58,7 +58,7 @@ The higher the refractive index of the object is, the more visible the inside co
 
 ```Z``` - Toggle quality/performance.
 
-## :lock: Limitations
+## 🔒 Limitations
 To avoid crashes, the maximum collisions per each laser is set to 50.
 
 In rare cases, when a laser hits a corner there is a chance that the laser incorrectly passes through instead of the right behavior of reflecting.
