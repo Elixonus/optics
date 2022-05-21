@@ -1572,12 +1572,13 @@ function render()
 
         if(guide.guidance <= 0.5)
         {
-            ctx.drawImage(rulerImage, -200, -200, 400, 400);
+            ctx.rotate(Math.PI / 2)
+            ctx.drawImage(rulerImage, -400, -57.5, 800, 115);
         }
 
         else
         {
-            ctx.drawImage(protractorImage, -200, -200, 400, 400);
+            ctx.drawImage(protractorImage, -300, -300, 600, 600);
         }
 
         ctx.restore();
@@ -1673,7 +1674,7 @@ function render()
                 }
             }
 
-            else if(scene.draggedObject.constructor.name === "Guide")
+            else if(scene.draggedObject.constructor.name === "Guide" && scene.draggedObject.guidance > 0.5)
             {
                 extraSpace = 100;
             }
