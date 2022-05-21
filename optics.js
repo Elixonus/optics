@@ -1380,6 +1380,11 @@ function render()
             {
                 scene.draggedLaser.brightness = clamp(scene.draggedLaser.dragBrightness + (scene.draggedLaser.mousePositionOnDrag.y - mousePosition.y) / 300, 0, 1);
             }
+
+            else if(scene.draggedObject.constructor.name === "Guide")
+            {
+                scene.draggedGuide.guidance = clamp(scene.draggedGuide.dragGuidance + (scene.draggedGuide.mousePositionOnDrag.y - mousePosition.y) / 300, 0, 1);
+            }
         }
     }
 
@@ -1595,7 +1600,20 @@ function render()
 
         if(mouseAction === MouseAction.object)
         {
-            if(scene.draggedObject.constructor.name === "Mirror")
+            if(scene.draggedObject.constructor.name === "Laser")
+            {
+                if(scene.draggedLaser.brightness >= 0.5)
+                {
+                    text = "Laser: ON";
+                }
+
+                else
+                {
+                    text = "Laser: OFF";
+                }
+            }
+
+            else if(scene.draggedObject.constructor.name === "Mirror")
             {
                 if(scene.draggedMirror.isRefracting)
                 {
@@ -1613,16 +1631,16 @@ function render()
                 }
             }
 
-            else if(scene.draggedObject.constructor.name === "Laser")
+            if(scene.draggedObject.constructor.name === "Guide")
             {
-                if(scene.draggedLaser.brightness >= 0.5)
+                if(scene.draggedGuide.guidance <= 0.5)
                 {
-                    text = "Laser: ON";
+                    text = "Ruler";
                 }
 
                 else
                 {
-                    text = "Laser: OFF";
+                    text = "Protractor";
                 }
             }
         }
@@ -1962,14 +1980,19 @@ function mousedown(event)
         object.dragPosition = object.position.clone();
         object.dragRotation = object.rotation;
 
-        if(object.constructor.name === "Mirror")
+        if(object.constructor.name === "Laser")
+        {
+            object.dragBrightness = object.brightness;
+        }
+
+        else if(object.constructor.name === "Mirror")
         {
             object.dragIndexOfRefraction = object.indexOfRefraction;
         }
 
-        else if(object.constructor.name === "Laser")
+        else if(object.constructor.name === "Guide")
         {
-            object.dragBrightness = object.brightness;
+            object.dragGuidance = object.guidance;
         }
     }
 }
