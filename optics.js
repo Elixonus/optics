@@ -404,8 +404,12 @@ class Scene
     {
         this._lasers = [];
         this._mirrors = [];
+        this._ruler = [];
+        this._protractor = [];
         this.draggedLaser = false;
         this.draggedMirror = false;
+        this.draggedRuler = false;
+        this.draggedProtractor = false;
         this.draggedObject = false;
 
         if(Array.isArray(objects))
@@ -809,11 +813,6 @@ class Laser extends Object
         this.brightness = 1;
         return this;
     }
-
-    pointTo(p)
-    {
-        this.rotation = Math.atan2(p.y - this.position.y, p.x - this.position.x);
-    }
 }
 
 class Mirror extends Object
@@ -1113,6 +1112,24 @@ class Mirror extends Object
         }
         
         this.closedShape = true;
+    }
+}
+
+class Ruler extends Object
+{
+    constructor(position, rotation)
+    {
+        super(position, rotation);
+        return this;
+    }
+}
+
+class Protractor extends Object
+{
+    constructor(position, rotation)
+    {
+        super(position, rotation);
+        return this;
     }
 }
 
