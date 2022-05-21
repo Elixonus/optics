@@ -404,8 +404,8 @@ class Scene
     {
         this._lasers = [];
         this._mirrors = [];
-        this._ruler = [];
-        this._protractor = [];
+        this._rulers = [];
+        this._protractors = [];
         this.draggedLaser = false;
         this.draggedMirror = false;
         this.draggedRuler = false;
@@ -462,12 +462,56 @@ class Scene
         return this._mirrors;
     }
 
+    get rulers()
+    {
+        return this._rulers;
+    }
+
+    set rulers(value)
+    {
+        this._rulers = value;
+
+        if(this.draggedObject.constructor.name === "Ruler")
+        {
+            let index = this._rulers.indexOf(this.draggedRuler);
+
+            if(index === -1)
+            {
+                this.draggedRuler = false;
+                this.draggedObject = false;
+            }
+        }
+    }
+
+    get protractors()
+    {
+        return this._protractors;
+    }
+
+    set protractors(value)
+    {
+        this._protractors = value;
+
+        if(this.draggedObject.constructor.name === "Protractor")
+        {
+            let index = this._protractors.indexOf(this.draggedProtractor);
+
+            if(index === -1)
+            {
+                this.draggedProtractor = false;
+                this.draggedObject = false;
+            }
+        }
+    }
+
     reset()
     {
         this.lasers = [];
         this.mirrors = [];
         this.draggedLaser = false;
         this.draggedMirror = false;
+        this.draggedRuler = false;
+        this.draggedProtractor = false;
         this.draggedObject = false;
     }
 
@@ -477,6 +521,8 @@ class Scene
         {
             this.draggedLaser = false;
             this.draggedMirror = false;
+            this.draggedRuler = false;
+            this.draggedProtractor = false;
             this.draggedObject = false;
             return;
         }
@@ -489,6 +535,16 @@ class Scene
         else if(object.constructor.name === "Mirror")
         {
             this.draggedMirror = object;
+        }
+
+        else if(object.constructor.name === "Ruler")
+        {
+            this.draggedRuler = object;
+        }
+
+        else if(object.constructor.name === "Protractor")
+        {
+            this.draggedProtractor = object;
         }
 
         this.draggedObject = object;
@@ -530,6 +586,42 @@ class Scene
         return this;
     }
 
+    addRuler(ruler)
+    {
+        this.rulers.push(ruler);
+        return this;
+    }
+
+    removeRuler(ruler)
+    {
+        this.rulers.splice(this.rulers.indexOf(ruler), 1);
+        return this;
+    }
+
+    addRulers(rulers)
+    {
+        this.rulers = this.rulers.concat(rulers);
+        return this;
+    }
+
+    addProtractor(protractor)
+    {
+        this.protractors.push(protractor);
+        return this;
+    }
+
+    removeProtractor(protractor)
+    {
+        this.protractors.splice(this.protractors.indexOf(protractor), 1);
+        return this;
+    }
+
+    addProtractors(protractors)
+    {
+        this.protractors = this.protractors.concat(protractors);
+        return this;
+    }
+
     addObject(object)
     {
         if(object.constructor.name === "Laser")
@@ -555,6 +647,16 @@ class Scene
         if(object.constructor.name === "Mirror")
         {
             this.removeMirror(object);
+        }
+
+        if(object.constructor.name === "Ruler")
+        {
+            this.removeRuler(object);
+        }
+
+        if(object.constructor.name === "Protractor")
+        {
+            this.removeProtractor(object);
         }
     }
 
@@ -1267,6 +1369,7 @@ const canvasHeight = canvas.height;
 const ctx = canvas.getContext("2d", {alpha: false});
 const homeImage = document.getElementById("home");
 const laserImage = document.getElementById("laser");
+const protractorImage = document.getElementById("protractor");
 const pointImage = document.getElementById("point");
 const dragXImage = document.getElementById("dragX");
 const dragYImage = document.getElementById("dragY");
@@ -1507,6 +1610,15 @@ function render()
         ctx.translate(laser.position.x, laser.position.y);
         ctx.rotate(laser.rotation);
         ctx.drawImage(laserImage, -laserImage.width / 3, -laserImage.height / 6, laserImage.width / 3, laserImage.height / 3);
+        ctx.restore();
+    }
+
+    for(var n = 0; n < scene.protractors.length; n++)
+    {
+        let protractor = scene.protractors[n];
+        ctx.translate(protractor.position.x, protractor.position.y);
+        ctx.rotate(protractor.rotation);
+        ctx.drawImage(protractorImage, 0, 0)
         ctx.restore();
     }
 
@@ -2010,6 +2122,18 @@ function keydown(event)
         {
             laser = new Laser(mousePosition.clone(), randomFloat(0, 2 * Math.PI));
             scene.addLaser(laser);
+        }
+
+        else if(eventKey.toUpperCase() === "R")
+        {
+            ruler = new Protractor(mousePosition.clone(), 0);
+            scene.addRuler(ruler);
+        }
+
+        else if(eventKey.toUpperCase() === "P")
+        {
+            protractor = new Protractor(mousePosition.clone(), 0);
+            scene.addProtractor(protractor);
         }
 
         else if(eventKey === "Backspace" || eventKey === "Delete")
