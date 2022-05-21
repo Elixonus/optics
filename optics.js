@@ -556,39 +556,21 @@ class Scene
         return this;
     }
 
-    addRuler(ruler)
+    addGuide(guide)
     {
-        this.rulers.push(ruler);
+        this.guides.push(guide);
         return this;
     }
 
-    removeRuler(ruler)
+    removeGuide(guide)
     {
-        this.rulers.splice(this.rulers.indexOf(ruler), 1);
+        this.guides.splice(this.guides.indexOf(guide), 1);
         return this;
     }
 
-    addRulers(rulers)
+    addGuides(guides)
     {
-        this.rulers = this.rulers.concat(rulers);
-        return this;
-    }
-
-    addProtractor(protractor)
-    {
-        this.protractors.push(protractor);
-        return this;
-    }
-
-    removeProtractor(protractor)
-    {
-        this.protractors.splice(this.protractors.indexOf(protractor), 1);
-        return this;
-    }
-
-    addProtractors(protractors)
-    {
-        this.protractors = this.protractors.concat(protractors);
+        this.guides = this.guides.concat(guides);
         return this;
     }
 
@@ -602,6 +584,11 @@ class Scene
         else if(object.constructor.name === "Mirror")
         {
             this.addMirror(object);
+        }
+
+        else if(object.constructor.name === "Guide")
+        {
+            this.addGuide(object);
         }
         
         return this;
@@ -619,14 +606,9 @@ class Scene
             this.removeMirror(object);
         }
 
-        if(object.constructor.name === "Ruler")
+        if(object.constructor.name === "Guide")
         {
-            this.removeRuler(object);
-        }
-
-        if(object.constructor.name === "Protractor")
-        {
-            this.removeProtractor(object);
+            this.removeGuide(object);
         }
     }
 
@@ -1575,13 +1557,13 @@ function render()
         ctx.restore();
     }
 
-    for(var n = 0; n < scene.protractors.length; n++)
+    for(var n = 0; n < scene.guides.length; n++)
     {
-        let protractor = scene.protractors[n];
+        let guide = scene.guides[n];
         ctx.save();
-        ctx.translate(protractor.position.x, protractor.position.y);
-        ctx.rotate(protractor.rotation);
-        ctx.drawImage(protractorImage, 0, 0)
+        ctx.translate(guide.position.x, guide.position.y);
+        ctx.rotate(guide.rotation);
+        ctx.drawImage(protractorImage, -200, -200, 400, 400)
         ctx.restore();
     }
 
@@ -1660,6 +1642,11 @@ function render()
                 {
                     extraSpace = 70;
                 }
+            }
+
+            else if(scene.draggedObject.constructor.name === "Guide")
+            {
+                extraSpace = 100;
             }
 
             let textWidth = ctx.measureText(text).width;
@@ -1951,34 +1938,20 @@ function mousedown(event)
         laser = [];
     }
 
-    let closestRuler = scene.getClosestObjectToPoint(point, scene.rulers);
-    let ruler;
+    let closestGuide = scene.getClosestObjectToPoint(point, scene.guides);
+    let guide;
 
-    if(closestRuler !== false && closestRuler.distanceToObject <= 200)
+    if(closestGuide !== false && closestGuide.distanceToObject <= 200)
     {
-        ruler = [closestRuler.object];
+        guide = [closestGuide.object];
     }
 
     else
     {
-        ruler = [];
+        guide = [];
     }
 
-    let closestProtractor = scene.getClosestObjectToPoint(point, scene.protractors);
-    let protractor;
-
-    if(closestProtractor !== false && closestProtractor.distanceToObject <= 200)
-    {
-        protractor = [closestProtractor.object];
-    }
-
-    else
-    {
-        protractor = [];
-    }
-
-    console.log(ruler, protractor)
-    let closest = scene.getClosestObjectToPoint(point, scene.getMirrorsWithPointInside(point).concat(laser, ruler, protractor));
+    let closest = scene.getClosestObjectToPoint(point, scene.getMirrorsWithPointInside(point).concat(laser, guide));
 
     if(closest !== false)
     {
@@ -2111,16 +2084,10 @@ function keydown(event)
             scene.addLaser(laser);
         }
 
-        else if(eventKey.toUpperCase() === "R")
+        else if(eventKey.toUpperCase() === "G")
         {
-            ruler = new Protractor(mousePosition.clone(), 0);
-            scene.addRuler(ruler);
-        }
-
-        else if(eventKey.toUpperCase() === "P")
-        {
-            protractor = new Protractor(mousePosition.clone(), 0);
-            scene.addProtractor(protractor);
+            guide = new Guide(mousePosition.clone(), 0);
+            scene.addGuide(guide);
         }
 
         else if(eventKey === "Backspace" || eventKey === "Delete")
