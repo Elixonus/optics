@@ -404,12 +404,10 @@ class Scene
     {
         this._lasers = [];
         this._mirrors = [];
-        this._rulers = [];
-        this._protractors = [];
+        this._guides = [];
         this.draggedLaser = false;
         this.draggedMirror = false;
-        this.draggedRuler = false;
-        this.draggedProtractor = false;
+        this.draggedGuide = false;
         this.draggedObject = false;
 
         if(Array.isArray(objects))
@@ -462,43 +460,22 @@ class Scene
         return this._mirrors;
     }
 
-    get rulers()
+    get guides()
     {
-        return this._rulers;
+        return this._guides;
     }
 
-    set rulers(value)
+    set guides(value)
     {
-        this._rulers = value;
+        this._guides = value;
 
-        if(this.draggedObject.constructor.name === "Ruler")
+        if(this.draggedObject.constructor.name === "Guide")
         {
-            let index = this._rulers.indexOf(this.draggedRuler);
+            let index = this._guides.indexOf(this.draggedGuide);
 
             if(index === -1)
             {
-                this.draggedRuler = false;
-                this.draggedObject = false;
-            }
-        }
-    }
-
-    get protractors()
-    {
-        return this._protractors;
-    }
-
-    set protractors(value)
-    {
-        this._protractors = value;
-
-        if(this.draggedObject.constructor.name === "Protractor")
-        {
-            let index = this._protractors.indexOf(this.draggedProtractor);
-
-            if(index === -1)
-            {
-                this.draggedProtractor = false;
+                this.draggedGuide = false;
                 this.draggedObject = false;
             }
         }
@@ -510,8 +487,7 @@ class Scene
         this.mirrors = [];
         this.draggedLaser = false;
         this.draggedMirror = false;
-        this.draggedRuler = false;
-        this.draggedProtractor = false;
+        this.draggedGuide = false;
         this.draggedObject = false;
     }
 
@@ -521,8 +497,7 @@ class Scene
         {
             this.draggedLaser = false;
             this.draggedMirror = false;
-            this.draggedRuler = false;
-            this.draggedProtractor = false;
+            this.draggedGuide = false;
             this.draggedObject = false;
             return;
         }
@@ -537,14 +512,9 @@ class Scene
             this.draggedMirror = object;
         }
 
-        else if(object.constructor.name === "Ruler")
+        else if(object.constructor.name === "Guide")
         {
-            this.draggedRuler = object;
-        }
-
-        else if(object.constructor.name === "Protractor")
-        {
-            this.draggedProtractor = object;
+            this.draggedGuide = object;
         }
 
         this.draggedObject = object;
@@ -1217,20 +1187,12 @@ class Mirror extends Object
     }
 }
 
-class Ruler extends Object
+class Guide extends Object
 {
-    constructor(position, rotation)
+    constructor(position, rotation, guidance = 0)
     {
         super(position, rotation);
-        return this;
-    }
-}
-
-class Protractor extends Object
-{
-    constructor(position, rotation)
-    {
-        super(position, rotation);
+        this.guidance = guidance;
         return this;
     }
 }
@@ -1609,13 +1571,14 @@ function render()
         ctx.save();
         ctx.translate(laser.position.x, laser.position.y);
         ctx.rotate(laser.rotation);
-        ctx.drawImage(laserImage, -laserImage.width / 3, -laserImage.height / 6, laserImage.width / 3, laserImage.height / 3);
+        ctx.drawImage(laserImage, -204.3, -18.7, 204.3, 37.3);
         ctx.restore();
     }
 
     for(var n = 0; n < scene.protractors.length; n++)
     {
         let protractor = scene.protractors[n];
+        ctx.save();
         ctx.translate(protractor.position.x, protractor.position.y);
         ctx.rotate(protractor.rotation);
         ctx.drawImage(protractorImage, 0, 0)
@@ -1814,12 +1777,12 @@ function render()
     {
         if(!(keysPressed.includes("m") || keysPressed.includes("M") || keysPressed.includes("l") || keysPressed.includes("L")))
         {
-            ctx.drawImage(pointImage, -pointImage.width / 4, -pointImage.height / 4, pointImage.width / 2, pointImage.height / 2);
+            ctx.drawImage(pointImage, -18, -18, 36, 36);
         }
 
         else
         {
-            ctx.drawImage(objectImage, -objectImage.width / 4, -objectImage.height / 4, objectImage.width / 2, objectImage.height / 2);
+            ctx.drawImage(objectImage, -18, -18, 36, 36);
         }
     }
 
@@ -1827,27 +1790,27 @@ function render()
     {
         if(mouseAction === MouseAction.drag)
         {
-            ctx.drawImage(dragImage, -dragImage.width / 4, -dragImage.height / 4, dragImage.width / 2, dragImage.height / 2);
+            ctx.drawImage(dragImage, -18, -18, 36, 36);
         }
 
         else if(mouseAction === MouseAction.dragX)
         {
-            ctx.drawImage(dragXImage, -dragXImage.width / 4, -dragXImage.height / 4, dragXImage.width / 2, dragXImage.height / 2);
+            ctx.drawImage(dragXImage, -18, -18, 36, 36);
         }
 
         else if(mouseAction === MouseAction.dragY)
         {
-            ctx.drawImage(dragYImage, -dragYImage.width / 4, -dragYImage.height / 4, dragYImage.width / 2, dragYImage.height / 2);
+            ctx.drawImage(dragYImage, -18, -18, 36, 36);
         }
 
         else if(mouseAction === MouseAction.rotate)
         {
-            ctx.drawImage(rotateImage, -dragYImage.width / 4, -dragYImage.height / 4, dragYImage.width / 2, dragYImage.height / 2);
+            ctx.drawImage(rotateImage, -18, -18, 36, 36);
         }
 
         else if(mouseAction === MouseAction.object)
         {
-            ctx.drawImage(objectImage, -objectImage.width / 4, -objectImage.height / 4, objectImage.width / 2, objectImage.height / 2);
+            ctx.drawImage(objectImage, -18, -18, 36, 36);
         }
     }
 
@@ -1978,20 +1941,44 @@ function mousedown(event)
     let closestLaser = scene.getClosestObjectToPoint(point, scene.lasers);
     let laser;
 
-    if(closestLaser !== false)
+    if(closestLaser !== false && closestLaser.distanceToObject <= 200)
     {
-        if(closestLaser.distanceToObject <= 200)
-        {
-            laser = [closestLaser.object];
-        }
-
-        else
-        {
-            laser = [];
-        }
+        laser = [closestLaser.object];
     }
 
-    let closest = scene.getClosestObjectToPoint(point, scene.getMirrorsWithPointInside(point).concat(laser));
+    else
+    {
+        laser = [];
+    }
+
+    let closestRuler = scene.getClosestObjectToPoint(point, scene.rulers);
+    let ruler;
+
+    if(closestRuler !== false && closestRuler.distanceToObject <= 200)
+    {
+        ruler = [closestRuler.object];
+    }
+
+    else
+    {
+        ruler = [];
+    }
+
+    let closestProtractor = scene.getClosestObjectToPoint(point, scene.protractors);
+    let protractor;
+
+    if(closestProtractor !== false && closestProtractor.distanceToObject <= 200)
+    {
+        protractor = [closestProtractor.object];
+    }
+
+    else
+    {
+        protractor = [];
+    }
+
+    console.log(ruler, protractor)
+    let closest = scene.getClosestObjectToPoint(point, scene.getMirrorsWithPointInside(point).concat(laser, ruler, protractor));
 
     if(closest !== false)
     {
@@ -2007,7 +1994,7 @@ function mousedown(event)
             object.dragIndexOfRefraction = object.indexOfRefraction;
         }
 
-        if(object.constructor.name === "Laser")
+        else if(object.constructor.name === "Laser")
         {
             object.dragBrightness = object.brightness;
         }
