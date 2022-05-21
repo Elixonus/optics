@@ -18,7 +18,8 @@ This option has two additional submodes to limit the movement in a certain axis.
 3) **Object tool** indicated by the cube symbol to interact with the properties specific to the object you are selecting.
 For lasers, this is used to toggle the emission ON and OFF. 
 For mirrors, this is used to cycle the type of interference from refractive, reflective, absorbtive.
-If the mirror is in refractive mode, the index of refraction can be dialed up and down with the mouse.
+If the mirror is in refractive mode, the index of refraction can be dialed up and down an extended amount with the mouse.
+For guide tools, this is used to toggle between a ruler and a protractor.
 
 ### Output
 Three types of mirror are displayed differently.
@@ -40,12 +41,17 @@ The higher the refractive index of the object is, the more visible the inside co
 
 ```O``` - Object mode 
 
+### Creation
+```L``` Instantiate a laser from where the mouse is located.
+
+```M``` instantiate a random polygonal mirror from where the mouse is located.
+
+```G``` instantiate a ruler guide tool from where the mouse is located.
+
 ### Camera
 ```(Arrow Keys)``` - Move the camera.
 
 ### Extra
-```(Space)``` - Instantiate a random polygon from where the mouse is located.
-
 ```(Delete)``` - Remove all the lasers and mirrors from the scene.
 
 ```(Number Keys)``` - Load a predefined scene in the program.
