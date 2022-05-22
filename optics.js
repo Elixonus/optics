@@ -1412,6 +1412,31 @@ function render()
         cameraPosition.y += 10;
     }
 
+    let lasersCollisions = scene.getLaserCollisions();
+
+    if(scene.draggedObject !== false && mouseAction === MouseAction.drag && scene.draggedObject.constructor.name === "Guide" && scene.draggedObject.guidance > 0.5)
+    {
+        let objects = [];
+        for(var n = 0; n < lasersCollisions.length; n++)
+        {
+            objects.push({position: scene.lasers[n].position});
+            let laserCollisions = lasersCollisions[n];
+
+            for(var m = 0; m < laserCollisions.length; m++)
+            {
+                let laserCollision = laserCollisions[m];
+                objects.push({position: laserCollision});
+            }
+        }
+
+        let closest = scene.getClosestObjectToPoint(scene.draggedObject.position, objects);
+
+        if(closest !== false && closest.distanceToObject <= 50)
+        {
+            scene.draggedObject.position.setTo(closest.object.position);
+        }
+    }
+
     ctx.fillStyle = "#000000";
     ctx.shadowBlur = 0;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -1422,7 +1447,7 @@ function render()
     {
         let guide = scene.guides[n];
 
-        if(scene.draggedObject === false || scene.draggedObject.constructor.name !== "Guide")
+        if(scene.draggedObject === false || scene.draggedObject.constructor.name !== "Guide" || scene.draggedObject !== guide)
         {
             ctx.globalAlpha = 0.5;
         }
@@ -1560,8 +1585,6 @@ function render()
     }
 
     ctx.lineWidth = 3;
-
-    let lasersCollisions = scene.getLaserCollisions();
 
     for(var n = 0; n < lasersCollisions.length; n++)
     {
@@ -1978,7 +2001,7 @@ function mousedown(event)
     let closestGuide = scene.getClosestObjectToPoint(point, scene.guides);
     let guide;
 
-    if(closestGuide !== false && closestGuide.distanceToObject <= 200)
+    if(closestGuide !== false && closestGuide.distanceToObject <= 300)
     {
         guide = [closestGuide.object];
     }
@@ -2128,7 +2151,20 @@ function keydown(event)
 
         else if(eventKey.toUpperCase() === "G")
         {
-            guide = new Guide(mousePosition.clone(), 0);
+            if(scene.guides.length === 0)
+            {
+                guide = new Guide(mousePosition.clone(), 0);
+            }
+
+            else if(scene.guides.length === 1)
+            {
+                guide = new Guide(mousePosition.clone(), 0, 1 - scene.guides[0].guidance);
+            }
+
+            else
+            {
+                guide = new Guide(mousePosition.clone(), 0, 1 - scene.guides[1].guidance);
+            }
 
             if(scene.guides.length >= 2)
             {
