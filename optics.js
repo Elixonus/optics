@@ -348,6 +348,7 @@ class Object
         this.dragPosition;
         this.dragRotation;
         this.dragIndexOfRefraction;
+        this.interactive = true;
         this.tick();
     }
 
@@ -865,7 +866,7 @@ class Laser extends Object
     constructor(position, rotation, brightness = 1)
     {
         super(position, rotation);
-        this.brightness = 1;
+        this.brightness = brightness;
         return this;
     }
 }
@@ -1869,6 +1870,7 @@ function render()
 function loadExample(n)
 {
     scene.reset();
+    cameraPosition.setTo(pointOrigin);
 
     switch(n)
     {
@@ -1928,7 +1930,7 @@ function loadExample(n)
             scene.mirrors = [parabola];
             break;
         case 5:
-            scene.lasers = [new Laser(new Point(700, 0), 1 * Math.PI)];
+            scene.lasers = [new Laser(new Point(700, 0), 1 * Math.PI, 0)];
             scene.mirrors = [
                 new Mirror(Mirror.absorbing, new Point(0, 0), 0),
                 new Mirror(Mirror.reflecting, new Point(350, 300), 1.2 * Math.PI),
@@ -1938,6 +1940,7 @@ function loadExample(n)
                 new Mirror(Mirror.reflecting, new Point(-500, 300), 0.3 * Math.PI),
             ];
             scene.mirrors[0].makeRectangle(1500, 1000);
+            scene.mirrors[0].interactive = false;
             scene.mirrors[1].makeRectangle(300, 50);
             scene.mirrors[2].makeRectangle(300, 50);
             scene.mirrors[3].makeRectangle(300, 50);
@@ -1987,7 +1990,7 @@ function mousedown(event)
 
     mouseButtons[event.button] = true;
     let point = mousePosition.clone().addTo(cameraPosition);
-    let closestLaser = scene.getClosestObjectToPoint(point, scene.lasers);
+    let closestLaser = scene.getClosestObjectToPoint(point, scene.lasers.filter(function(z) {return z.interactive;}));
     let laser;
 
     if(closestLaser !== false && closestLaser.distanceToObject <= 200)
@@ -2000,7 +2003,7 @@ function mousedown(event)
         laser = [];
     }
 
-    let closestGuide = scene.getClosestObjectToPoint(point, scene.guides);
+    let closestGuide = scene.getClosestObjectToPoint(point, scene.guides.filter(function(z) {return z.interactive;}));
     let guide;
 
     if(closestGuide !== false && closestGuide.distanceToObject <= 300)
@@ -2013,7 +2016,7 @@ function mousedown(event)
         guide = [];
     }
 
-    let closest = scene.getClosestObjectToPoint(point, scene.getMirrorsWithPointInside(point).concat(laser, guide));
+    let closest = scene.getClosestObjectToPoint(point, scene.getMirrorsWithPointInside(point).filter(function(z) {return z.interactive;}).concat(laser, guide));
 
     if(closest !== false)
     {
