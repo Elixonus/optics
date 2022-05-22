@@ -1928,19 +1928,21 @@ function loadExample(n)
             scene.mirrors = [parabola];
             break;
         case 5:
-            scene.lasers = [new Laser(new Point(-100, 350), 1 * Math.PI)];
+            scene.lasers = [new Laser(new Point(700, 0), 1 * Math.PI)];
             scene.mirrors = [
+                new Mirror(Mirror.absorbing, new Point(0, 0), 0),
                 new Mirror(Mirror.reflecting, new Point(350, 300), 1.2 * Math.PI),
                 new Mirror(Mirror.reflecting, new Point(-300, -400), 1.9 * Math.PI),
                 new Mirror(Mirror.reflecting, new Point(400, -300), 1.1 * Math.PI),
                 new Mirror(Mirror.reflecting, new Point(0, 0), 0.7 * Math.PI),
                 new Mirror(Mirror.reflecting, new Point(-500, 300), 0.3 * Math.PI),
             ];
-            scene.mirrors[0].makeRectangle(300, 50);
+            scene.mirrors[0].makeRectangle(1500, 1000);
             scene.mirrors[1].makeRectangle(300, 50);
             scene.mirrors[2].makeRectangle(300, 50);
             scene.mirrors[3].makeRectangle(300, 50);
             scene.mirrors[4].makeRectangle(300, 50);
+            scene.mirrors[5].makeRectangle(300, 50);
     }
 }
 
