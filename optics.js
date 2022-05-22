@@ -1418,6 +1418,34 @@ function render()
 
     ctx.translate(canvasWidth / 2 - cameraPosition.x, canvasHeight / 2 - cameraPosition.y);
     
+    for(var n = 0; n < scene.guides.length; n++)
+    {
+        let guide = scene.guides[n];
+
+        if(scene.draggedObject === false || scene.draggedObject.constructor.name !== "Guide")
+        {
+            ctx.globalAlpha = 0.5;
+        }
+
+        ctx.save();
+        ctx.translate(guide.position.x, guide.position.y);
+        ctx.rotate(guide.rotation);
+
+        if(guide.guidance <= 0.5)
+        {
+            ctx.rotate(Math.PI / 2)
+            ctx.drawImage(rulerImage, -400, -57.5, 800, 115);
+        }
+
+        else
+        {
+            ctx.drawImage(protractorImage, -300, -300, 600, 600);
+        }
+
+        ctx.restore();
+        ctx.globalAlpha = 1;
+    }
+
     ctx.lineWidth = 5;
     ctx.lineJoin = "round";
 
@@ -1563,35 +1591,6 @@ function render()
         ctx.drawImage(laserImage, -204.3, -18.7, 204.3, 37.3);
         ctx.restore();
     }
-
-    for(var n = 0; n < scene.guides.length; n++)
-    {
-        let guide = scene.guides[n];
-
-        if(scene.draggedObject === false || scene.draggedObject.constructor.name !== "Guide")
-        {
-            ctx.globalAlpha = 0.5;
-        }
-
-        ctx.save();
-        ctx.translate(guide.position.x, guide.position.y);
-        ctx.rotate(guide.rotation);
-
-        if(guide.guidance <= 0.5)
-        {
-            ctx.rotate(Math.PI / 2)
-            ctx.drawImage(rulerImage, -400, -57.5, 800, 115);
-        }
-
-        else
-        {
-            ctx.drawImage(protractorImage, -300, -300, 600, 600);
-        }
-
-        ctx.restore();
-        ctx.globalAlpha = 1;
-    }
-
 
     if(scene.draggedObject !== false)
     {
