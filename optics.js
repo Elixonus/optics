@@ -485,6 +485,7 @@ class Scene
     {
         this.lasers = [];
         this.mirrors = [];
+        this.guides = [];
         this.draggedLaser = false;
         this.draggedMirror = false;
         this.draggedGuide = false;
@@ -1566,6 +1567,12 @@ function render()
     for(var n = 0; n < scene.guides.length; n++)
     {
         let guide = scene.guides[n];
+
+        if(scene.draggedObject === false || scene.draggedObject.constructor.name !== "Guide")
+        {
+            ctx.globalAlpha = 0.5;
+        }
+
         ctx.save();
         ctx.translate(guide.position.x, guide.position.y);
         ctx.rotate(guide.rotation);
@@ -1582,6 +1589,7 @@ function render()
         }
 
         ctx.restore();
+        ctx.globalAlpha = 1;
     }
 
 
