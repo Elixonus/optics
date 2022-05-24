@@ -1323,6 +1323,8 @@ const dragYImage = document.getElementById("icon-dragY");
 const dragImage = document.getElementById("icon-drag");
 const rotateImage = document.getElementById("icon-rotate");
 const changeImage = document.getElementById("icon-change");
+const addLaserImage = document.getElementById("icon-laser");
+const addInterfererImage = document.getElementById("icon-interferer");
 const xImage = document.getElementById("icon-x");
 const yImage = document.getElementById("icon-y");
 const tImage = document.getElementById("icon-t");
@@ -1727,9 +1729,17 @@ function render()
     ctx.translate(0, canvasHeight / 2);
 
     ctx.fillStyle = "#222222";
-    ctx.fillRect(0 - 10, -300 - 10, 140 + 20, 520 + 20);
+    ctx.fillRect(-10, -310, 160, 540);
+    ctx.fillRect(1770, -310, 160, 460);
 
-    let dragXColor = dragYColor = dragColor = rotateColor = objectColor = "#111111";
+    let dragXColor = "#111111";
+    let dragYColor = "#111111";
+    let dragColor = "#111111";
+    let rotateColor = "#111111";
+    let changeColor = "#111111";
+    let laserColor = "#111111";
+    let interfererColor = "#111111";
+    let guideColor = "#111111";
 
     if(mouseAction === MouseAction.dragX)
     {
@@ -1753,7 +1763,22 @@ function render()
 
     else if(mouseAction === MouseAction.change)
     {
-        objectColor = "#42b6f5";
+        changeColor = "#42b6f5";
+    }
+
+    if(keysPressed.includes("l") || keysPressed.includes("L"))
+    {
+        laserColor = "#42b6f5";
+    }
+
+    if(keysPressed.includes("i") || keysPressed.includes("I"))
+    {
+        interfererColor = "#42b6f5";
+    }
+
+    if(keysPressed.includes("g") || keysPressed.includes("G"))
+    {
+        guideColor = "#42b6f5";
     }
 
     ctx.fillStyle = dragXColor;
@@ -1764,8 +1789,14 @@ function render()
     ctx.fillRect(0, -220, 140, 140);
     ctx.fillStyle = rotateColor;
     ctx.fillRect(0, -70, 140, 140);
-    ctx.fillStyle = objectColor;
+    ctx.fillStyle = changeColor;
     ctx.fillRect(0, 80, 140, 140);
+    ctx.fillStyle = laserColor;
+    ctx.fillRect(1780, -300, 140, 140);
+    ctx.fillStyle = interfererColor;
+    ctx.fillRect(1780, -150, 140, 140);
+    ctx.fillStyle = guideColor;
+    ctx.fillRect(1780, 0, 140, 140);
 
     if(!(distance(new Point(mousePosition.x + 960, mousePosition.y), new Point(0, 0)) < 300 && !mouseButtons[0]))
     {
@@ -1799,6 +1830,8 @@ function render()
     ctx.drawImage(dragImage, 34, -186);
     ctx.drawImage(rotateImage, 34, -36);
     ctx.drawImage(changeImage, 34, 114);
+    ctx.drawImage(addLaserImage, 1814, -266);
+    ctx.drawImage(addInterfererImage, 1814, -116);
     ctx.globalAlpha = 1;
     ctx.resetTransform();
 
@@ -1823,7 +1856,7 @@ function render()
 
     if(scene.draggedObject === false)
     {
-        if(!(keysPressed.includes("l") || keysPressed.includes("L") || keysPressed.includes("m") || keysPressed.includes("M") || keysPressed.includes("g") || keysPressed.includes("G")))
+        if(!(keysPressed.includes("l") || keysPressed.includes("L") || keysPressed.includes("i") || keysPressed.includes("I") || keysPressed.includes("g") || keysPressed.includes("G")))
         {
             ctx.drawImage(pointImage, -18, -18, 36, 36);
         }
@@ -2141,7 +2174,7 @@ function keydown(event)
             mouseAction = MouseAction.change;
         }
 
-        else if(eventKey.toUpperCase() === "M")
+        else if(eventKey.toUpperCase() === "I")
         {
             mirror = new Mirror(Mirror.reflecting, mousePosition.clone(), randomFloat(0, 2 * Math.PI));
             mirror.makeRegularPolygon(randomFloat(150, 200), randomInteger(3, 6));
