@@ -1203,7 +1203,7 @@ class MouseAction
         return 3;
     }
 
-    static get object()
+    static get change()
     {
         return 4;
     }
@@ -1322,7 +1322,7 @@ const dragXImage = document.getElementById("icon-dragX");
 const dragYImage = document.getElementById("icon-dragY");
 const dragImage = document.getElementById("icon-drag");
 const rotateImage = document.getElementById("icon-rotate");
-const objectImage = document.getElementById("icon-object");
+const changeImage = document.getElementById("icon-change");
 const xImage = document.getElementById("icon-x");
 const yImage = document.getElementById("icon-y");
 const tImage = document.getElementById("icon-t");
@@ -1372,7 +1372,7 @@ function render()
             scene.draggedObject.rotation = modulus(line.getAngle(), 2 * Math.PI);
         }
 
-        else if(mouseAction === MouseAction.object)
+        else if(mouseAction === MouseAction.change)
         {
             if(scene.draggedObject.constructor.name === "Mirror")
             {
@@ -1641,7 +1641,7 @@ function render()
             text = "r: " + Math.floor((2 * Math.PI - scene.draggedObject.rotation) * 180 / Math.PI) + " deg";
         }
 
-        if(mouseAction === MouseAction.object)
+        if(mouseAction === MouseAction.change)
         {
             if(scene.draggedObject.constructor.name === "Laser")
             {
@@ -1751,7 +1751,7 @@ function render()
         rotateColor = "#42b6f5";
     }
 
-    else if(mouseAction === MouseAction.object)
+    else if(mouseAction === MouseAction.change)
     {
         objectColor = "#42b6f5";
     }
@@ -1798,7 +1798,7 @@ function render()
     ctx.drawImage(dragYImage, 87, -283, 36, 36);
     ctx.drawImage(dragImage, 34, -186);
     ctx.drawImage(rotateImage, 34, -36);
-    ctx.drawImage(objectImage, 34, 114);
+    ctx.drawImage(changeImage, 34, 114);
     ctx.globalAlpha = 1;
     ctx.resetTransform();
 
@@ -1830,7 +1830,7 @@ function render()
 
         else
         {
-            ctx.drawImage(objectImage, -18, -18, 36, 36);
+            ctx.drawImage(changeImage, -18, -18, 36, 36);
         }
     }
 
@@ -1856,9 +1856,9 @@ function render()
             ctx.drawImage(rotateImage, -18, -18, 36, 36);
         }
 
-        else if(mouseAction === MouseAction.object)
+        else if(mouseAction === MouseAction.change)
         {
-            ctx.drawImage(objectImage, -18, -18, 36, 36);
+            ctx.drawImage(changeImage, -18, -18, 36, 36);
         }
     }
 
@@ -2136,9 +2136,9 @@ function keydown(event)
             mouseAction = MouseAction.rotate;
         }
 
-        else if(eventKey.toUpperCase() === "O")
+        else if(eventKey.toUpperCase() === "C")
         {
-            mouseAction = MouseAction.object;
+            mouseAction = MouseAction.change;
         }
 
         else if(eventKey.toUpperCase() === "M")
