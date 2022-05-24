@@ -1325,6 +1325,7 @@ const rotateImage = document.getElementById("icon-rotate");
 const changeImage = document.getElementById("icon-change");
 const addLaserImage = document.getElementById("icon-laser");
 const addInterfererImage = document.getElementById("icon-interferer");
+const addGuideImage = document.getElementById("icon-guide");
 const xImage = document.getElementById("icon-x");
 const yImage = document.getElementById("icon-y");
 const tImage = document.getElementById("icon-t");
@@ -1832,6 +1833,7 @@ function render()
     ctx.drawImage(changeImage, 34, 114);
     ctx.drawImage(addLaserImage, 1814, -266);
     ctx.drawImage(addInterfererImage, 1814, -116);
+    ctx.drawImage(addGuideImage, 1814, 34);
     ctx.globalAlpha = 1;
     ctx.resetTransform();
 
