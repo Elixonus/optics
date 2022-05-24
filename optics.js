@@ -1799,7 +1799,7 @@ function render()
     ctx.fillStyle = guideColor;
     ctx.fillRect(1780, 0, 140, 140);
 
-    if(!(distance(new Point(mousePosition.x + 960, mousePosition.y), new Point(0, 0)) < 300 && !mouseButtons[0]))
+    if(!((distance(new Point(mousePosition.x + 960, mousePosition.y), new Point(0, 0)) < 300 || distance(new Point(mousePosition.x + 960, mousePosition.y), new Point(1920, 0)) < 300) && !mouseButtons[0]))
     {
         keysHelp -= 0.05
 
