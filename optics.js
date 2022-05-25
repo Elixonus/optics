@@ -1207,6 +1207,21 @@ class MouseAction
     {
         return 4;
     }
+
+    static get laser()
+    {
+        return 5;
+    }
+
+    static get interferer()
+    {
+        return 6;
+    }
+
+    static get guide()
+    {
+        return 7;
+    }
 }
 
 class Animation
@@ -1717,7 +1732,8 @@ function render()
             }
 
             let textWidth = ctx.measureText(text).width;
-
+            
+            ctx.shadowBlur = 0;
             ctx.fillStyle = "#000000";
             ctx.fillRect(scene.draggedObject.position.x - textWidth / 2 - 5, scene.draggedObject.position.y - 25 - 5 + extraSpace, textWidth + 10, 50 + 10);
 
@@ -1770,17 +1786,17 @@ function render()
         changeColor = "#42b6f5";
     }
 
-    if(keysPressed.includes("l") || keysPressed.includes("L"))
+    else if(mouseAction === MouseAction.laser)
     {
         laserColor = "#42b6f5";
     }
 
-    if(keysPressed.includes("i") || keysPressed.includes("I"))
+    else if(mouseAction === MouseAction.interferer)
     {
         interfererColor = "#42b6f5";
     }
 
-    if(keysPressed.includes("g") || keysPressed.includes("G"))
+    else if(mouseAction === MouseAction.guide)
     {
         guideColor = "#42b6f5";
     }
@@ -1866,7 +1882,7 @@ function render()
     {
         if(!(keysPressed.includes("l") || keysPressed.includes("L") || keysPressed.includes("i") || keysPressed.includes("I") || keysPressed.includes("g") || keysPressed.includes("G")))
         {
-            ctx.drawImage(pointImage, -18, -18, 36, 36);
+            ctx.drawImage(pointImage, -5, -5, 36, 36);
         }
 
         else
@@ -2030,6 +2046,103 @@ function mousedown(event)
     }
 
     mouseButtons[event.button] = true;
+
+    if(mousePosition.x + 960 > -10 && mousePosition.y > -310 && mousePosition.x + 960 < 150 && mousePosition.y < 230)
+    {
+        if(mousePosition.y < -225)
+        {
+            if(mousePosition.x + 960 < 70)
+            {
+                mouseAction = MouseAction.dragX;
+            }
+
+            else
+            {
+                mouseAction = MouseAction.dragY;
+            }
+        }
+
+        else if(mousePosition.y < -75)
+        {
+            mouseAction = MouseAction.drag;
+        }
+
+        else if(mousePosition.y < 75)
+        {
+            mouseAction = MouseAction.rotate;
+        }
+
+        else
+        {
+            mouseAction = MouseAction.change;
+        }
+
+        return;
+    }
+
+    if(mousePosition.x + 960 > 1770 && mousePosition.y > -310 && mousePosition.x + 960 < 1930 && mousePosition.y < 150)
+    {
+        if(mousePosition.y < -155)
+        {
+            mouseAction = MouseAction.laser;
+        }
+
+        else if(mousePosition.y < -5)
+        {
+            mouseAction = MouseAction.interferer;
+        }
+
+        else
+        {
+            mouseAction = MouseAction.guide;
+        }
+
+        return;
+    }
+
+    if(mouseAction == MouseAction.laser)
+    {
+        let laser = new Laser(mousePosition.clone(), randomFloat(0, 2 * Math.PI));
+        scene.addLaser(laser);
+        return;
+    }
+
+    else if(mouseAction == MouseAction.interferer)
+    {
+        let mirror = new Mirror(Mirror.reflecting, mousePosition.clone(), randomFloat(0, 2 * Math.PI));
+        mirror.makeRegularPolygon(randomFloat(150, 200), randomInteger(3, 6));
+        scene.addMirror(mirror);
+        return;
+    }
+
+    else if(mouseAction == MouseAction.guide)
+    {
+        let guide;
+
+        if(scene.guides.length === 0)
+        {
+            guide = new Guide(mousePosition.clone(), 0);
+        }
+
+        else if(scene.guides.length === 1)
+        {
+            guide = new Guide(mousePosition.clone(), 0, 1 - scene.guides[0].guidance);
+        }
+
+        else
+        {
+            guide = new Guide(mousePosition.clone(), 0, 1 - scene.guides[1].guidance);
+        }
+
+        if(scene.guides.length >= 2)
+        {
+            scene.removeGuide(scene.guides[0]);
+        }
+
+        scene.addGuide(guide);
+        return;
+    }
+
     let point = mousePosition.clone().addTo(cameraPosition);
     let closestLaser = scene.getClosestObjectToPoint(point, scene.lasers.filter(function(z) {return z.interactive;}));
     let laser;
@@ -2182,42 +2295,19 @@ function keydown(event)
             mouseAction = MouseAction.change;
         }
 
-        else if(eventKey.toUpperCase() === "I")
-        {
-            mirror = new Mirror(Mirror.reflecting, mousePosition.clone(), randomFloat(0, 2 * Math.PI));
-            mirror.makeRegularPolygon(randomFloat(150, 200), randomInteger(3, 6));
-            scene.addMirror(mirror);
-        }
-
         else if(eventKey.toUpperCase() === "L")
         {
-            laser = new Laser(mousePosition.clone(), randomFloat(0, 2 * Math.PI));
-            scene.addLaser(laser);
+            mouseAction = MouseAction.laser;
+        }
+
+        else if(eventKey.toUpperCase() === "I")
+        {
+            mouseAction = MouseAction.interferer
         }
 
         else if(eventKey.toUpperCase() === "G")
         {
-            if(scene.guides.length === 0)
-            {
-                guide = new Guide(mousePosition.clone(), 0);
-            }
-
-            else if(scene.guides.length === 1)
-            {
-                guide = new Guide(mousePosition.clone(), 0, 1 - scene.guides[0].guidance);
-            }
-
-            else
-            {
-                guide = new Guide(mousePosition.clone(), 0, 1 - scene.guides[1].guidance);
-            }
-
-            if(scene.guides.length >= 2)
-            {
-                scene.removeGuide(scene.guides[0]);
-            }
-
-            scene.addGuide(guide);
+            mouseAction = MouseAction.guide;
         }
 
         else if(eventKey === "Backspace" || eventKey === "Delete")
