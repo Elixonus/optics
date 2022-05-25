@@ -39,12 +39,12 @@ The higher the refractive index of the object is, the more visible the inside co
 
 ```R``` - Rotation mode
 
-```O``` - Object mode 
+```C``` - Change mode 
 
 ### Creation
 ```L``` Instantiate a laser from where the mouse is located.
 
-```M``` instantiate a random polygonal mirror from where the mouse is located.
+```I``` instantiate a random polygonal mirror from where the mouse is located.
 
 ```G``` instantiate a ruler guide tool from where the mouse is located.
 
