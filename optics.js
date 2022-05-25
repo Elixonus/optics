@@ -2115,6 +2115,9 @@ function mousedown(event)
     {
         let laser = new Laser(mousePosition.clone().addTo(cameraPosition), randomFloat(0, 2 * Math.PI));
         scene.addLaser(laser);
+        scene.draggedObject = laser;
+        scene.draggedLaser = laser;
+        mouseAction = MouseAction.rotate;
         return;
     }
 
@@ -2123,6 +2126,11 @@ function mousedown(event)
         let mirror = new Mirror(Mirror.reflecting, mousePosition.clone().addTo(cameraPosition), randomFloat(0, 2 * Math.PI));
         mirror.makeRegularPolygon(randomFloat(150, 200), randomInteger(3, 6));
         scene.addMirror(mirror);
+        scene.draggedObject = mirror;
+        scene.draggedMirror = mirror;
+        mirror.dragIndexOfRefraction = mirror.indexOfRefraction;
+        mirror.mousePositionOnDrag = mousePosition.clone();
+        mouseAction = MouseAction.change;
         return;
     }
 
@@ -2151,6 +2159,9 @@ function mousedown(event)
         }
 
         scene.addGuide(guide);
+        scene.draggedObject = guide;
+        scene.draggedLaser = guide;
+        mouseAction = MouseAction.rotate;
         return;
     }
 
