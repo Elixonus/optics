@@ -1333,6 +1333,7 @@ const laserImage = document.getElementById("laser");
 const rulerImage = document.getElementById("ruler");
 const protractorImage = document.getElementById("protractor");
 const pointImage = document.getElementById("icon-point");
+const objectImage = document.getElementById("icon-object");
 const dragXImage = document.getElementById("icon-dragX");
 const dragYImage = document.getElementById("icon-dragY");
 const dragImage = document.getElementById("icon-drag");
@@ -1880,14 +1881,14 @@ function render()
 
     if(scene.draggedObject === false)
     {
-        if(!(keysPressed.includes("l") || keysPressed.includes("L") || keysPressed.includes("i") || keysPressed.includes("I") || keysPressed.includes("g") || keysPressed.includes("G")))
+        if(mouseAction == MouseAction.laser || mouseAction == MouseAction.interferer || mouseAction == MouseAction.guide)
         {
-            ctx.drawImage(pointImage, -5, -5, 36, 36);
+            ctx.drawImage(objectImage, -5, -5, 36, 36);
         }
-
+        
         else
         {
-            ctx.drawImage(changeImage, -18, -18, 36, 36);
+            ctx.drawImage(pointImage, -5, -5, 36, 36);
         }
     }
 
