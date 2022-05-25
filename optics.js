@@ -1142,9 +1142,9 @@ class Mirror extends Object
         this.closedShape = true;
     }
     
-    makeParabola(focalLength, length, vertexCount)
+    makeConcaveMirror(focalLength, length, vertexCount)
     {
-        this.vertices = [];
+        this.vertices = [new Point(100, length / 2), new Point(100, -length / 2)];
         
         for(var n = 0; n < vertexCount; n++)
         {
@@ -1152,7 +1152,18 @@ class Mirror extends Object
             this.vertices.push(new Point(Math.pow(x, 2) / (4 * focalLength), x));
         }
         
-        this.closedShape = false;
+        this.closedShape = true;
+    }
+
+    makeConvexMirror(focalLength, length, vertexCount)
+    {
+        this.makeConcaveMirror(focalLength, length, vertexCount);
+
+        for(var n = 2; n < this.vertices.length; n++)
+        {
+            let vertex = this.vertices[n];
+            vertex.x = -vertex.x - 100;
+        }
     }
 
     makeBlob(averageRadius, maxRadiusDeviation, maxAngleDeviation, vertexCount)
@@ -1883,7 +1894,7 @@ function render()
     {
         if(mouseAction == MouseAction.laser || mouseAction == MouseAction.interferer || mouseAction == MouseAction.guide)
         {
-            ctx.drawImage(objectImage, -5, -5, 36, 36);
+            ctx.drawImage(objectImage, -18, -18, 36, 36);
         }
         
         else
@@ -1982,8 +1993,7 @@ function loadExample(n)
                 new Laser(new Point(-100, 200), 0),
             ];
             var parabola = new Mirror(Mirror.reflecting, new Point(300, 0), 0);
-            parabola.makeParabola(-200, 600, 100);
-            parabola.vertices.push(new Point(100, 300), new Point(100, -300));
+            parabola.makeConvexMirror(-200, 600, 100);
             parabola.closedShape = true;
             scene.mirrors = [parabola];
             break;
