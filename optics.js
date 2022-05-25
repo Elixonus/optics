@@ -2102,14 +2102,14 @@ function mousedown(event)
 
     if(mouseAction == MouseAction.laser)
     {
-        let laser = new Laser(mousePosition.clone(), randomFloat(0, 2 * Math.PI));
+        let laser = new Laser(mousePosition.clone().addTo(cameraPosition), randomFloat(0, 2 * Math.PI));
         scene.addLaser(laser);
         return;
     }
 
     else if(mouseAction == MouseAction.interferer)
     {
-        let mirror = new Mirror(Mirror.reflecting, mousePosition.clone(), randomFloat(0, 2 * Math.PI));
+        let mirror = new Mirror(Mirror.reflecting, mousePosition.clone().addTo(cameraPosition), randomFloat(0, 2 * Math.PI));
         mirror.makeRegularPolygon(randomFloat(150, 200), randomInteger(3, 6));
         scene.addMirror(mirror);
         return;
@@ -2121,7 +2121,7 @@ function mousedown(event)
 
         if(scene.guides.length === 0)
         {
-            guide = new Guide(mousePosition.clone(), 0);
+            guide = new Guide(mousePosition.clone().addTo(cameraPosition), 0);
         }
 
         else if(scene.guides.length === 1)
