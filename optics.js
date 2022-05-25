@@ -1330,7 +1330,7 @@ const xImage = document.getElementById("icon-x");
 const yImage = document.getElementById("icon-y");
 const tImage = document.getElementById("icon-t");
 const rImage = document.getElementById("icon-r");
-const oImage = document.getElementById("icon-o");
+const cImage = document.getElementById("icon-c");
 var glow = true;
 const pointOrigin = new Point(0, 0);
 var cameraPosition = pointOrigin.clone();
@@ -1824,7 +1824,7 @@ function render()
     ctx.drawImage(yImage, 87, -283, 36, 36);
     ctx.drawImage(tImage, 34, -186);
     ctx.drawImage(rImage, 34, -36);
-    ctx.drawImage(oImage, 34, 114);
+    ctx.drawImage(cImage, 34, 114);
     ctx.globalAlpha = 1 - keysHelp;
     ctx.drawImage(dragXImage, 17, -283, 36, 36);
     ctx.drawImage(dragYImage, 87, -283, 36, 36);
