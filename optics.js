@@ -14,7 +14,7 @@ class Point
     
     isEqual(p)
     {
-        return (this.x == p.x && this.y == p.y);
+        return (this.x === p.x && this.y === p.y);
     }
 
     setTo(p)
@@ -982,7 +982,7 @@ class Mirror extends Object
             leftMost: leftMost,
             rightMost: rightMost,
             upMost: upMost,
-            downMost, downMost
+            downMost: downMost
         };
     }
 
@@ -1931,7 +1931,7 @@ function render()
 
     if(scene.draggedObject === false)
     {
-        if(mouseAction == MouseAction.laser || mouseAction == MouseAction.interferer || mouseAction == MouseAction.guide)
+        if(mouseAction === MouseAction.laser || mouseAction === MouseAction.interferer || mouseAction === MouseAction.guide)
         {
             ctx.drawImage(objectImage, -18, -18, 36, 36);
         }
@@ -2150,7 +2150,7 @@ function mousedown(event)
         return;
     }
 
-    if(mouseAction == MouseAction.laser)
+    if(mouseAction === MouseAction.laser)
     {
         let laser = new Laser(mousePosition.clone().addTo(cameraPosition), randomFloat(0, 2 * Math.PI));
         scene.addLaser(laser);
@@ -2165,7 +2165,7 @@ function mousedown(event)
         return;
     }
 
-    else if(mouseAction == MouseAction.interferer)
+    else if(mouseAction === MouseAction.interferer)
     {
         let mirror = new Mirror(Mirror.reflecting, mousePosition.clone().addTo(cameraPosition), randomFloat(0, 2 * Math.PI));
         mirror.makeRegularPolygon(randomFloat(150, 200), randomInteger(3, 6));
@@ -2181,7 +2181,7 @@ function mousedown(event)
         return;
     }
 
-    else if(mouseAction == MouseAction.guide)
+    else if(mouseAction === MouseAction.guide)
     {
         let guide;
 
