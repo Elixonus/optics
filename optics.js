@@ -1158,12 +1158,51 @@ class Mirror extends Object
     makeConvexMirror(focalLength, length, vertexCount)
     {
         this.makeConcaveMirror(focalLength, length, vertexCount);
+        this.vertices.shift();
+        this.vertices.shift();
+        let rightMost = this.getExtremes().rightMost;
 
-        for(var n = 2; n < this.vertices.length; n++)
+        for(var n = 0; n < this.vertices.length; n++)
         {
             let vertex = this.vertices[n];
-            vertex.x = -vertex.x - 100;
+            vertex.x = -(vertex.x + rightMost.x) - rightMost.x;
         }
+
+        this.closedShape = true;
+    }
+
+    makeConcaveLens(focalLength, length, vertexCount)
+    {
+        this.makeConvexMirror(focalLength, length, vertexCount);
+        let rightMost = this.getExtremes().leftMost;
+
+        for(var n = 0; n < this.vertices.length; n++)
+        {
+            let vertex = this.vertices[n];
+            vertex.x += length / 60;
+        }
+
+        for(var n = this.vertices.length - 2; n >= 1; n--)
+        {
+            let vertex = this.vertices[n];
+            this.vertices.push(new Point(-(vertex.x + rightMost.x) - rightMost.x - length / 60, vertex.y));
+        }
+
+        this.closedShape = true;
+    }
+
+    makeConvexLens(focalLength, length, vertexCount)
+    {
+        this.makeConvexMirror(focalLength, length, vertexCount);
+        let rightMost = this.getExtremes().rightMost;
+
+        for(var n = this.vertices.length - 2; n >= 1; n--)
+        {
+            let vertex = this.vertices[n];
+            this.vertices.push(new Point(-(vertex.x - rightMost.x) + rightMost.x, vertex.y));
+        }
+
+        this.closedShape = true;
     }
 
     makeBlob(averageRadius, maxRadiusDeviation, maxAngleDeviation, vertexCount)
@@ -1993,7 +2032,7 @@ function loadExample(n)
                 new Laser(new Point(-100, 200), 0),
             ];
             var parabola = new Mirror(Mirror.reflecting, new Point(300, 0), 0);
-            parabola.makeConvexMirror(-200, 600, 100);
+            parabola.makeConcaveLens(-200, 600, 100);
             parabola.closedShape = true;
             scene.mirrors = [parabola];
             break;
