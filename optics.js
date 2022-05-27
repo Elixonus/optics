@@ -1400,6 +1400,8 @@ const cImage = document.getElementById("icon-c");
 const lImage = document.getElementById("icon-l");
 const iImage = document.getElementById("icon-i");
 const gImage = document.getElementById("icon-g");
+const clickSound = document.getElementById("sound-click");
+const switchSound = document.getElementById("sound-switch");
 var glow = true;
 const pointOrigin = new Point(0, 0);
 var cameraPosition = pointOrigin.clone();
@@ -2127,6 +2129,7 @@ function mousedown(event)
             mouseAction = MouseAction.change;
         }
 
+        switchSound.play();
         return;
     }
 
@@ -2147,6 +2150,7 @@ function mousedown(event)
             mouseAction = MouseAction.guide;
         }
 
+        switchSound.play();
         return;
     }
 
@@ -2269,6 +2273,8 @@ function mousedown(event)
         {
             object.dragGuidance = object.guidance;
         }
+
+        clickSound.play();
     }
 }
 
@@ -2280,6 +2286,12 @@ function mouseup(event)
     }
 
     mouseButtons[event.button] = false;
+
+    if(scene.draggedObject !== false)
+    {
+        clickSound.play();
+    }
+
     scene.setDraggedObjectTo(false);
 }
 

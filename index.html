@@ -5,7 +5,7 @@
         <link rel="icon" type="image/x-icon" href="favicon.ico">
     </head>
     
-    <body onresize="resize();">
+    <body>
         <canvas id="canvas" width="1920" height="1080"></canvas>
         <img id="home" class="hidden" src="images/home.png">
         <img id="laser" class="hidden" src="images/laser.png">
@@ -29,6 +29,8 @@
         <img id="icon-l" class="hidden" src="images/icons/l.png">
         <img id="icon-i" class="hidden" src="images/icons/i.png">
         <img id="icon-g" class="hidden" src="images/icons/g.png">
+        <audio id="sound-click" class="hidden"><source src="sounds/click.mp3"></source></audio>
+        <audio id="sound-switch" class="hidden"><source src="sounds/switch.mp3"></source></audio>
 
         <style>
 
@@ -40,7 +42,7 @@
 
             body
             {
-                overflow: hidden;
+                /*overflow: hidden;*/
                 background-image: url("images/background.png");
                 background-size: 50vmin;
 
