@@ -1378,7 +1378,7 @@ const canvas = document.getElementById("canvas");
 const canvasWidth = canvas.width;
 const canvasHeight = canvas.height;
 const ctx = canvas.getContext("2d", {alpha: false});
-const homeImage = document.getElementById("home");
+const wallpaperImage = document.getElementById("wallpaper");
 const laserImage = document.getElementById("laser");
 const rulerImage = document.getElementById("ruler");
 const protractorImage = document.getElementById("protractor");
@@ -1924,7 +1924,9 @@ function render()
             ctx.globalAlpha = (1 - (time - 60) / 60);
         }
 
-        ctx.drawImage(homeImage, 0, 0);
+        ctx.fillStyle = "black";
+        ctx.fillRect(0, 0, 1920, 1080);
+        ctx.drawImage(wallpaperImage, 0, 0);
         ctx.globalAlpha = 1;
     }
 
