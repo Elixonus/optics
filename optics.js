@@ -1401,6 +1401,7 @@ const lImage = document.getElementById("icon-l");
 const iImage = document.getElementById("icon-i");
 const gImage = document.getElementById("icon-g");
 const clickSound = document.getElementById("sound-click");
+const misclickSound = document.getElementById("sound-misclick");
 const switchSound = document.getElementById("sound-switch");
 var glow = true;
 const pointOrigin = new Point(0, 0);
@@ -2277,6 +2278,11 @@ function mousedown(event)
         }
 
         clickSound.play();
+    }
+
+    else
+    {
+        misclickSound.play();
     }
 }
 
