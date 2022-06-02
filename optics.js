@@ -369,7 +369,7 @@ class Object
 
     setRotationTo(rotation)
     {
-        if(isNaN(rotation))
+        if(rotation.constructor.name === "Animation")
         {
             this.rotationAnimation = rotation;
         }
