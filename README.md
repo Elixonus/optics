@@ -3,7 +3,7 @@ Lightweight real-time **ray optics simulation** that implements the physics phen
 
 Designed mostly for **education** and not professional use. 📚
 
-![Wallpaper](./images/wallpaper.png)
+![Wallpaper](./optics/images/wallpaper.png)
 
 ## User Interface 👌
 
