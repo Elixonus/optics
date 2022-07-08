@@ -2074,6 +2074,9 @@ window.onload = function()
     request = requestAnimationFrame(render);
 }
 window.oncontextmenu = function(event) { event.preventDefault(); };
+window.ontouchstart = touchstart;
+window.ontouchend = touchend;
+window.ontouchmove = touchmove;
 
 function resize()
 {
@@ -2099,7 +2102,7 @@ function mousedown(event)
     {
         event = window.event;
     }
-
+    
     mouseButtons[event.button] = true;
 
     if(mousePosition.x + 960 > -10 && mousePosition.y > -310 && mousePosition.x + 960 < 150 && mousePosition.y < 230)
@@ -2312,6 +2315,22 @@ function mousemove(event)
 
     let rect = canvas.getBoundingClientRect();
     mousePosition.setTo(new Point(map(event.clientX, rect.left, windowWidth - rect.left, -canvasWidth / 2, canvasWidth / 2), map(event.clientY, rect.top, windowHeight - rect.top, -canvasHeight / 2, canvasHeight / 2)));
+}
+
+function touchstart(event)
+{
+    touchmove(event);
+    mousedown({button: 0});
+}
+
+function touchend(event)
+{
+    mouseup({button: 0});
+}
+
+function touchmove(event)
+{
+    mousemove({clientX: event.touches[0].clientX, clientY: event.touches[0].clientY});
 }
 
 function wheel(event)
