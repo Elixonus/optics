@@ -1451,17 +1451,17 @@ function render()
 
         else if(mouseAction === MouseAction.change)
         {
-            if(scene.draggedObject.constructor.name === "Mirror")
+            if(scene.draggedObject instanceof Mirror)
             {
                 scene.draggedMirror.indexOfRefraction = clampMin(scene.draggedMirror.dragIndexOfRefraction + (scene.draggedMirror.mousePositionOnDrag.y - mousePosition.y) / 100, -2);
             }
 
-            else if(scene.draggedObject.constructor.name === "Laser")
+            else if(scene.draggedObject instanceof Laser)
             {
                 scene.draggedLaser.brightness = clamp(scene.draggedLaser.dragBrightness + (scene.draggedLaser.mousePositionOnDrag.y - mousePosition.y) / 300, 0, 1);
             }
 
-            else if(scene.draggedObject.constructor.name === "Guide")
+            else if(scene.draggedObject instanceof Guide)
             {
                 scene.draggedGuide.guidance = clamp(scene.draggedGuide.dragGuidance + (scene.draggedGuide.mousePositionOnDrag.y - mousePosition.y) / 300, 0, 1);
             }
@@ -1492,7 +1492,7 @@ function render()
 
     let lasersCollisions = scene.getLaserCollisions();
 
-    if(scene.draggedObject !== false && mouseAction === MouseAction.drag && scene.draggedObject.constructor.name === "Guide" && scene.draggedObject.guidance > 0.5)
+    if(scene.draggedGuide !== false && mouseAction === MouseAction.drag && scene.draggedObject instanceof Guide && scene.draggedObject.guidance > 0.5)
     {
         let objects = [];
         for(var n = 0; n < lasersCollisions.length; n++)
@@ -1525,7 +1525,7 @@ function render()
     {
         let guide = scene.guides[n];
 
-        if(scene.draggedObject === false || scene.draggedObject.constructor.name !== "Guide" || scene.draggedObject !== guide)
+        if(scene.draggedObject === false || scene.draggedObject instanceof Guide || scene.draggedObject !== guide)
         {
             ctx.globalAlpha = 0.5;
         }
@@ -1735,7 +1735,7 @@ function render()
 
         if(mouseAction === MouseAction.change)
         {
-            if(scene.draggedObject.constructor.name === "Laser")
+            if(scene.draggedObject instanceof Laser)
             {
                 if(scene.draggedLaser.brightness >= 0.5)
                 {
@@ -1748,7 +1748,7 @@ function render()
                 }
             }
 
-            else if(scene.draggedObject.constructor.name === "Mirror")
+            else if(scene.draggedObject instanceof Mirror)
             {
                 if(scene.draggedMirror.isRefracting)
                 {
@@ -1766,7 +1766,7 @@ function render()
                 }
             }
 
-            if(scene.draggedObject.constructor.name === "Guide")
+            if(scene.draggedObject instanceof Guide)
             {
                 if(scene.draggedGuide.guidance <= 0.5)
                 {
@@ -1784,7 +1784,7 @@ function render()
         {
             let extraSpace = 0;
             
-            if(scene.draggedObject.constructor.name === "Laser")
+            if(scene.draggedObject instanceof Laser)
             {
                 if(scene.draggedLaser.rotation < Math.PI)
                 {
@@ -1797,7 +1797,7 @@ function render()
                 }
             }
 
-            else if(scene.draggedObject.constructor.name === "Guide" && scene.draggedObject.guidance > 0.5)
+            else if(scene.draggedObject instanceof Guide && scene.draggedObject.guidance > 0.5)
             {
                 extraSpace = 100;
             }
@@ -2368,7 +2368,7 @@ function wheel(event)
 
         if(mouseButtons[2])
         {
-            if(scene.draggedObject.constructor.name === "Mirror")
+            if(scene.draggedObject instanceof Mirror)
             {
                 scene.draggedObject.scaleVertices(map(delta, -1, 1, 1.1, 0.9));
             }
