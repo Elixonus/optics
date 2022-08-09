@@ -1,4 +1,4 @@
-# opticsJS 🔍
+# optics 🔍
 
 Lightweight real-time **ray optics simulation** that implements the physics phenomena of reflection and refraction.
 
