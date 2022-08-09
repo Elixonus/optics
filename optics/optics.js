@@ -2044,7 +2044,7 @@ function loadExample(n)
             scene.mirrors = [parabola];
             break;
         case 5:
-            scene.lasers = [new Laser(new Point(700, 0), 1 * Math.PI, 0)];
+            scene.lasers = [new Laser(new Point(700, 0), 1 * Math.PI, 1)];
             scene.mirrors = [
                 new Mirror(Mirror.absorbing, new Point(0, 0), 0),
                 new Mirror(Mirror.reflecting, new Point(350, 300), 1.2 * Math.PI),
@@ -2736,41 +2736,6 @@ function intersectionStraightStraight(line1, line2, eliminationFunction)
     let y = y1 + ua * (y2 - y1);
 
     return new Point(x, y);
-}
-
-function intersectionSegmentCircle(line, circle)
-{
-    var a, b, c, d, u1, u2, ret, retP1, retP2, v1, v2;
-    v1 = {};
-    v2 = {};
-    v1.x = line.p2.x - line.p1.x;
-    v1.y = line.p2.y - line.p1.y;
-    v2.x = line.p1.x - circle.position.x;
-    v2.y = line.p1.y - circle.position.y;
-    b = (v1.x * v2.x + v1.y * v2.y);
-    c = 2 * (v1.x * v1.x + v1.y * v1.y);
-    b *= -2;
-    d = Math.sqrt(b * b - 2 * c * (v2.x * v2.x + v2.y * v2.y - circle.radius * circle.radius));
-    if(isNaN(d))
-    {
-        return [];
-    }
-    u1 = (b - d) / c;
-    u2 = (b + d) / c;    
-    retP1 = {};
-    retP2 = {}  
-    ret = [];
-    if(u1 <= 1 && u1 >= 0)
-    {
-        retP1 = new Point(line.p1.x + v1.x * u1, line.p1.y + v1.y * u1);
-        ret[0] = retP1;
-    }
-    if(u2 <= 1 && u2 >= 0)
-    {
-        retP2 = new Point(line.p1.x + v1.x * u2, line.p1.y + v1.y * u2);
-        ret[ret.length] = retP2;
-    }       
-    return ret;
 }
 
 function modulus(dividend, divisor)
