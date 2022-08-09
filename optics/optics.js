@@ -729,7 +729,7 @@ class Scene
                     continue;
                 }
 
-                let intersection = intersectionSegmentRay(side, laserLine, false, false, false);
+                let intersection = intersectionSegmentRay(side, laserLine, false);
 
                 if(intersection !== false)
                 {
@@ -998,7 +998,7 @@ class Mirror extends Object
         {
             let side = this.getSide(n, absolute);
 
-            if(intersectSegmentSegment(lineFromInsideToOutside, side))
+            if(intersectSegmentSegment(lineFromInsideToOutside, side, false))
             {
                 sum++;
             }

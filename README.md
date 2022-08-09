@@ -68,5 +68,3 @@ The higher the refractive index of the lens is, the more visible the inside colo
 ## Limitations 🔒
 
 To avoid crashes, the maximum collisions per each laser is set to 50.
-
-In rare cases, when a laser hits a corner there is a chance that the laser incorrectly passes through instead of the right behavior of reflecting.
