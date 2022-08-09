@@ -354,12 +354,12 @@ class Object
 
     setPositionTo(position)
     {
-        if(position.constructor.name === "Point")
+        if(position instanceof Point)
         {
             this.position = position;
         }
 
-        else if(position.constructor.name === "Animation")
+        else if(position instanceof Animation)
         {
             this.positionAnimation = position;
         }
@@ -369,7 +369,7 @@ class Object
 
     setRotationTo(rotation)
     {
-        if(rotation.constructor.name === "Animation")
+        if(rotation instanceof Animation)
         {
             this.rotationAnimation = rotation;
         }
@@ -423,7 +423,7 @@ class Scene
     {
         this._lasers = value;
 
-        if(this.draggedObject.constructor.name === "Laser")
+        if(this.draggedObject instanceof Laser)
         {
             let index = this._lasers.indexOf(this.draggedLaser);
 
@@ -444,7 +444,7 @@ class Scene
     {
         this._mirrors = value;
 
-        if(this.draggedObject.constructor.name === "Mirror")
+        if(this.draggedObject instanceof Mirror)
         {
             let index = this._mirrors.indexOf(this.draggedMirror);
 
@@ -470,7 +470,7 @@ class Scene
     {
         this._guides = value;
 
-        if(this.draggedObject.constructor.name === "Guide")
+        if(this.draggedObject instanceof Guide)
         {
             let index = this._guides.indexOf(this.draggedGuide);
 
@@ -504,17 +504,17 @@ class Scene
             return;
         }
 
-        if(object.constructor.name === "Laser")
+        if(object instanceof Laser)
         {
             this.draggedLaser = object;
         }
 
-        else if(object.constructor.name === "Mirror")
+        else if(object instanceof Mirror)
         {
             this.draggedMirror = object;
         }
 
-        else if(object.constructor.name === "Guide")
+        else if(object instanceof Guide)
         {
             this.draggedGuide = object;
         }
@@ -578,17 +578,17 @@ class Scene
 
     addObject(object)
     {
-        if(object.constructor.name === "Laser")
+        if(object instanceof Laser)
         {
             this.addLaser(object);
         }
 
-        else if(object.constructor.name === "Mirror")
+        else if(object instanceof Mirror)
         {
             this.addMirror(object);
         }
 
-        else if(object.constructor.name === "Guide")
+        else if(object instanceof Guide)
         {
             this.addGuide(object);
         }
@@ -598,17 +598,17 @@ class Scene
 
     removeObject(object)
     {
-        if(object.constructor.name === "Laser")
+        if(object instanceof Laser)
         {
             this.removeLaser(object);
         }
 
-        if(object.constructor.name === "Mirror")
+        if(object instanceof Mirror)
         {
             this.removeMirror(object);
         }
 
-        if(object.constructor.name === "Guide")
+        if(object instanceof Guide)
         {
             this.removeGuide(object);
         }
@@ -2281,17 +2281,17 @@ function mousedown(event)
         object.dragPosition = object.position.clone();
         object.dragRotation = object.rotation;
 
-        if(object.constructor.name === "Laser")
+        if(object instanceof Laser)
         {
             object.dragBrightness = object.brightness;
         }
 
-        else if(object.constructor.name === "Mirror")
+        else if(object instanceof Mirror)
         {
             object.dragIndexOfRefraction = object.indexOfRefraction;
         }
 
-        else if(object.constructor.name === "Guide")
+        else if(object instanceof Guide)
         {
             object.dragGuidance = object.guidance;
         }
