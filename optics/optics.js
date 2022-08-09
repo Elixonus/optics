@@ -1606,7 +1606,7 @@ function render()
                 }
 
                 ctx.strokeStyle = "#ff0000";
-                ctx.shadowBlur = getGlow(20);
+                ctx.shadowBlur = getGlowBlur(20);
             }
 
             else
@@ -1622,7 +1622,7 @@ function render()
                 }
 
                 ctx.strokeStyle = "#00d0ff";
-                ctx.shadowBlur = getGlow(40);
+                ctx.shadowBlur = getGlowBlur(40);
             }
 
             ctx.shadowColor = ctx.strokeStyle;
@@ -1671,7 +1671,7 @@ function render()
 
         ctx.strokeStyle = "hsl(120, 100%, 50%)";
         ctx.shadowColor = ctx.strokeStyle;
-        ctx.shadowBlur = getGlow(20);
+        ctx.shadowBlur = getGlowBlur(20);
         ctx.globalAlpha = Math.round(laser.brightness);
         ctx.beginPath();
         ctx.moveTo(laser.position.x, laser.position.y);
@@ -1688,8 +1688,18 @@ function render()
     for(let l = 0; l < scene.lasers.length; l++)
     {
         let laser = scene.lasers[l];
-        ctx.shadowBlur = 0;
         ctx.globalAlpha = 1;
+
+        if(scene.draggedObject === laser)
+        {
+            ctx.shadowColor = "#00d0ff";
+            ctx.shadowBlur = getGlowBlur(30);
+        }
+
+        else
+        {
+            ctx.shadowBlur = 0;
+        }
 
         ctx.save();
         ctx.translate(laser.position.x, laser.position.y);
@@ -2480,7 +2490,7 @@ function keyup(event)
     keysFired = false;
 }
 
-function getGlow(shadowBlur)
+function getGlowBlur(shadowBlur)
 {
     if(glow)
     {
