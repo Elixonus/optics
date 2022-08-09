@@ -1683,6 +1683,11 @@ function render()
         }
 
         ctx.stroke();
+    }
+
+    for(let l = 0; l < scene.lasers.length; l++)
+    {
+        let laser = scene.lasers[l];
         ctx.shadowBlur = 0;
         ctx.globalAlpha = 1;
 
