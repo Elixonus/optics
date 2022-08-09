@@ -2083,7 +2083,6 @@ window.onresize = resize;
 window.onmousedown = mousedown;
 window.onmouseup = mouseup;
 window.onmousemove = mousemove;
-window.onwheel = wheel;
 window.onkeydown = keydown;
 window.onkeyup = keyup;
 window.onload = function()
@@ -2348,32 +2347,6 @@ function touchend(event)
 function touchmove(event)
 {
     mousemove({clientX: event.touches[0].clientX, clientY: event.touches[0].clientY});
-}
-
-function wheel(event)
-{
-    if(!event)
-    {
-        event = window.event;
-    }
-
-    var delta = Math.sign(event.deltaY);
-    
-    if(scene.draggedObject !== false)
-    {
-        if(mouseButtons[0])
-        {
-            scene.draggedObject.rotation += delta / 10;
-        }
-
-        if(mouseButtons[2])
-        {
-            if(scene.draggedObject instanceof Mirror)
-            {
-                scene.draggedObject.scaleVertices(map(delta, -1, 1, 1.1, 0.9));
-            }
-        }
-    }
 }
 
 function keydown(event)
