@@ -746,7 +746,8 @@ class Scene
             }
         }
 
-        let newIntersections = []
+        let newIntersections = [];
+        
         for(var n = 0; n < intersections.length; n++)
         {
             newIntersections[n] = intersections[n].clone();
@@ -768,11 +769,12 @@ class Scene
         else if(closestMirror.isRefracting)
         {
             let newInsideMirrors = [];
+
             for(var n = 0; n < insideMirrors.length; n++)
             {
                 newInsideMirrors[n] = insideMirrors[n];
             }
-            
+
             if(!newInsideMirrors.includes(closestMirror))
             {
                 newInsideMirrors.push(closestMirror);
@@ -841,7 +843,7 @@ class Scene
         for(var n = 0; n < this.lasers.length; n++)
         {
             let laser = this.lasers[n];
-            lasersData.push(this.laser(laser, this.getMirrorsWithPointInside(laser.position)));
+            lasersData.push(this.laser(laser, this.getMirrorsWithPointInside(laser.position).filter(function(mirror) { return mirror.isRefracting; })));
         }
 
         return lasersData;
