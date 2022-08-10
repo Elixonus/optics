@@ -1492,7 +1492,7 @@ function render()
 
     let lasersCollisions = scene.getLaserCollisions();
 
-    if(scene.draggedGuide !== false && mouseAction === MouseAction.drag && scene.draggedObject instanceof Guide && scene.draggedObject.guidance > 0.5)
+    if(scene.draggedGuide !== false && mouseAction === MouseAction.drag && scene.draggedObject instanceof Guide && Math.round(scene.draggedObject.guidance) === 1)
     {
         let objects = [];
         for(var n = 0; n < lasersCollisions.length; n++)
@@ -1534,7 +1534,7 @@ function render()
         ctx.translate(guide.position.x, guide.position.y);
         ctx.rotate(guide.rotation);
 
-        if(guide.guidance < 0.5)
+        if(Math.round(guide.guidance) === 0)
         {
             ctx.rotate(Math.PI / 2)
             ctx.drawImage(rulerImage, -400, -57.5, 800, 115);
@@ -1768,7 +1768,7 @@ function render()
 
             if(scene.draggedObject instanceof Guide)
             {
-                if(scene.draggedGuide.guidance < 0.5)
+                if(Math.round(scene.draggedGuide.guidance) === 0)
                 {
                     text = "Ruler";
                 }
@@ -1797,7 +1797,7 @@ function render()
                 }
             }
 
-            else if(scene.draggedObject instanceof Guide && scene.draggedObject.guidance >= 0.5)
+            else if(scene.draggedObject instanceof Guide && Math.round(scene.draggedObject.guidance) === 1)
             {
                 extraSpace = 100;
             }
