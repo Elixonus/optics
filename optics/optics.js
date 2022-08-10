@@ -1525,7 +1525,7 @@ function render()
     {
         let guide = scene.guides[n];
 
-        if(scene.draggedObject === false || scene.draggedObject instanceof Guide || scene.draggedObject !== guide)
+        if(scene.draggedObject === false || !scene.draggedObject instanceof Guide || scene.draggedObject !== guide)
         {
             ctx.globalAlpha = 0.5;
         }
