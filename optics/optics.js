@@ -1534,7 +1534,7 @@ function render()
         ctx.translate(guide.position.x, guide.position.y);
         ctx.rotate(guide.rotation);
 
-        if(modulus(guide.guidance, 1) <= 0.5)
+        if(modulus(guide.guidance, 1) < 0.5)
         {
             ctx.rotate(Math.PI / 2)
             ctx.drawImage(rulerImage, -400, -57.5, 800, 115);
@@ -1768,7 +1768,7 @@ function render()
 
             if(scene.draggedObject instanceof Guide)
             {
-                if(scene.draggedGuide.guidance <= 0.5)
+                if(scene.draggedGuide.guidance < 0.5)
                 {
                     text = "Ruler";
                 }
@@ -2218,12 +2218,12 @@ function mousedown(event)
 
         else if(scene.guides.length === 1)
         {
-            guide = new Guide(mousePosition.clone(), 0, 1 - scene.guides[0].guidance);
+            guide = new Guide(mousePosition.clone(), 0, modulus(scene.guides[0].guidance + 0.5, 1));
         }
 
         else
         {
-            guide = new Guide(mousePosition.clone(), 0, 1 - scene.guides[1].guidance);
+            guide = new Guide(mousePosition.clone(), 0, modulus(scene.guides[1].guidance + 0.5, 1));
         }
 
         if(scene.guides.length >= 2)
