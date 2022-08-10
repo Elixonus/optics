@@ -278,7 +278,7 @@ class Polygon
         this._vertices = value;
         this._sides = [];
 
-        for(var n = 0; n < this.vertices.length; n++)
+        for(let n = 0; n < this.vertices.length; n++)
         {
             let vertex = this.vertices[n];
 
@@ -616,7 +616,7 @@ class Scene
 
     addObjects(objects)
     {
-        for(var n = 0; n < objects.length; n++)
+        for(let n = 0; n < objects.length; n++)
         {
             this.addObject(objects[n]);
         }
@@ -628,7 +628,7 @@ class Scene
     {
         let mirrors = [];
 
-        for(var n = 0; n < this.mirrors.length; n++)
+        for(let n = 0; n < this.mirrors.length; n++)
         {
             let mirror = this.mirrors[n];
 
@@ -646,7 +646,7 @@ class Scene
         let closestObject;
         let distanceToClosestObject;
 
-        for(var n = 0; n < objects.length; n++)
+        for(let n = 0; n < objects.length; n++)
         {
             let object = objects[n];
             let distanceToObject = distance(p, object.position);
@@ -679,7 +679,7 @@ class Scene
     {
         let mirrors = [];
 
-        for(var n = 0; n < this.mirrors.length; n++)
+        for(let n = 0; n < this.mirrors.length; n++)
         {
             let mirror = this.mirrors[n];
 
@@ -705,7 +705,7 @@ class Scene
         let distanceToClosestIntersection;
         let closestSide;
 
-        for(var n = 0; n < this.mirrors.length; n++)
+        for(let n = 0; n < this.mirrors.length; n++)
         {
             let mirror = this.mirrors[n];
             let lastVertex;
@@ -720,7 +720,7 @@ class Scene
                 lastVertex = mirror.vertices.length - 1;
             }
 
-            for(var m = 0; m < lastVertex; m++)
+            for(let m = 0; m < lastVertex; m++)
             {
                 let side = mirror.getSide(m, true);
 
@@ -748,7 +748,7 @@ class Scene
 
         let newIntersections = [];
         
-        for(var n = 0; n < intersections.length; n++)
+        for(let n = 0; n < intersections.length; n++)
         {
             newIntersections[n] = intersections[n].clone();
         }
@@ -770,7 +770,7 @@ class Scene
         {
             let newInsideMirrors = [];
 
-            for(var n = 0; n < insideMirrors.length; n++)
+            for(let n = 0; n < insideMirrors.length; n++)
             {
                 newInsideMirrors[n] = insideMirrors[n];
             }
@@ -840,7 +840,7 @@ class Scene
     {
         let lasersData = [];
 
-        for(var n = 0; n < this.lasers.length; n++)
+        for(let n = 0; n < this.lasers.length; n++)
         {
             let laser = this.lasers[n];
             lasersData.push(this.laser(laser, this.getMirrorsWithPointInside(laser.position).filter(function(mirror) { return mirror.isRefracting; })));
@@ -851,12 +851,12 @@ class Scene
 
     tick()
     {
-        for(var n = 0; n < this.lasers.length; n++)
+        for(let n = 0; n < this.lasers.length; n++)
         {
             this.lasers[n].tick();
         }
 
-        for(var n = 0; n < this.mirrors.length; n++)
+        for(let n = 0; n < this.mirrors.length; n++)
         {
             this.mirrors[n].tick();
         }
@@ -955,7 +955,7 @@ class Mirror extends Object
         let upMost;
         let downMost;
 
-        for(var n = 0; n < this.vertices.length; n++)
+        for(let n = 0; n < this.vertices.length; n++)
         {
             let vertex = this.getVertex(n, absolute);                    
 
@@ -994,7 +994,7 @@ class Mirror extends Object
         let lineFromInsideToOutside = new Line(p, pointOutside);
         let sum = 0;
 
-        for(var n = 0; n < this.vertices.length; n++)
+        for(let n = 0; n < this.vertices.length; n++)
         {
             let side = this.getSide(n, absolute);
 
@@ -1021,7 +1021,7 @@ class Mirror extends Object
 
         let sum = 0;
 
-        for(var n = 1; n <= this.vertices.length; n++)
+        for(let n = 1; n <= this.vertices.length; n++)
         {
             sum += this.getVertex(n).x * this.getVertex(n + 1).y - this.getVertex(n + 1).x * this.getVertex(n).y;
         }
@@ -1033,7 +1033,7 @@ class Mirror extends Object
     {
         let average = pointOrigin.clone();
 
-        for(var n = 0; n < this.vertices.length; n++)
+        for(let n = 0; n < this.vertices.length; n++)
         {
             let vertex = this.vertices[n];
             average.addTo(vertex);
@@ -1052,7 +1052,7 @@ class Mirror extends Object
 
     translateVertices(p)
     {
-        for(var n = 0; n < this.vertices.length; n++)
+        for(let n = 0; n < this.vertices.length; n++)
         {
             let vertex = this.vertices[n];
             vertex.addTo(p);
@@ -1061,7 +1061,7 @@ class Mirror extends Object
 
     scaleVertices(xs, ys = xs)
     {
-        for(var n = 0; n < this.vertices.length; n++)
+        for(let n = 0; n < this.vertices.length; n++)
         {
             let vertex = this.vertices[n];
             vertex.scaleXY(xs, ys);
@@ -1070,12 +1070,12 @@ class Mirror extends Object
 
     subdivideVertices(vertexMultiplier = 2)
     {
-        for(var n = 0; n < this.vertices.length; n++)
+        for(let n = 0; n < this.vertices.length; n++)
         {
             let side = this.getSide(n);
             let interpolations = [];
 
-            for(var m = 1; m < vertexMultiplier; m++)
+            for(let m = 1; m < vertexMultiplier; m++)
             {
                 this.vertices.splice(n + 1, 0, side.p1.clone().interpolateToPointLinear(side.p2, m / (vertexMultiplier + 1)));
                 n++;
@@ -1092,7 +1092,7 @@ class Mirror extends Object
 
         let initialArea = this.findArea();
 
-        for(var n = 0; n < Math.round(this.vertices.length * iterationsMultiplier); n++)
+        for(let n = 0; n < Math.round(this.vertices.length * iterationsMultiplier); n++)
         {
             let previousVertex = this.getVertex(n - 1);
             let vertex = this.getVertex(n);
@@ -1121,7 +1121,7 @@ class Mirror extends Object
     {
         this.vertices = [];
 
-        for(var n = 0; n < vertexCount; n++)
+        for(let n = 0; n < vertexCount; n++)
         {
             let vertex = new Point();
             vertex.addToPolar(radius, n / vertexCount * 2 * Math.PI);
@@ -1135,7 +1135,7 @@ class Mirror extends Object
     {
         this.vertices = [];
 
-        for(var n = 0; n < sideCount; n++)
+        for(let n = 0; n < sideCount; n++)
         {
             let angle = n / sideCount * 2 * Math.PI;
             this.vertices.push(new Point(radius * Math.cos(angle), radius * Math.sin(angle)));
@@ -1148,7 +1148,7 @@ class Mirror extends Object
     {
         this.vertices = [new Point(100, length / 2), new Point(100, -length / 2)];
         
-        for(var n = 0; n < vertexCount; n++)
+        for(let n = 0; n < vertexCount; n++)
         {
             let x = (n / (vertexCount - 1) - 0.5) * length;
             this.vertices.push(new Point(Math.pow(x, 2) / (4 * focalLength), x));
@@ -1164,7 +1164,7 @@ class Mirror extends Object
         this.vertices.shift();
         let rightMost = this.getExtremes().rightMost;
 
-        for(var n = 0; n < this.vertices.length; n++)
+        for(let n = 0; n < this.vertices.length; n++)
         {
             let vertex = this.vertices[n];
             vertex.x = -(vertex.x + rightMost.x) - rightMost.x;
@@ -1178,13 +1178,13 @@ class Mirror extends Object
         this.makeConvexMirror(focalLength, length, vertexCount);
         let rightMost = this.getExtremes().leftMost;
 
-        for(var n = 0; n < this.vertices.length; n++)
+        for(let n = 0; n < this.vertices.length; n++)
         {
             let vertex = this.vertices[n];
             vertex.x += length / 60;
         }
 
-        for(var n = this.vertices.length - 2; n >= 1; n--)
+        for(let n = this.vertices.length - 2; n >= 1; n--)
         {
             let vertex = this.vertices[n];
             this.vertices.push(new Point(-(vertex.x + rightMost.x) - rightMost.x - length / 60, vertex.y));
@@ -1198,7 +1198,7 @@ class Mirror extends Object
         this.makeConvexMirror(focalLength, length, vertexCount);
         let rightMost = this.getExtremes().rightMost;
 
-        for(var n = this.vertices.length - 2; n >= 1; n--)
+        for(let n = this.vertices.length - 2; n >= 1; n--)
         {
             let vertex = this.vertices[n];
             this.vertices.push(new Point(-(vertex.x - rightMost.x) + rightMost.x, vertex.y));
@@ -1212,7 +1212,7 @@ class Mirror extends Object
         // 0 > maxAngleDeviation < 1
         this.vertices = [];
 
-        for(var n = 0; n < vertexCount; n++)
+        for(let n = 0; n < vertexCount; n++)
         {
             let radius = clampMin(averageRadius + maxRadiusDeviation * averageRadius * 2 * (Math.random() - 0.5), -1);
             let angle = (n + maxAngleDeviation * 2 * (Math.random() - 0.5)) / vertexCount * 2 * Math.PI;
@@ -1292,7 +1292,7 @@ class Animation
     {
         let lowKeyframe;
 
-        for(var n = 0; n < this.keyframes.length; n++)
+        for(let n = 0; n < this.keyframes.length; n++)
         {
             let keyframe = this.keyframes[n];
             if((lowKeyframe === undefined || keyframe.time >= lowKeyframe.time) && keyframe.time <= this.time)
@@ -1303,7 +1303,7 @@ class Animation
 
         let highKeyframe;
 
-        for(var n = 0; n < this.keyframes.length; n++)
+        for(let n = 0; n < this.keyframes.length; n++)
         {
             let keyframe = this.keyframes[n];
             if((highKeyframe === undefined || keyframe.time <= highKeyframe.time) && keyframe.time >= this.time)
@@ -1333,7 +1333,7 @@ class Animation
         {
             let values = [];
 
-            for(var n = 0; n < this.keyframes[0].values.length; n++)
+            for(let n = 0; n < this.keyframes[0].values.length; n++)
             {
                 values.push(this.interpolationFunction(lowKeyframe.values[n], highKeyframe.values[n], mapped));
             }
@@ -1371,11 +1371,11 @@ class Keyframe
     }
 }
 
-var request;
+let request;
 const requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
 const cancelAnimationFrame = window.cancelAnimationFrame || window.mozCancelAnimationFrame || window.webkitCancelAnimationFrame || window.msCancelAnimationFrame;
-var windowWidth = window.innerWidth;
-var windowHeight = window.innerHeight;
+let windowWidth = window.innerWidth;
+let windowHeight = window.innerHeight;
 const canvas = document.getElementById("canvas");
 const canvasWidth = canvas.width;
 const canvasHeight = canvas.height;
@@ -1405,19 +1405,19 @@ const gImage = document.getElementById("icon-g");
 const clickSound = document.getElementById("sound-click");
 const misclickSound = document.getElementById("sound-misclick");
 const switchSound = document.getElementById("sound-switch");
-var glow = true;
+let glow = true;
 const pointOrigin = new Point(0, 0);
-var cameraPosition = pointOrigin.clone();
-var mousePosition = pointOrigin.clone();
-var mouseButtons = [false, false, false];
-var mouseAction = MouseAction.drag;
+const cameraPosition = pointOrigin.clone();
+const mousePosition = pointOrigin.clone();
+const mouseButtons = [false, false, false];
+let mouseAction = MouseAction.drag;
 const keysPressed = [];
-var keysFired = false;
-var keysHelp = 0
+let keysFired = false;
+let keysHelp = 0
 const LASER_MAX_COLLISIONS = 50;
 const LASER_RANGE = 10000;
-var scene = new Scene(new Laser(new Point(0, -100), 0));
-var time = 0;
+const scene = new Scene(new Laser(new Point(0, -100), 0));
+let time = 0;
 loadExample(1);
 
 function render()
@@ -1495,12 +1495,12 @@ function render()
     if(scene.draggedGuide !== false && mouseAction === MouseAction.drag && scene.draggedObject instanceof Guide && Math.round(scene.draggedObject.guidance) === 1)
     {
         let objects = [];
-        for(var n = 0; n < lasersCollisions.length; n++)
+        for(let n = 0; n < lasersCollisions.length; n++)
         {
             objects.push({position: scene.lasers[n].position});
             let laserCollisions = lasersCollisions[n];
 
-            for(var m = 0; m < laserCollisions.length; m++)
+            for(let m = 0; m < laserCollisions.length; m++)
             {
                 let laserCollision = laserCollisions[m];
                 objects.push({position: laserCollision});
@@ -1521,7 +1521,7 @@ function render()
 
     ctx.translate(canvasWidth / 2 - cameraPosition.x, canvasHeight / 2 - cameraPosition.y);
     
-    for(var n = 0; n < scene.guides.length; n++)
+    for(let n = 0; n < scene.guides.length; n++)
     {
         let guide = scene.guides[n];
 
@@ -1555,7 +1555,7 @@ function render()
     let reflectingMirrors = [];
     let nonReflectingMirrors = [];
 
-    for(var n = 0; n < scene.mirrors.length; n++)
+    for(let n = 0; n < scene.mirrors.length; n++)
     {
         let mirror = scene.mirrors[n];
 
@@ -1572,7 +1572,7 @@ function render()
 
     let mirrors = scene.mirrors;
 
-    for(var n = 0; n < 3; n++)
+    for(let n = 0; n < 3; n++)
     {
         let selectedMirrors;
 
@@ -1629,7 +1629,7 @@ function render()
             ctx.fillStyle = ctx.strokeStyle;
         }
 
-        for(var m = 0; m < selectedMirrors.length; m++)
+        for(let m = 0; m < selectedMirrors.length; m++)
         {
             let mirror = selectedMirrors[m];
             let vertices = mirror.vertices;
@@ -1639,7 +1639,7 @@ function render()
             ctx.beginPath();
             ctx.moveTo(vertices[0].x, vertices[0].y);
 
-            for(var v = 1; v < vertices.length; v++)
+            for(let v = 1; v < vertices.length; v++)
             {
                 let vertex = vertices[v];
                 ctx.lineTo(vertex.x, vertex.y);
@@ -1664,7 +1664,7 @@ function render()
 
     ctx.lineWidth = 3;
 
-    for(var n = 0; n < lasersCollisions.length; n++)
+    for(let n = 0; n < lasersCollisions.length; n++)
     {
         let laser = scene.lasers[n];
         let laserCollisions = lasersCollisions[n];
@@ -1676,7 +1676,7 @@ function render()
         ctx.beginPath();
         ctx.moveTo(laser.position.x, laser.position.y);
         
-        for(var m = 0; m < laserCollisions.length; m++)
+        for(let m = 0; m < laserCollisions.length; m++)
         {
             let laserCollision = laserCollisions[m];
             ctx.lineTo(laserCollision.x, laserCollision.y);
@@ -2005,34 +2005,32 @@ function loadExample(n)
     switch(n)
     {
         case 1:
-            var laser = new Laser(new Point(100, -250), Math.PI / 4)
-            scene.lasers.push(laser);
-            var triangle = new Mirror(Mirror.absorbing, new Point(-300, 375), 0)
+            scene.lasers.push(new Laser(new Point(100, -250), Math.PI / 4));
+            let triangle = new Mirror(Mirror.absorbing, new Point(-300, 375), 0)
             triangle.makeRegularPolygon(150, 3);
             triangle.setRotationTo(Math.PI / 10);
-            var square = new Mirror(Mirror.absorbing, new Point(595, -275), Math.PI / 4)
+            let square = new Mirror(Mirror.absorbing, new Point(595, -275), Math.PI / 4)
             square.makeRectangle(400, 400);
             square.setRotationTo(Math.PI / 4);
-            var rectangle = new Mirror(Mirror.reflecting, new Point(-600, -100), Math.PI / 10)
+            let rectangle = new Mirror(Mirror.reflecting, new Point(-600, -100), Math.PI / 10)
             rectangle.makeRectangle(40, 400);
             rectangle.setRotationTo(Math.PI / 10);
-            var polygon = new Mirror(Mirror.absorbing, new Point(600, 400), 0);
+            let polygon = new Mirror(Mirror.absorbing, new Point(600, 400), 0);
             polygon.makeRegularPolygon(150, 5);
-            var circle = new Mirror(3, new Point(100, 50), 0);
+            let circle = new Mirror(3, new Point(100, 50), 0);
             circle.makeCircle(150, 500);
             scene.mirrors.push(triangle, square, rectangle, polygon, circle);
             break;
         case 2:
-            var laser = new Laser(new Point(-150, -200), Math.PI / 10);
-            scene.lasers.push(laser)
+            scene.lasers.push(new Laser(new Point(-150, -200), Math.PI / 10));
             scene.mirrors = [];
             
-            for(var x = -2; x <= 2; x++)
+            for(let x = -2; x <= 2; x++)
             {
-                for(var y = -1; y <= 1; y++)
+                for(let y = -1; y <= 1; y++)
                 {
-                    var position = new Point(300 * x, 300 * y);
-                    var square = new Mirror(3, new Animation([new Keyframe(0, [position.x, position.y]), new Keyframe(90 + 20 * Math.random(), [position.x + 40 + 20 * Math.random(), position.y + 40 + 20 * Math.random()]), new Keyframe(200, [position.x, position.y])], interpolateElastic, 200), new Animation([new Keyframe(0, 0), new Keyframe(20, Math.PI / 100), new Keyframe(40, 0)], interpolateLinear, 40));
+                    let position = new Point(300 * x, 300 * y);
+                    let square = new Mirror(3, new Animation([new Keyframe(0, [position.x, position.y]), new Keyframe(90 + 20 * Math.random(), [position.x + 40 + 20 * Math.random(), position.y + 40 + 20 * Math.random()]), new Keyframe(200, [position.x, position.y])], interpolateElastic, 200), new Animation([new Keyframe(0, 0), new Keyframe(20, Math.PI / 100), new Keyframe(40, 0)], interpolateLinear, 40));
                     square.makeRectangle(150, 150);
                     scene.mirrors.push(square);
                 }
@@ -2040,7 +2038,7 @@ function loadExample(n)
             break;
         case 3:
             scene.lasers = [new Laser(new Point(-700, -300), Math.PI / 10)];
-            var blob = new Mirror(Mirror.reflecting, new Point(0, 0), new Animation([new Keyframe(0, 0), new Keyframe(2500, 7 * Math.PI)], interpolateLinear, 2500));
+            let blob = new Mirror(Mirror.reflecting, new Point(0, 0), new Animation([new Keyframe(0, 0), new Keyframe(2500, 7 * Math.PI)], interpolateLinear, 2500));
             blob.makeBlob(300, 0.5, 0.5, 100);
             blob.smoothVertices(0.5, 10);
             scene.mirrors = [blob];
@@ -2053,7 +2051,7 @@ function loadExample(n)
                 new Laser(new Point(-100, 100), 0),
                 new Laser(new Point(-100, 200), 0),
             ];
-            var parabola = new Mirror(Mirror.reflecting, new Point(300, 0), 0);
+            let parabola = new Mirror(Mirror.reflecting, new Point(300, 0), 0);
             parabola.makeConcaveLens(-200, 600, 100);
             parabola.closedShape = true;
             scene.mirrors = [parabola];
@@ -2352,7 +2350,7 @@ function keydown(event)
         event = window.event;
     }
     
-    var eventKey = event.key;
+    const eventKey = event.key;
     
     if(keysPressed.includes(eventKey) === false)
     {
@@ -2453,7 +2451,7 @@ function keyup(event)
         event = window.event;
     }
     
-    var eventKey = event.key;
+    const eventKey = event.key;
     
     keysPressed.splice(keysPressed.indexOf(eventKey), 1);
     keysFired = false;
@@ -2473,7 +2471,7 @@ function getPropertiesOfObjects(objects, property)
 {
     let properties = [];
 
-    for(var n = 0; n < objects.length; n++)
+    for(let n = 0; n < objects.length; n++)
     {
         properties.push(objects[n][property]);
     }
@@ -2485,7 +2483,7 @@ function minimum(values)
 {
     let min;
 
-    for(var n = 0; n < values.length; n++)
+    for(let n = 0; n < values.length; n++)
     {
         let value = values[n];
 
@@ -2502,7 +2500,7 @@ function maximum(values)
 {
     let max;
 
-    for(var n = 0; n < values.length; n++)
+    for(let n = 0; n < values.length; n++)
     {
         let value = values[n];
 
@@ -2519,7 +2517,7 @@ function average(values)
 {
     let sum = 0;
 
-    for(var n = 0; n < values.length; n++)
+    for(let n = 0; n < values.length; n++)
     {
         sum += values[n];
     }
@@ -2590,7 +2588,7 @@ function interpolateElastic(startingValue, endingValue, t)
 
 function calculateAngleDifference(a1, a2)
 {
-    var difference = a2 - a1;
+    let difference = a2 - a1;
     while(difference < -Math.PI)
         difference += 2 * Math.PI;
     while(difference > Math.PI)
