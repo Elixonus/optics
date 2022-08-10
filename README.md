@@ -26,10 +26,10 @@ For guide tools, this is used to toggle between a ruler and a protractor.
 ### Output
 
 Three types of objects are displayed differently.
-* **Absorbing** objects have a gray contour.
+* **Absorbing** objects have a white contour.
 * **Reflecting** mirrors have a red contour and no color filled in.
 * **Refracting** lenses have a red contour and color filled in.  
-The higher the refractive index of the lens is, the more visible the inside color.
+The higher the refractive index of the lens is, the more visible the filled color.
 
 ## Keybindings 🔑
 
