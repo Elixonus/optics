@@ -1381,6 +1381,7 @@ const canvasWidth = canvas.width;
 const canvasHeight = canvas.height;
 const ctx = canvas.getContext("2d", {alpha: false});
 const wallpaperImage = document.getElementById("wallpaper");
+const tileImage = document.getElementById("tile");
 const laserImage = document.getElementById("laser");
 const rulerImage = document.getElementById("ruler");
 const protractorImage = document.getElementById("protractor");
@@ -1515,12 +1516,10 @@ function render()
         }
     }
 
-    ctx.fillStyle = "#000000";
-    ctx.shadowBlur = 0;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
     ctx.translate(canvasWidth / 2 - cameraPosition.x, canvasHeight / 2 - cameraPosition.y);
-    
+    ctx.fillStyle = ctx.createPattern(tileImage, "repeat");
+    ctx.fillRect(-canvasWidth / 2 + cameraPosition.x, -canvasHeight / 2 + cameraPosition.y, canvas.width, canvas.height);
+
     for(let n = 0; n < scene.guides.length; n++)
     {
         let guide = scene.guides[n];
@@ -1583,7 +1582,7 @@ function render()
                 return !mirror.isNotAbsorbing;
             });
 
-            ctx.strokeStyle = "#333333";
+            ctx.strokeStyle = "#ffffff";
         }
 
         else
@@ -1942,7 +1941,7 @@ function render()
             ctx.globalAlpha = (1 - (time - 60) / 60);
         }
 
-        ctx.fillStyle = "black";
+        ctx.fillStyle = "#000000";
         ctx.fillRect(0, 0, 1920, 1080);
         ctx.drawImage(wallpaperImage, 0, 0);
         ctx.globalAlpha = 1;
