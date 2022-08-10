@@ -1672,7 +1672,7 @@ function render()
         ctx.strokeStyle = "hsl(120, 100%, 50%)";
         ctx.shadowColor = ctx.strokeStyle;
         ctx.shadowBlur = getGlowBlur(20);
-        ctx.globalAlpha = Math.round(modulus(laser.brightness, 1));
+        ctx.globalAlpha = Math.round(modulus(laser.brightness + 0.5, 1));
         ctx.beginPath();
         ctx.moveTo(laser.position.x, laser.position.y);
         
@@ -1737,7 +1737,7 @@ function render()
         {
             if(scene.draggedObject instanceof Laser)
             {
-                if(modulus(scene.draggedLaser.brightness, 1) >= 0.5)
+                if(modulus(scene.draggedLaser.brightness + 0.5, 1) >= 0.5)
                 {
                     text = "Laser: ON";
                 }
