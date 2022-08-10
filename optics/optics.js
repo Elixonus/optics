@@ -2216,22 +2216,18 @@ function mousedown(event)
             guide = new Guide(mousePosition.clone().addTo(cameraPosition), 0);
         }
 
-        else if(scene.guides.length === 1)
+        else
         {
+            if(scene.guides.length === 2)
+            {
+                scene.removeGuide(scene.guides[0]);
+            }
+            
             guide = new Guide(mousePosition.clone(), 0, modulus(scene.guides[0].guidance + 0.5, 1));
         }
 
-        else
-        {
-            guide = new Guide(mousePosition.clone(), 0, modulus(scene.guides[1].guidance + 0.5, 1));
-        }
-
-        if(scene.guides.length >= 2)
-        {
-            scene.removeGuide(scene.guides[0]);
-        }
-
         scene.addGuide(guide);
+
         guide.mousePositionOnDrag = mousePosition.clone();
         guide.dragGuidance = 0;
         guide.dragOffset = new Point(0, 0);
