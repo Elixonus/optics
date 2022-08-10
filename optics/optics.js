@@ -865,7 +865,7 @@ class Scene
 
 class Laser extends Object
 {
-    constructor(position, rotation, brightness = 1)
+    constructor(position, rotation, brightness = 0.75)
     {
         super(position, rotation);
         this.brightness = brightness;
@@ -1225,7 +1225,7 @@ class Mirror extends Object
 
 class Guide extends Object
 {
-    constructor(position, rotation, guidance = 0)
+    constructor(position, rotation, guidance = 0.25)
     {
         super(position, rotation);
         this.guidance = guidance;
@@ -1458,12 +1458,12 @@ function render()
 
             else if(scene.draggedObject instanceof Laser)
             {
-                scene.draggedLaser.brightness = scene.draggedLaser.dragBrightness + (scene.draggedLaser.mousePositionOnDrag.y - mousePosition.y) / 300;
+                scene.draggedLaser.brightness = modulus(scene.draggedLaser.dragBrightness + (scene.draggedLaser.mousePositionOnDrag.y - mousePosition.y) / 300, 1);
             }
 
             else if(scene.draggedObject instanceof Guide)
             {
-                scene.draggedGuide.guidance = scene.draggedGuide.dragGuidance + (scene.draggedGuide.mousePositionOnDrag.y - mousePosition.y) / 300;
+                scene.draggedGuide.guidance = modulus(scene.draggedGuide.dragGuidance + (scene.draggedGuide.mousePositionOnDrag.y - mousePosition.y) / 300, 1);
             }
         }
     }
@@ -1534,7 +1534,7 @@ function render()
         ctx.translate(guide.position.x, guide.position.y);
         ctx.rotate(guide.rotation);
 
-        if(modulus(guide.guidance, 1) < 0.5)
+        if(guide.guidance < 0.5)
         {
             ctx.rotate(Math.PI / 2)
             ctx.drawImage(rulerImage, -400, -57.5, 800, 115);
@@ -1672,7 +1672,7 @@ function render()
         ctx.strokeStyle = "hsl(120, 100%, 50%)";
         ctx.shadowColor = ctx.strokeStyle;
         ctx.shadowBlur = getGlowBlur(20);
-        ctx.globalAlpha = Math.round(modulus(laser.brightness + 0.5, 1));
+        ctx.globalAlpha = Math.round(laser.brightness);
         ctx.beginPath();
         ctx.moveTo(laser.position.x, laser.position.y);
         
@@ -1737,7 +1737,7 @@ function render()
         {
             if(scene.draggedObject instanceof Laser)
             {
-                if(modulus(scene.draggedLaser.brightness + 0.5, 1) >= 0.5)
+                if(Math.round(scene.draggedLaser.brightness) === 1)
                 {
                     text = "Laser: ON";
                 }
@@ -1797,7 +1797,7 @@ function render()
                 }
             }
 
-            else if(scene.draggedObject instanceof Guide && scene.draggedObject.guidance > 0.5)
+            else if(scene.draggedObject instanceof Guide && scene.draggedObject.guidance >= 0.5)
             {
                 extraSpace = 100;
             }
@@ -2180,7 +2180,7 @@ function mousedown(event)
     {
         let laser = new Laser(mousePosition.clone().addTo(cameraPosition), randomFloat(0, 2 * Math.PI));
         scene.addLaser(laser);
-        laser.dragBrightness = 1;
+        laser.dragBrightness = 0.75;
         laser.dragOffset = new Point(0, 0);
         laser.dragPosition = laser.position.clone();
         laser.dragRotation = laser.rotation;
@@ -2229,7 +2229,7 @@ function mousedown(event)
         scene.addGuide(guide);
 
         guide.mousePositionOnDrag = mousePosition.clone();
-        guide.dragGuidance = 0;
+        guide.dragGuidance = 0.25;
         guide.dragOffset = new Point(0, 0);
         guide.dragPosition = guide.position.clone();
         guide.dragRotation = guide.rotation;
