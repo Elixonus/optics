@@ -349,7 +349,7 @@ class Object
         this.dragRotation;
         this.dragIndexOfRefraction;
         this.interactive = true;
-        this.tick();
+        this.animate();
     }
 
     setPositionTo(position)
@@ -382,19 +382,19 @@ class Object
         return this;
     }
 
-    tick()
+    animate()
     {
         if(this.hasOwnProperty("positionAnimation"))
         {
             let values = this.positionAnimation.getValues();
             this.position = new Point(values[0], values[1]);
-            this.positionAnimation.tick();
+            this.positionAnimation.animate();
         }
 
         if(this.hasOwnProperty("rotationAnimation"))
         {
             this.rotation = this.rotationAnimation.getValues();
-            this.rotationAnimation.tick();
+            this.rotationAnimation.animate();
         }
     }
 }
@@ -849,16 +849,16 @@ class Scene
         return lasersData;
     }
 
-    tick()
+    animate()
     {
         for(let n = 0; n < this.lasers.length; n++)
         {
-            this.lasers[n].tick();
+            this.lasers[n].animate();
         }
 
         for(let n = 0; n < this.mirrors.length; n++)
         {
-            this.mirrors[n].tick();
+            this.mirrors[n].animate();
         }
     }
 }
@@ -1347,7 +1347,7 @@ class Animation
         }
     }
 
-    tick()
+    animate()
     {
         this.time++;
 
@@ -1459,17 +1459,17 @@ function render()
 
             else if(scene.draggedObject instanceof Laser)
             {
-                scene.draggedLaser.brightness = modulus(scene.draggedLaser.dragBrightness + (scene.draggedLaser.mousePositionOnDrag.y - mousePosition.y) / 300, 1);
+                scene.draggedLaser.brightness = map(Math.round(modulus(scene.draggedLaser.dragBrightness + (scene.draggedLaser.mousePositionOnDrag.y - mousePosition.y) / 300, 1)), 0, 1, 0.25, 0.75);
             }
 
             else if(scene.draggedObject instanceof Guide)
             {
-                scene.draggedGuide.guidance = modulus(scene.draggedGuide.dragGuidance + (scene.draggedGuide.mousePositionOnDrag.y - mousePosition.y) / 300, 1);
+                scene.draggedGuide.guidance = map(Math.round(modulus(scene.draggedGuide.dragGuidance + (scene.draggedGuide.mousePositionOnDrag.y - mousePosition.y) / 300, 1)), 0, 1, 0.25, 0.75);
             }
         }
     }
 
-    scene.tick();
+    scene.animate();
     
     if(keysPressed.includes("ArrowLeft"))
     {
