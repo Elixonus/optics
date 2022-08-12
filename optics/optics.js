@@ -1926,8 +1926,8 @@ function render()
     ctx.drawImage(changeImage, 34, 114);
     ctx.drawImage(addLaserImage, 1814, -266);
     ctx.drawImage(addInterfererImage, 1814, -116);
-    ctx.drawImage(addRulerImage, 1814, 34);
-    // ctx.drawImage(addProtractorImage, 1814, 34);
+    // ctx.drawImage(addRulerImage, 1814, 34);
+    ctx.drawImage(addProtractorImage, 1814, 34);
     ctx.globalAlpha = 1;
     ctx.resetTransform();
 
