@@ -1926,8 +1926,25 @@ function render()
     ctx.drawImage(changeImage, 34, 114);
     ctx.drawImage(addLaserImage, 1814, -266);
     ctx.drawImage(addInterfererImage, 1814, -116);
-    // ctx.drawImage(addRulerImage, 1814, 34);
-    ctx.drawImage(addProtractorImage, 1814, 34);
+
+    if(scene.guides.length === 0)
+    {
+        ctx.drawImage(addRulerImage, 1814, 34);
+    }
+
+    else
+    {
+        if(Math.round(scene.guides[0].guidance) + scene.guides.length % 2 === 0)
+        {
+            ctx.drawImage(addRulerImage, 1814, 34);
+        }
+
+        else
+        {
+            ctx.drawImage(addProtractorImage, 1814, 34);
+        }
+    }
+    
     ctx.globalAlpha = 1;
     ctx.resetTransform();
 
