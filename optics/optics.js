@@ -1386,6 +1386,7 @@ const laserImage = document.getElementById("laser");
 const rulerImage = document.getElementById("ruler");
 const protractorImage = document.getElementById("protractor");
 const pointImage = document.getElementById("icon-point");
+const grabImage = document.getElementById("icon-grab");
 const objectImage = document.getElementById("icon-object");
 const dragXImage = document.getElementById("icon-dragX");
 const dragYImage = document.getElementById("icon-dragY");
@@ -2006,7 +2007,7 @@ function render()
 
         else if(mouseAction === MouseAction.change)
         {
-            ctx.drawImage(changeImage, -18, -18, 36, 36);
+            ctx.drawImage(grabImage, -18, -18, 36, 36);
         }
     }
 
