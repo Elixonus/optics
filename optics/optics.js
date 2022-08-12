@@ -1520,6 +1520,7 @@ function render()
 
     ctx.translate(canvasWidth / 2 - cameraPosition.x, canvasHeight / 2 - cameraPosition.y);
     ctx.fillStyle = ctx.createPattern(tileImage, "repeat");
+    ctx.shadowBlur = 0;
     ctx.fillRect(-canvasWidth / 2 + cameraPosition.x, -canvasHeight / 2 + cameraPosition.y, canvas.width, canvas.height);
 
     for(let n = 0; n < scene.guides.length; n++)
@@ -1966,6 +1967,9 @@ function render()
         ctx.drawImage(wallpaperImage, 0, 0);
         ctx.globalAlpha = 1;
     }
+
+    ctx.shadowBlur = 5;
+    ctx.shadowColor = "#000000";
 
     ctx.save();
     ctx.translate(mousePosition.x + canvasWidth / 2, mousePosition.y + canvasHeight / 2);
@@ -2742,4 +2746,4 @@ function intersectionStraightStraight(line1, line2, eliminationFunction)
 function modulus(dividend, divisor)
 {
     return ((dividend % divisor) + divisor) % divisor;
-};
+}
