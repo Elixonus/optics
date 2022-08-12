@@ -1912,36 +1912,36 @@ function render()
     ctx.globalAlpha = keysHelp;
     ctx.drawImage(xImage, 17, -283, 36, 36);
     ctx.drawImage(yImage, 87, -283, 36, 36);
-    ctx.drawImage(tImage, 34, -186);
-    ctx.drawImage(rImage, 34, -36);
-    ctx.drawImage(cImage, 34, 114);
-    ctx.drawImage(lImage, 1814, -266);
-    ctx.drawImage(iImage, 1814, -116);
-    ctx.drawImage(gImage, 1814, 34);
+    ctx.drawImage(tImage, 34, -186, 72, 72);
+    ctx.drawImage(rImage, 34, -36, 72, 72);
+    ctx.drawImage(cImage, 34, 114, 72, 72);
+    ctx.drawImage(lImage, 1814, -266, 72, 72);
+    ctx.drawImage(iImage, 1814, -116, 72, 72);
+    ctx.drawImage(gImage, 1814, 34, 72, 72);
     ctx.globalAlpha = 1 - keysHelp;
     ctx.drawImage(dragXImage, 17, -283, 36, 36);
     ctx.drawImage(dragYImage, 87, -283, 36, 36);
-    ctx.drawImage(dragImage, 34, -186);
-    ctx.drawImage(rotateImage, 34, -36);
-    ctx.drawImage(changeImage, 34, 114);
-    ctx.drawImage(addLaserImage, 1814, -266);
-    ctx.drawImage(addInterfererImage, 1814, -116);
+    ctx.drawImage(dragImage, 34, -186, 72, 72);
+    ctx.drawImage(rotateImage, 34, -36, 72, 72);
+    ctx.drawImage(changeImage, 34, 114, 72, 72);
+    ctx.drawImage(addLaserImage, 1814, -266, 72, 72);
+    ctx.drawImage(addInterfererImage, 1814, -116, 72, 72);
 
     if(scene.guides.length === 0)
     {
-        ctx.drawImage(addRulerImage, 1814, 34);
+        ctx.drawImage(addRulerImage, 1814, 34, 72, 72);
     }
 
     else
     {
         if(Math.round(scene.guides[0].guidance) + scene.guides.length % 2 === 0)
         {
-            ctx.drawImage(addRulerImage, 1814, 34);
+            ctx.drawImage(addRulerImage, 1814, 34, 72, 72);
         }
 
         else
         {
-            ctx.drawImage(addProtractorImage, 1814, 34);
+            ctx.drawImage(addProtractorImage, 1814, 34, 72, 72);
         }
     }
     
