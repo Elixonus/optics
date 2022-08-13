@@ -1419,7 +1419,7 @@ let keysFired = false;
 let keysHelp = 0
 const LASER_MAX_COLLISIONS = 50;
 const LASER_RANGE = 10000;
-const scene = new Scene(new Laser(new Point(0, -100), 0));
+const scene = new Scene();
 let time = 0;
 loadExample(1);
 
@@ -1434,16 +1434,12 @@ function render()
 
         else if(mouseAction === MouseAction.dragX)
         {
-            let y = scene.draggedObject.position.y;
-            scene.draggedObject.position.setTo(mousePosition).addTo(cameraPosition).subtractTo(scene.draggedObject.dragOffset);
-            scene.draggedObject.position.y = y;
+            scene.draggedObject.position.x = mousePosition.x + cameraPosition.x - scene.draggedObject.dragOffset.x;
         }
 
         else if(mouseAction === MouseAction.dragY)
         {
-            let x = scene.draggedObject.position.x;
-            scene.draggedObject.position.setTo(mousePosition).addTo(cameraPosition).subtractTo(scene.draggedObject.dragOffset);
-            scene.draggedObject.position.x = x;
+            scene.draggedObject.position.y = mousePosition.y + cameraPosition.y - scene.draggedObject.dragOffset.y;
         }
         
         else if(mouseAction === MouseAction.rotate)
