@@ -2244,7 +2244,7 @@ function mousedown(event)
                 scene.removeGuide(scene.guides[0]);
             }
             
-            guide = new Guide(mousePosition.clone(), 0, modulus(scene.guides[0].guidance + 0.5, 1));
+            guide = new Guide(mousePosition.clone().addTo(cameraPosition), 0, modulus(scene.guides[0].guidance + 0.5, 1));
         }
 
         scene.addGuide(guide);
