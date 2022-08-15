@@ -1930,16 +1930,29 @@ function render()
         ctx.drawImage(addRulerImage, 1814, 34, 72, 72);
     }
 
-    else
+    else if(scene.guides.length === 1)
     {
-        if(Math.round(scene.guides[0].guidance) + scene.guides.length % 2 === 0)
+        if(Math.round(scene.guides[0].guidance) === 0)
         {
-            ctx.drawImage(addRulerImage, 1814, 34, 72, 72);
+            ctx.drawImage(addProtractorImage, 1814, 34, 72, 72);
         }
 
         else
         {
+            ctx.drawImage(addRulerImage, 1814, 34, 72, 72);
+        }
+    }
+
+    else if(scene.guides.length === 2)
+    {
+        if(Math.round(scene.guides[1].guidance) === 0)
+        {
             ctx.drawImage(addProtractorImage, 1814, 34, 72, 72);
+        }
+
+        else
+        {
+            ctx.drawImage(addRulerImage, 1814, 34, 72, 72);
         }
     }
     
