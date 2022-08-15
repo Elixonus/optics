@@ -1667,20 +1667,23 @@ function render()
         let laser = scene.lasers[n];
         let laserCollisions = lasersCollisions[n];
 
-        ctx.strokeStyle = "hsl(120, 100%, 50%)";
-        ctx.shadowColor = ctx.strokeStyle;
-        ctx.shadowBlur = getGlowBlur(20);
-        ctx.globalAlpha = Math.round(laser.brightness);
-        ctx.beginPath();
-        ctx.moveTo(laser.position.x, laser.position.y);
-        
-        for(let m = 0; m < laserCollisions.length; m++)
+        if(Math.round(laser.brightness) === 0)
         {
-            let laserCollision = laserCollisions[m];
-            ctx.lineTo(laserCollision.x, laserCollision.y);
+            ctx.strokeStyle = "hsl(120, 100%, 50%)";
+            ctx.shadowColor = ctx.strokeStyle;
+            ctx.shadowBlur = getGlowBlur(20);
+            ctx.globalAlpha = Math.round(laser.brightness);
+            ctx.beginPath();
+            ctx.moveTo(laser.position.x, laser.position.y);
+            
+            for(let m = 0; m < laserCollisions.length; m++)
+            {
+                let laserCollision = laserCollisions[m];
+                ctx.lineTo(laserCollision.x, laserCollision.y);
+            }
+    
+            ctx.stroke();
         }
-
-        ctx.stroke();
     }
 
     for(let l = 0; l < scene.lasers.length; l++)
@@ -1907,52 +1910,59 @@ function render()
         }
     }
 
-    ctx.globalAlpha = keysHelp;
-    ctx.drawImage(xImage, 17, -283, 36, 36);
-    ctx.drawImage(yImage, 87, -283, 36, 36);
-    ctx.drawImage(tImage, 34, -186, 72, 72);
-    ctx.drawImage(rImage, 34, -36, 72, 72);
-    ctx.drawImage(cImage, 34, 114, 72, 72);
-    ctx.drawImage(lImage, 1814, -266, 72, 72);
-    ctx.drawImage(iImage, 1814, -116, 72, 72);
-    ctx.drawImage(gImage, 1814, 34, 72, 72);
-    ctx.globalAlpha = 1 - keysHelp;
-    ctx.drawImage(dragXImage, 17, -283, 36, 36);
-    ctx.drawImage(dragYImage, 87, -283, 36, 36);
-    ctx.drawImage(dragImage, 34, -186, 72, 72);
-    ctx.drawImage(rotateImage, 34, -36, 72, 72);
-    ctx.drawImage(changeImage, 34, 114, 72, 72);
-    ctx.drawImage(addLaserImage, 1814, -266, 72, 72);
-    ctx.drawImage(addInterfererImage, 1814, -116, 72, 72);
-
-    if(scene.guides.length === 0)
+    if(keysHelp !== 0)
     {
-        ctx.drawImage(addRulerImage, 1814, 34, 72, 72);
+        ctx.globalAlpha = keysHelp;
+        ctx.drawImage(xImage, 17, -283, 36, 36);
+        ctx.drawImage(yImage, 87, -283, 36, 36);
+        ctx.drawImage(tImage, 34, -186, 72, 72);
+        ctx.drawImage(rImage, 34, -36, 72, 72);
+        ctx.drawImage(cImage, 34, 114, 72, 72);
+        ctx.drawImage(lImage, 1814, -266, 72, 72);
+        ctx.drawImage(iImage, 1814, -116, 72, 72);
+        ctx.drawImage(gImage, 1814, 34, 72, 72);
     }
 
-    else if(scene.guides.length === 1)
+    if(keysHelp !== 1)
     {
-        if(Math.round(scene.guides[0].guidance) === 0)
-        {
-            ctx.drawImage(addProtractorImage, 1814, 34, 72, 72);
-        }
+        ctx.globalAlpha = 1 - keysHelp;
+        ctx.drawImage(dragXImage, 17, -283, 36, 36);
+        ctx.drawImage(dragYImage, 87, -283, 36, 36);
+        ctx.drawImage(dragImage, 34, -186, 72, 72);
+        ctx.drawImage(rotateImage, 34, -36, 72, 72);
+        ctx.drawImage(changeImage, 34, 114, 72, 72);
+        ctx.drawImage(addLaserImage, 1814, -266, 72, 72);
+        ctx.drawImage(addInterfererImage, 1814, -116, 72, 72);
 
-        else
+        if(scene.guides.length === 0)
         {
             ctx.drawImage(addRulerImage, 1814, 34, 72, 72);
         }
-    }
-
-    else if(scene.guides.length === 2)
-    {
-        if(Math.round(scene.guides[1].guidance) === 0)
+    
+        else if(scene.guides.length === 1)
         {
-            ctx.drawImage(addProtractorImage, 1814, 34, 72, 72);
+            if(Math.round(scene.guides[0].guidance) === 0)
+            {
+                ctx.drawImage(addProtractorImage, 1814, 34, 72, 72);
+            }
+    
+            else
+            {
+                ctx.drawImage(addRulerImage, 1814, 34, 72, 72);
+            }
         }
-
-        else
+    
+        else if(scene.guides.length === 2)
         {
-            ctx.drawImage(addRulerImage, 1814, 34, 72, 72);
+            if(Math.round(scene.guides[1].guidance) === 0)
+            {
+                ctx.drawImage(addProtractorImage, 1814, 34, 72, 72);
+            }
+    
+            else
+            {
+                ctx.drawImage(addRulerImage, 1814, 34, 72, 72);
+            }
         }
     }
     
@@ -1974,9 +1984,9 @@ function render()
         ctx.fillStyle = "#000000";
         ctx.fillRect(0, 0, 1920, 1080);
         ctx.drawImage(wallpaperImage, 0, 0);
-        ctx.globalAlpha = 1;
     }
 
+    ctx.globalAlpha = 1;
     ctx.shadowBlur = 5;
     ctx.shadowColor = "#000000";
 
