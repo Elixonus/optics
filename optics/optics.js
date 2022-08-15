@@ -1667,7 +1667,7 @@ function render()
         let laser = scene.lasers[n];
         let laserCollisions = lasersCollisions[n];
 
-        if(Math.round(laser.brightness) === 0)
+        if(Math.round(laser.brightness) !== 0)
         {
             ctx.strokeStyle = "hsl(120, 100%, 50%)";
             ctx.shadowColor = ctx.strokeStyle;
@@ -1693,7 +1693,7 @@ function render()
 
         if(scene.draggedObject === laser)
         {
-            ctx.shadowColor = "#00d0ff";
+            ctx.shadowColor = "#ffffff";
             ctx.shadowBlur = getGlowBlur(30);
         }
 
@@ -1927,7 +1927,7 @@ function render()
     {
         ctx.globalAlpha = 1 - keysHelp;
         ctx.drawImage(dragXImage, 17, -283, 36, 36);
-        ctx.drawImage(dragYImage, 87, -283, 36, 36);
+        ctx.drawImage(dragYImage, 90, -283, 36, 36);
         ctx.drawImage(dragImage, 34, -186, 72, 72);
         ctx.drawImage(rotateImage, 34, -36, 72, 72);
         ctx.drawImage(changeImage, 34, 114, 72, 72);
@@ -1978,11 +1978,9 @@ function render()
         
         else
         {
-            ctx.globalAlpha = (1 - (time - 60) / 60);
+            ctx.globalAlpha = map(time, 60, 120, 1, 0);
         }
 
-        ctx.fillStyle = "#000000";
-        ctx.fillRect(0, 0, 1920, 1080);
         ctx.drawImage(wallpaperImage, 0, 0);
     }
 
