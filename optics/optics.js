@@ -1517,7 +1517,7 @@ function render()
     ctx.translate(canvasWidth / 2 - cameraPosition.x, canvasHeight / 2 - cameraPosition.y);
     ctx.fillStyle = ctx.createPattern(tileImage, "repeat");
     ctx.shadowBlur = 0;
-    ctx.fillRect(-canvasWidth / 2 + cameraPosition.x, -canvasHeight / 2 + cameraPosition.y, canvas.width, canvas.height);
+    ctx.fillRect(-canvasWidth / 2 + cameraPosition.x, -canvasHeight / 2 + cameraPosition.y, canvasWidth, canvasHeight);
 
     for(let n = 0; n < scene.guides.length; n++)
     {
@@ -2116,8 +2116,6 @@ function loadExample(n)
     }
 }
 
-resize();
-window.onresize = resize;
 window.onmousedown = mousedown;
 window.onmouseup = mouseup;
 window.onmousemove = mousemove;
@@ -2131,24 +2129,6 @@ window.oncontextmenu = function(event) { event.preventDefault(); };
 window.ontouchstart = touchstart;
 window.ontouchend = touchend;
 window.ontouchmove = touchmove;
-
-function resize()
-{
-    windowWidth = window.innerWidth;
-    windowHeight = window.innerHeight;
-    
-    if(windowWidth / windowHeight > canvasWidth / canvasHeight)
-    {
-        canvas.style.width = `${(windowHeight / windowWidth) * (canvasWidth / canvasHeight) * 100}%`;
-        canvas.style.height = "100%";
-    }
-    
-    else
-    {
-        canvas.style.width = "100%";
-        canvas.style.height = `${(windowWidth / windowHeight) * (canvasHeight / canvasWidth) * 100}%`;
-    }
-}
 
 function mousedown(event)
 {
@@ -2364,7 +2344,7 @@ function mousemove(event)
     }
 
     let rect = canvas.getBoundingClientRect();
-    mousePosition.setTo(new Point(map(event.clientX, rect.left, windowWidth - rect.left, -canvasWidth / 2, canvasWidth / 2), map(event.clientY, rect.top, windowHeight - rect.top, -canvasHeight / 2, canvasHeight / 2)));
+    mousePosition.setTo(new Point(((event.clientX - rect.left) / (rect.right - rect.left) - 0.5) * canvasWidth, ((event.clientY - rect.top) / (rect.bottom - rect.top) - 0.5) * canvasHeight));
 }
 
 function touchstart(event)
