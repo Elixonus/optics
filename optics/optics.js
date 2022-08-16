@@ -1380,11 +1380,11 @@ const canvas = document.getElementById("canvas");
 const canvasWidth = canvas.width;
 const canvasHeight = canvas.height;
 const ctx = canvas.getContext("2d", {alpha: false});
-const wallpaperImage = document.getElementById("wallpaper");
-const tileImage = document.getElementById("tile");
-const laserImage = document.getElementById("laser");
-const rulerImage = document.getElementById("ruler");
-const protractorImage = document.getElementById("protractor");
+const wallpaperImage = document.getElementById("image-wallpaper");
+const tileImage = document.getElementById("image-tile");
+const laserImage = document.getElementById("image-laser");
+const rulerImage = document.getElementById("image-ruler");
+const protractorImage = document.getElementById("image-protractor");
 const pointImage = document.getElementById("icon-point");
 const grabImage = document.getElementById("icon-grab");
 const objectImage = document.getElementById("icon-object");
@@ -1469,22 +1469,22 @@ function render()
 
     scene.animate();
     
-    if(keysPressed.includes("ArrowLeft"))
+    if(keysPressed.includes("a"))
     {
         cameraPosition.x -= 10;
     }
     
-    if(keysPressed.includes("ArrowRight"))
+    if(keysPressed.includes("d"))
     {
         cameraPosition.x += 10;
     }
     
-    if(keysPressed.includes("ArrowUp"))
+    if(keysPressed.includes("w"))
     {
         cameraPosition.y -= 10;
     }
     
-    if(keysPressed.includes("ArrowDown"))
+    if(keysPressed.includes("s"))
     {
         cameraPosition.y += 10;
     }
@@ -2116,8 +2116,8 @@ function loadExample(n)
     }
 }
 
-window.onmousedown = mousedown;
-window.onmouseup = mouseup;
+canvas.onmousedown = mousedown;
+canvas.onmouseup = mouseup;
 window.onmousemove = mousemove;
 window.onkeydown = keydown;
 window.onkeyup = keyup;

@@ -12,11 +12,11 @@
     
     <body>
         <canvas id="canvas" width="1920" height="1080"></canvas>
-        <img id="wallpaper" class="hidden" src="./images/wallpaper.png">
-        <img id="tile" class="hidden" src="./images/tile.png">
-        <img id="laser" class="hidden" src="./images/laser.png">
-        <img id="ruler" class="hidden" src="./images/ruler.png">
-        <img id="protractor" class="hidden" src="./images/protractor.png">
+        <img id="image-wallpaper" class="hidden" src="./images/wallpaper.png">
+        <img id="image-tile" class="hidden" src="./images/tile.png">
+        <img id="image-laser" class="hidden" src="./images/laser.png">
+        <img id="image-ruler" class="hidden" src="./images/ruler.png">
+        <img id="image-protractor" class="hidden" src="./images/protractor.png">
         <img id="icon-point" class="hidden" src="./images/icons/point.png">
         <img id="icon-grab" class="hidden" src="./images/icons/grab.png">
         <img id="icon-object" class="hidden" src="./images/icons/object.png">
@@ -58,7 +58,7 @@
             #canvas
             {
                 width: 500px;
-                border: 2vmin solid #333333;
+                border: 10px solid #333333;
                 border-radius: 6vmin;
                 border-spacing: 1000px;
                 cursor: none;
@@ -66,8 +66,7 @@
 
             .hidden
             {
-                visibility: hidden;
-                pointer-events: none;
+                display: none;
             }
             
         </style>
