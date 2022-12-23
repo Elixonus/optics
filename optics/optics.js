@@ -2118,6 +2118,7 @@ function loadExample(n)
 
 canvas.onmousedown = mousedown;
 canvas.onmouseup = mouseup;
+window.onresize = resize;
 window.onmousemove = mousemove;
 window.onkeydown = keydown;
 window.onkeyup = keyup;
@@ -2129,6 +2130,25 @@ window.oncontextmenu = function(event) { event.preventDefault(); };
 window.ontouchstart = touchstart;
 window.ontouchend = touchend;
 window.ontouchmove = touchmove;
+resize();
+
+function resize()
+{
+    windowWidth = window.innerWidth;
+    windowHeight = window.innerHeight;
+    
+    if(windowWidth / windowHeight > canvasWidth / canvasHeight)
+    {
+        canvas.style.width = `${(windowHeight / windowWidth) * (canvasWidth / canvasHeight) * 100}%`;
+        canvas.style.height = "100%";
+    }
+    
+    else
+    {
+        canvas.style.width = "100%";
+        canvas.style.height = `${(windowWidth / windowHeight) * (canvasHeight / canvasWidth) * 100}%`;
+    }
+}
 
 function mousedown(event)
 {

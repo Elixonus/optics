@@ -37,9 +37,9 @@ The higher the refractive index of the lens is, the more visible the filled colo
 
 ```T``` - Translation mode
 
-```X``` - Horizontal translation submode (only works once in translation mode)
+```X``` - Horizontal translation submode (only works from translation mode)
 
-```Y``` - Vertical translation submode (only works when in translation mode)
+```Y``` - Vertical translation submode (only works from translation mode)
 
 ```R``` - Rotation mode
 
