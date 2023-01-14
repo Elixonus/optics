@@ -39,9 +39,9 @@ Three types of objects are displayed differently.
 
 ```T``` - Switch to translation tool.
 
-```X``` - Switch to horizontal translation subtool *(only works when using translation tool)*.
+```X``` - Switch to horizontal translation subtool *(only works when using translation tool or vertical translation subtool)*.
 
-```Y``` - Switch to vertical translation subtool *(only works when using translation tool)*.
+```Y``` - Switch to vertical translation subtool *(only works when using translation tool or horizontal translation subtool)*.
 
 ```R``` - Switch to rotation tool.
 
@@ -57,11 +57,11 @@ Three types of objects are displayed differently.
 
 ### Camera
 
-```(ARROW KEYS)``` - Move the camera.
+```(ARROW KEYS)``` or ```(WASD KEYS)``` - Pan the camera incrementally.
 
 ### Extra
 
-```(BACKSPACE)``` or ```(DELETE)``` - Remove all the lasers and mirrors from the scene.
+```(DELETE)``` or ```(BACKSPACE)``` - Remove all the lasers and mirrors from the scene.
 
 ```(NUMBER KEYS)``` - Load a predefined scene in the program.
 
