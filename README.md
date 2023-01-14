@@ -12,12 +12,12 @@ Designed mostly for **education** and not professional use. 📚
 
 There are three different mouse tools to interact with the lasers and mirrors. The bar on the left shows which tool is currently activated.
 
-1) **Translation tool** indicated by the move symbol to translate the objects in the scene.
+1) **Translation tool** indicated by the move symbol, is used to translate the objects in the scene.
 This option has two additional submodes to limit the movement in a certain axis.
 
-2) **Rotation tool** indicated by the spinning arrow symbol to set the rotation of the objects in the scene.
+2) **Rotation tool** indicated by the spinning arrow symbol, is used to set the rotation of the objects in the scene.
 
-3) **Object tool** indicated by the cube symbol to interact with the properties specific to the object you are selecting.
+3) **Object tool** indicated by the cube symbol, is used to interact with the properties specific to the object you are selecting.
 For lasers, this is used to toggle the emission ON and OFF. 
 For mirrors, this is used to cycle the type of interference from refractive, reflective, absorbtive.
 If the mirror is in refractive mode, the index of refraction can be dialed up and down an extended amount with the mouse.
@@ -26,45 +26,44 @@ For guide tools, this is used to toggle between a ruler and a protractor.
 ### Output
 
 Three types of objects are displayed differently.
-* **Absorbing** objects have a white contour.
-* **Reflecting** mirrors have a red contour and no color filled in.
-* **Refracting** lenses have a red contour and color filled in.  
-The higher the refractive index of the lens is, the more visible the filled color.
+* **Absorbing** objects have white contour.
+* **Reflecting** mirrors have red contour and zero fill.
+* **Refracting** lenses have red contour and red fill *(the higher the refractive index of the lens, the more visible the filled color)*.
 
 ## Keybindings 🔑
 
-### Tools
+### Modes
 
-```T``` - Translation mode
+```T``` - Switch to translation mode.
 
-```X``` - Horizontal translation submode (only works from translation mode)
+```X``` - Switch to horizontal translation submode *(only works from translation mode)*.
 
-```Y``` - Vertical translation submode (only works from translation mode)
+```Y``` - Switch to vertical translation submode *(only works from translation mode)*.
 
-```R``` - Rotation mode
+```R``` - Switch to rotation mode.
 
-```C``` - Change mode 
+```C``` - Switch to change mode.
 
 ### Creation
 
-```L``` Instantiate a laser from where the mouse is located.
+```L``` - Instantiate a laser from where the mouse is located.
 
-```I``` instantiate a random polygonal mirror from where the mouse is located.
+```I``` - Instantiate a random polygonal mirror from where the mouse is located.
 
-```G``` instantiate a ruler guide tool from where the mouse is located.
+```G``` - Instantiate a ruler guide tool from where the mouse is located.
 
 ### Camera
 
-```(Arrow Keys)``` - Move the camera.
+```(ARROW KEYS)``` - Move the camera.
 
 ### Extra
 
-```(Delete)``` - Remove all the lasers and mirrors from the scene.
+```(BACKSPACE)``` or ```(DELETE)``` - Remove all the lasers and mirrors from the scene.
 
-```(Number Keys)``` - Load a predefined scene in the program.
+```(NUMBER KEYS)``` - Load a predefined scene in the program.
 
-```Z``` - Toggle quality/performance.
+```Z``` - Toggle between quality and performance.
 
 ## Limitations 🔒
 
-To avoid crashes, the maximum collisions per each laser is set to 50.
+To avoid crashes, the maximum collisions per each laser path is set to 50.
