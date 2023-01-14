@@ -1467,22 +1467,22 @@ function render()
 
     scene.animate();
     
-    if(keysPressed.includes("a"))
+    if(keysPressed.includes("ArrowLeft") || keysPressed.includes("a") || keysPressed.includes("A"))
     {
         cameraPosition.x -= 10;
     }
     
-    if(keysPressed.includes("d"))
+    if(keysPressed.includes("ArrowRight") || keysPressed.includes("d") || keysPressed.includes("D"))
     {
         cameraPosition.x += 10;
     }
     
-    if(keysPressed.includes("w"))
+    if(keysPressed.includes("ArrowUp") || keysPressed.includes("w") || keysPressed.includes("W"))
     {
         cameraPosition.y -= 10;
     }
     
-    if(keysPressed.includes("s"))
+    if(keysPressed.includes("ArrowDown") || keysPressed.includes("s") || keysPressed.includes("S"))
     {
         cameraPosition.y += 10;
     }
