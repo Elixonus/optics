@@ -1377,8 +1377,6 @@ const cancelAnimationFrame = window.cancelAnimationFrame || window.mozCancelAnim
 let windowWidth = window.innerWidth;
 let windowHeight = window.innerHeight;
 const canvas = document.getElementById("canvas");
-const canvasWidth = canvas.width;
-const canvasHeight = canvas.height;
 const ctx = canvas.getContext("2d", {alpha: false});
 const wallpaperImage = document.getElementById("image-wallpaper");
 const tileImage = document.getElementById("image-tile");
@@ -1514,10 +1512,10 @@ function render()
         }
     }
 
-    ctx.translate(canvasWidth / 2 - cameraPosition.x, canvasHeight / 2 - cameraPosition.y);
+    ctx.translate(960 - cameraPosition.x, 540 - cameraPosition.y);
     ctx.fillStyle = ctx.createPattern(tileImage, "repeat");
     ctx.shadowBlur = 0;
-    ctx.fillRect(-canvasWidth / 2 + cameraPosition.x, -canvasHeight / 2 + cameraPosition.y, canvasWidth, canvasHeight);
+    ctx.fillRect(cameraPosition.x - 960, cameraPosition.y - 540, 1920, 1080);
 
     for(let n = 0; n < scene.guides.length; n++)
     {
@@ -1818,7 +1816,7 @@ function render()
     ctx.resetTransform();
 
     ctx.shadowBlur = 0;
-    ctx.translate(0, canvasHeight / 2);
+    ctx.translate(0, 540);
 
     ctx.fillStyle = "#222222";
     ctx.fillRect(-10, -310, 160, 540);
@@ -1981,6 +1979,8 @@ function render()
             ctx.globalAlpha = map(time, 60, 120, 1, 0);
         }
 
+        ctx.fillStyle = "red";
+        ctx.fillRect(0, 0, 10, 10)
         ctx.drawImage(wallpaperImage, 0, 0);
     }
 
@@ -1989,7 +1989,7 @@ function render()
     ctx.shadowColor = "#000000";
 
     ctx.save();
-    ctx.translate(mousePosition.x + canvasWidth / 2, mousePosition.y + canvasHeight / 2);
+    ctx.translate(mousePosition.x + 960, mousePosition.y + 540);
 
     if(scene.draggedObject === false)
     {
@@ -2137,16 +2137,16 @@ function resize()
     windowWidth = window.innerWidth;
     windowHeight = window.innerHeight;
     
-    if(windowWidth / windowHeight > canvasWidth / canvasHeight)
+    if(windowWidth / windowHeight > 1920 / 1080)
     {
-        canvas.style.width = `${(windowHeight / windowWidth) * (canvasWidth / canvasHeight) * 100}%`;
+        canvas.style.width = `${(windowHeight / windowWidth) * (1920 / 1080) * 100}%`;
         canvas.style.height = "100%";
     }
     
     else
     {
         canvas.style.width = "100%";
-        canvas.style.height = `${(windowWidth / windowHeight) * (canvasHeight / canvasWidth) * 100}%`;
+        canvas.style.height = `${(windowWidth / windowHeight) * (1080 / 1920) * 100}%`;
     }
 }
 
@@ -2364,7 +2364,7 @@ function mousemove(event)
     }
 
     let rect = canvas.getBoundingClientRect();
-    mousePosition.setTo(new Point(((event.clientX - rect.left) / (rect.right - rect.left) - 0.5) * canvasWidth, ((event.clientY - rect.top) / (rect.bottom - rect.top) - 0.5) * canvasHeight));
+    mousePosition.setTo(new Point(((event.clientX - rect.left) / (rect.right - rect.left) - 0.5) * 1920, ((event.clientY - rect.top) / (rect.bottom - rect.top) - 0.5) * 1080));
 }
 
 function touchstart(event)
