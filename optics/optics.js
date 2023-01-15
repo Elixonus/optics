@@ -1979,8 +1979,8 @@ function render()
             ctx.globalAlpha = map(time, 60, 120, 1, 0);
         }
 
-        ctx.fillStyle = "red";
-        ctx.fillRect(0, 0, 10, 10)
+        ctx.fillStyle = "#000000";
+        ctx.fillRect(0, 0, 1920, 1080)
         ctx.drawImage(wallpaperImage, 0, 0);
     }
 
