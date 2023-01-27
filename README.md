@@ -57,13 +57,15 @@ Three types of objects are displayed differently.
 
 ### Camera
 
-```(ARROW KEYS)``` or ```(WASD KEYS)``` - Pan the camera incrementally.
+```(ARROW)``` or ```(WASD)``` - Pan the camera incrementally and continuously.
 
-### Extra
+### Scene
 
 ```(DELETE)``` or ```(BACKSPACE)``` - Remove all the lasers and mirrors from the scene.
 
-```(NUMBER KEYS)``` - Load a predefined scene in the program.
+```(NUMBER)``` - Load a predefined scene in the program.
+
+### Extra
 
 ```Z``` - Toggle between quality and performance.
 
