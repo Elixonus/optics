@@ -39,9 +39,9 @@ Three types of objects are displayed differently.
 
 ```T``` - Switch to translation tool.
 
-```X``` - Switch to horizontal translation subtool *(only works when using translation tool or vertical translation subtool)*.
+```X``` - Switch to horizontal translation subtool *(only works when using translation tool or subtool)*.
 
-```Y``` - Switch to vertical translation subtool *(only works when using translation tool or horizontal translation subtool)*.
+```Y``` - Switch to vertical translation subtool *(only works when using translation tool or subtool)*.
 
 ```R``` - Switch to rotation tool.
 
