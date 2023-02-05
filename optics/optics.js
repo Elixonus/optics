@@ -1395,14 +1395,14 @@ const addLaserImage = document.getElementById("icon-laser");
 const addInterfererImage = document.getElementById("icon-interferer");
 const addRulerImage = document.getElementById("icon-ruler");
 const addProtractorImage = document.getElementById("icon-protractor");
-const xImage = document.getElementById("icon-x");
-const yImage = document.getElementById("icon-y");
-const tImage = document.getElementById("icon-t");
-const rImage = document.getElementById("icon-r");
-const cImage = document.getElementById("icon-c");
-const lImage = document.getElementById("icon-l");
-const iImage = document.getElementById("icon-i");
-const gImage = document.getElementById("icon-g");
+const letterXImage = document.getElementById("icon-letter-x");
+const letterYImage = document.getElementById("icon-letter-y");
+const letterTImage = document.getElementById("icon-letter-t");
+const letterRImage = document.getElementById("icon-letter-r");
+const letterCImage = document.getElementById("icon-letter-c");
+const letterLImage = document.getElementById("icon-letter-l");
+const letterIImage = document.getElementById("icon-letter-i");
+const letterGImage = document.getElementById("icon-letter-g");
 const clickSound = document.getElementById("sound-click");
 const misclickSound = document.getElementById("sound-misclick");
 const switchSound = document.getElementById("sound-switch");
@@ -1650,7 +1650,7 @@ function render()
 
             if(mirror.isRefracting)
             {
-                ctx.globalAlpha = 1 - 1 / Math.pow(Math.E, 0.1 * (mirror.indexOfRefraction - 1));
+                ctx.globalAlpha = clamp(1 - 1 / Math.pow(Math.E, 0.1 * (mirror.indexOfRefraction - 1)), 0, 1);
                 ctx.shadowBlur = 0;
                 ctx.fill();
             }
@@ -1670,7 +1670,7 @@ function render()
             ctx.strokeStyle = "hsl(120, 100%, 50%)";
             ctx.shadowColor = ctx.strokeStyle;
             ctx.shadowBlur = getGlowBlur(20);
-            ctx.globalAlpha = Math.round(laser.brightness);
+            ctx.globalAlpha = clamp(Math.round(laser.brightness), 0, 1);
             ctx.beginPath();
             ctx.moveTo(laser.position.x, laser.position.y);
             
@@ -1890,40 +1890,30 @@ function render()
 
     if(!(distance(new Point(mousePosition.x + 960, mousePosition.y), new Point(0, 0)) < 300 || distance(new Point(mousePosition.x + 960, mousePosition.y), new Point(1920, 0)) < 300))
     {
-        keysHelp -= 0.05
-
-        if(keysHelp < 0)
-        {
-            keysHelp = 0;
-        }
+        keysHelp = clampMin(keysHelp - 0.05, 0);
     }
     
     else
     {
-        keysHelp += 0.05
-
-        if(keysHelp > 1)
-        {
-            keysHelp = 1;
-        }
+        keysHelp = clampMax(keysHelp + 0.05, 1);
     }
 
-    if(keysHelp !== 0)
+    if(keysHelp > 0.01)
     {
-        ctx.globalAlpha = keysHelp;
-        ctx.drawImage(xImage, 17, -283, 36, 36);
-        ctx.drawImage(yImage, 87, -283, 36, 36);
-        ctx.drawImage(tImage, 34, -186, 72, 72);
-        ctx.drawImage(rImage, 34, -36, 72, 72);
-        ctx.drawImage(cImage, 34, 114, 72, 72);
-        ctx.drawImage(lImage, 1814, -266, 72, 72);
-        ctx.drawImage(iImage, 1814, -116, 72, 72);
-        ctx.drawImage(gImage, 1814, 34, 72, 72);
+        ctx.globalAlpha = clamp(keysHelp, 0, 1);
+        ctx.drawImage(letterXImage, 17, -283, 36, 36);
+        ctx.drawImage(letterYImage, 87, -283, 36, 36);
+        ctx.drawImage(letterTImage, 34, -186, 72, 72);
+        ctx.drawImage(letterRImage, 34, -36, 72, 72);
+        ctx.drawImage(letterCImage, 34, 114, 72, 72);
+        ctx.drawImage(letterLImage, 1814, -266, 72, 72);
+        ctx.drawImage(letterIImage, 1814, -116, 72, 72);
+        ctx.drawImage(letterGImage, 1814, 34, 72, 72);
     }
 
-    if(keysHelp !== 1)
+    if(keysHelp < 0.99)
     {
-        ctx.globalAlpha = 1 - keysHelp;
+        ctx.globalAlpha = clamp(1 - keysHelp, 0, 1);
         ctx.drawImage(dragXImage, 17, -283, 36, 36);
         ctx.drawImage(dragYImage, 90, -283, 36, 36);
         ctx.drawImage(dragImage, 34, -186, 72, 72);
@@ -1976,7 +1966,7 @@ function render()
         
         else
         {
-            ctx.globalAlpha = map(time, 60, 120, 1, 0);
+            ctx.globalAlpha = clamp(map(time, 60, 120, 1, 0), 0, 1);
         }
 
         ctx.fillStyle = "#000000";
