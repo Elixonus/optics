@@ -11,7 +11,7 @@ class Point
     {
         return new Point(this.x, this.y);
     }
-    
+
     isEqual(p)
     {
         return (this.x === p.x && this.y === p.y);
@@ -2117,9 +2117,6 @@ window.onload = function()
     request = requestAnimationFrame(render);
 }
 window.oncontextmenu = function(event) { event.preventDefault(); };
-window.ontouchstart = touchstart;
-window.ontouchend = touchend;
-window.ontouchmove = touchmove;
 resize();
 
 function resize()
@@ -2146,7 +2143,12 @@ function mousedown(event)
     {
         event = window.event;
     }
-    
+
+    if(time < 90)
+    {
+        return;
+    }
+
     mouseButtons[event.button] = true;
 
     if(mousePosition.x + 960 > -10 && mousePosition.y > -310 && mousePosition.x + 960 < 150 && mousePosition.y < 230)
@@ -2355,22 +2357,6 @@ function mousemove(event)
 
     let rect = canvas.getBoundingClientRect();
     mousePosition.setTo(new Point(((event.clientX - rect.left) / (rect.right - rect.left) - 0.5) * 1920, ((event.clientY - rect.top) / (rect.bottom - rect.top) - 0.5) * 1080));
-}
-
-function touchstart(event)
-{
-    touchmove(event);
-    mousedown({button: 0});
-}
-
-function touchend(event)
-{
-    mouseup({button: 0});
-}
-
-function touchmove(event)
-{
-    mousemove({clientX: event.touches[0].clientX, clientY: event.touches[0].clientY});
 }
 
 function keydown(event)
