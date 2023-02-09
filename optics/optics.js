@@ -1888,7 +1888,7 @@ function render()
     ctx.fillStyle = guideColor;
     ctx.fillRect(1780, 0, 140, 140);
 
-    if(!(distance(new Point(mousePosition.x + 960, mousePosition.y), new Point(0, 0)) < 300 || distance(new Point(mousePosition.x + 960, mousePosition.y), new Point(1920, 0)) < 300))
+    if((distance(new Point(mousePosition.x + 960, mousePosition.y), new Point(0, 0)) < 500 || distance(new Point(mousePosition.x + 960, mousePosition.y), new Point(1920, 0)) < 500) && scene.draggedObject === false)
     {
         keysHelp = clampMin(keysHelp - 0.05, 0);
     }
@@ -1902,7 +1902,7 @@ function render()
     {
         ctx.globalAlpha = clamp(keysHelp, 0, 1);
         ctx.drawImage(letterXImage, 17, -283, 36, 36);
-        ctx.drawImage(letterYImage, 87, -283, 36, 36);
+        ctx.drawImage(letterYImage, 91, -283, 36, 36);
         ctx.drawImage(letterTImage, 34, -186, 72, 72);
         ctx.drawImage(letterRImage, 34, -36, 72, 72);
         ctx.drawImage(letterCImage, 34, 114, 72, 72);
