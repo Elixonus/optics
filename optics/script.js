@@ -1,114 +1,93 @@
-class Point
-{
-    constructor(x = 0, y = 0)
-    {
+class Point {
+    constructor(x = 0, y = 0) {
         this.x = x;
         this.y = y;
         return this;
     }
 
-    clone()
-    {
+    clone() {
         return new Point(this.x, this.y);
     }
 
-    isEqual(p)
-    {
+    isEqual(p) {
         return (this.x === p.x && this.y === p.y);
     }
 
-    setTo(p)
-    {
+    setTo(p) {
         this.x = p.x;
         this.y = p.y;
         return this;
     }
 
-    addTo(p)
-    {
+    addTo(p) {
         this.x += p.x;
         this.y += p.y;
         return this;
     }
 
-    addToX(x)
-    {
+    addToX(x) {
         this.x += x;
         return this;
     }
 
-    addToY(y)
-    {
+    addToY(y) {
         this.y += y;
         return this;
     }
 
-    addToXY(x, y)
-    {
+    addToXY(x, y) {
         return this.addToX(x).addToY(y);
     }
 
-    addToPolar(r, a)
-    {
+    addToPolar(r, a) {
         this.x += r * Math.cos(a);
         this.y += r * Math.sin(a);
         return this;
     }
 
-    subtractTo(p)
-    {
+    subtractTo(p) {
         return this.addToXY(-p.x, -p.y);
     }
 
-    subtractToX(x)
-    {
+    subtractToX(x) {
         return this.addToX(-x);
     }
 
-    subtractToY(y)
-    {
+    subtractToY(y) {
         return this.addToY(-y);
     }
 
-    subtractToXY(x, y)
-    {
+    subtractToXY(x, y) {
         return this.subtractToX(x).subtractToY(y);
     }
 
-    multiplyBy(x)
-    {
+    multiplyBy(x) {
         return this.scaleXY(x);
     }
 
-    divideBy(x)
-    {
+    divideBy(x) {
         return this.scaleXY(1 / x);
     }
 
-    scale(p)
-    {
+    scale(p) {
         return this.scaleXY(p.x, p.y);
     }
 
-    scaleX(x)
-    {
+    scaleX(x) {
         this.x *= x;
         return this;
     }
 
-    scaleY(y)
-    {
+    scaleY(y) {
         this.y *= y;
         return this;
     }
 
-    scaleXY(x, y = x)
-    {
+    scaleXY(x, y = x) {
         return this.scaleX(x).scaleY(y);
     }
 
-    rotateAroundPoint(p, rotation)
-    {
+    rotateAroundPoint(p, rotation) {
         let cosine = Math.cos(rotation);
         let sine = Math.sin(rotation);
         let xD = this.x - p.x;
@@ -118,159 +97,131 @@ class Point
         return this;
     }
 
-    absolute(x = true, y = true)
-    {
-        if(x)
-        {
+    absolute(x = true, y = true) {
+        if (x) {
             this.x = Math.abs(x);
         }
 
-        if(y)
-        {
+        if (y) {
             this.y = Math.abs(y);
         }
 
         return this;
     }
 
-    interpolateToPointLinear(p, t)
-    {
+    interpolateToPointLinear(p, t) {
         this.x = interpolateLinear(this.x, p.x, t);
         this.y = interpolateLinear(this.y, p.y, t);
         return this;
     }
 
-    interpolateToPointQuadratic(p, t)
-    {
+    interpolateToPointQuadratic(p, t) {
         this.x = interpolateLinear(this.x, p.x, t);
         this.y = interpolateLinear(this.y, p.y, t);
         return this;
     }
 
-    midPointTo(p)
-    {
+    midPointTo(p) {
         this.x = (this.x + p.x) / 2;
         this.y = (this.y + p.y) / 2;
         return this;
     }
 
-    getMagnitude()
-    {
+    getMagnitude() {
         return this.getDistanceTo();
     }
 
-    getDistanceTo(p = pointOrigin)
-    {
+    getDistanceTo(p = pointOrigin) {
         return Math.hypot(this.x - p.x, this.y - p.y);
     }
 }
 
-class Line
-{
-    constructor(p1, p2)
-    {
+class Line {
+    constructor(p1, p2) {
         this.p1 = p1;
         this.p2 = p2;
         return this;
     }
 
-    static fromRay(center, angle)
-    {
+    static fromRay(center, angle) {
         return new Line(center, center.clone().addToPolar(1, angle));
     }
 
-    static fromPointSlope(point, slope)
-    {
+    static fromPointSlope(point, slope) {
         return new Line(point, point.addTo(new Point(1, slope)));
     }
 
-    clone()
-    {
+    clone() {
         return new Line(this.p1.clone(), this.p2.clone());
     }
-    
-    isEqual(l)
-    {
+
+    isEqual(l) {
         return (this.p1.isEqual(l.p1) && this.p2.isEqual(l.p2))
     }
 
-    addTo(p)
-    {
+    addTo(p) {
         this.p1.addTo(p);
         this.p2.addTo(p);
         return this;
     }
 
-    subtractTo(p)
-    {
+    subtractTo(p) {
         this.p1.subtractTo(p);
         this.p2.subtractTo(p);
         return this;
     }
 
-    rotateAroundPoint(p, rotation)
-    {
+    rotateAroundPoint(p, rotation) {
         this.p1.rotateAroundPoint(p, rotation);
         this.p2.rotateAroundPoint(p, rotation);
         return this;
     }
 
-    getLength()
-    {
+    getLength() {
         return distance(this.p1, this.p2);
     }
 
-    getAngle()
-    {
+    getAngle() {
         let differencePoint = this.p1.clone().subtractTo(this.p2);
         return Math.atan2(differencePoint.y, differencePoint.x);
     }
 
-    getDotProductBetweenLine(l)
-    {
+    getDotProductBetweenLine(l) {
         let vector1 = this.p1.clone().subtractTo(this.p2);
         let vector2 = l.p1.clone().subtractTo(l.p2);
         let scalarProduct = vector1.x * vector2.x + vector1.y * vector2.y;
         return scalarProduct;
     }
 
-    getProjectionOfCrossProductBetweenLine(l)
-    {
+    getProjectionOfCrossProductBetweenLine(l) {
         let vector1 = this.p1.clone().subtractTo(this.p2);
         let vector2 = l.p1.clone().subtractTo(l.p2);
         return vector1.x * vector2.y - vector1.y * vector2.x;
     }
 
-    getAngleBetweenLine(l)
-    {
+    getAngleBetweenLine(l) {
         return Math.acos(this.getDotProductBetweenLine(l) / (this.getLength() * l.getLength()));
     }
 
-    getAngleBetweenLinePerpendicular(l)
-    {
+    getAngleBetweenLinePerpendicular(l) {
         return Math.asin(this.getSineOfAngleBetweenLinePerpendicular(l));
     }
 
-    getSineOfAngleBetweenLinePerpendicular(l)
-    {
+    getSineOfAngleBetweenLinePerpendicular(l) {
         return Math.abs(this.getDotProductBetweenLine(l)) / (this.getLength() * l.getLength());
     }
 
-    getAngleReflected(angleOfIncidence)
-    {
+    getAngleReflected(angleOfIncidence) {
         return 2 * this.getAngle() - angleOfIncidence;
     }
 }
 
-class Polygon
-{
-    constructor(vertices)
-    {
+class Polygon {
+    constructor(vertices) {
         this.vertices = vertices;
     }
 
-    set vertices(value)
-    {
+    set vertices(value) {
         delete this._leftVertex;
         delete this._rightVertex;
         delete this._topVertex;
@@ -278,27 +229,22 @@ class Polygon
         this._vertices = value;
         this._sides = [];
 
-        for(let n = 0; n < this.vertices.length; n++)
-        {
+        for (let n = 0; n < this.vertices.length; n++) {
             let vertex = this.vertices[n];
 
-            if(this.leftVertex === undefined || vertex.x < this.leftVertex.x)
-            {
+            if (this.leftVertex === undefined || vertex.x < this.leftVertex.x) {
                 this._leftVertex = vertex;
             }
 
-            if(this.rightVertex === undefined || vertex.x > this.rightVertex.x)
-            {
+            if (this.rightVertex === undefined || vertex.x > this.rightVertex.x) {
                 this._rightVertex = vertex;
             }
 
-            if(this.topVertex === undefined || vertex.y < this.topVertex.y)
-            {
+            if (this.topVertex === undefined || vertex.y < this.topVertex.y) {
                 this._topVertex = vertex;
             }
 
-            if(this.bottomVertex === undefined || vertex.y > this.bottomVertex.y)
-            {
+            if (this.bottomVertex === undefined || vertex.y > this.bottomVertex.y) {
                 this._bottomVertex = vertex;
             }
 
@@ -307,41 +253,33 @@ class Polygon
         }
     }
 
-    get vertices()
-    {
+    get vertices() {
         return this._vertices;
     }
-    
-    get sides()
-    {
+
+    get sides() {
         return this._sides;
     }
 
-    get leftVertex()
-    {
+    get leftVertex() {
         return this._leftVertex;
     }
 
-    get rightVertex()
-    {
+    get rightVertex() {
         return this._rightVertex;
     }
 
-    get topVertex()
-    {
+    get topVertex() {
         return this._topVertex;
     }
 
-    get bottomVertex()
-    {
+    get bottomVertex() {
         return this._bottomVertex;
     }
 }
 
-class Object
-{
-    constructor(position, rotation)
-    {
+class Object {
+    constructor(position, rotation) {
         this.setPositionTo(position);
         this.setRotationTo(rotation);
         this.dragOffset;
@@ -352,57 +290,42 @@ class Object
         this.animate();
     }
 
-    setPositionTo(position)
-    {
-        if(position instanceof Point)
-        {
+    setPositionTo(position) {
+        if (position instanceof Point) {
             this.position = position;
-        }
-
-        else if(position instanceof Animation)
-        {
+        } else if (position instanceof Animation) {
             this.positionAnimation = position;
         }
 
         return this;
     }
 
-    setRotationTo(rotation)
-    {
-        if(rotation instanceof Animation)
-        {
+    setRotationTo(rotation) {
+        if (rotation instanceof Animation) {
             this.rotationAnimation = rotation;
-        }
-
-        else
-        {
+        } else {
             this.rotation = rotation;
         }
 
         return this;
     }
 
-    animate()
-    {
-        if(this.hasOwnProperty("positionAnimation"))
-        {
+    animate() {
+        if (this.hasOwnProperty("positionAnimation")) {
             let values = this.positionAnimation.getValues();
             this.position = new Point(values[0], values[1]);
             this.positionAnimation.animate();
         }
 
-        if(this.hasOwnProperty("rotationAnimation"))
-        {
+        if (this.hasOwnProperty("rotationAnimation")) {
             this.rotation = this.rotationAnimation.getValues();
             this.rotationAnimation.animate();
         }
     }
 }
 
-class Scene
-{
-    constructor(objects = [])
-    {
+class Scene {
+    constructor(objects = []) {
         this._lasers = [];
         this._mirrors = [];
         this._guides = [];
@@ -411,79 +334,65 @@ class Scene
         this.draggedGuide = false;
         this.draggedObject = false;
 
-        if(Array.isArray(objects))
-        {
+        if (Array.isArray(objects)) {
             return this.addObjects(objects);
         }
 
         return this.addObject(objects);
     }
 
-    set lasers(value)
-    {
+    set lasers(value) {
         this._lasers = value;
 
-        if(this.draggedObject instanceof Laser)
-        {
+        if (this.draggedObject instanceof Laser) {
             let index = this._lasers.indexOf(this.draggedLaser);
 
-            if(index === -1)
-            {
+            if (index === -1) {
                 this.draggedLaser = false;
                 this.draggedObject = false;
             }
         }
     }
 
-    get lasers()
-    {
+    get lasers() {
         return this._lasers;
     }
 
-    set mirrors(value)
-    {
+    set mirrors(value) {
         this._mirrors = value;
 
-        if(this.draggedObject instanceof Mirror)
-        {
+        if (this.draggedObject instanceof Mirror) {
             let index = this._mirrors.indexOf(this.draggedMirror);
 
-            if(index === -1)
-            {
+            if (index === -1) {
                 this.draggedMirror = false;
                 this.draggedObject = false;
             }
         }
     }
 
-    get mirrors()
-    {
+    get mirrors() {
         return this._mirrors;
     }
 
-    get guides()
-    {
+    get guides() {
         return this._guides;
     }
 
-    set guides(value)
-    {
+    set guides(value) {
         this._guides = value;
 
-        if(this.draggedObject instanceof Guide)
-        {
+        if (this.draggedObject instanceof Guide) {
             let index = this._guides.indexOf(this.draggedGuide);
 
-            if(index === -1)
-            {
+            if (index === -1) {
                 this.draggedGuide = false;
                 this.draggedObject = false;
             }
         }
     }
 
-    reset()
-    {
+    reset() {
         this.lasers = [];
         this.mirrors = [];
         this.guides = [];
@@ -493,10 +402,8 @@ class Scene
         this.draggedObject = false;
     }
 
-    setDraggedObjectTo(object)
-    {
-        if(object === false)
-        {
+    setDraggedObjectTo(object) {
+        if (object === false) {
             this.draggedLaser = false;
             this.draggedMirror = false;
             this.draggedGuide = false;
@@ -504,136 +411,103 @@ class Scene
             return;
         }
 
-        if(object instanceof Laser)
-        {
+        if (object instanceof Laser) {
             this.draggedLaser = object;
-        }
-
-        else if(object instanceof Mirror)
-        {
+        } else if (object instanceof Mirror) {
             this.draggedMirror = object;
-        }
-
-        else if(object instanceof Guide)
-        {
+        } else if (object instanceof Guide) {
             this.draggedGuide = object;
         }
 
         this.draggedObject = object;
     }
 
-    addLaser(laser)
-    {
+    addLaser(laser) {
         this.lasers.push(laser);
         return this;
     }
 
-    removeLaser(laser)
-    {
+    removeLaser(laser) {
         this.lasers.splice(this.lasers.indexOf(laser), 1);
         return this;
     }
 
-    addLasers(lasers)
-    {
+    addLasers(lasers) {
         this.lasers = this.lasers.concat(lasers);
         return this;
     }
 
-    addMirror(mirror)
-    {
+    addMirror(mirror) {
         this.mirrors.push(mirror);
         return this;
     }
 
-    removeMirror(mirror)
-    {
+    removeMirror(mirror) {
         this.mirrors.splice(this.mirrors.indexOf(mirror), 1);
         return this;
     }
 
-    addMirrors(mirrors)
-    {
+    addMirrors(mirrors) {
         this.mirrors = this.mirrors.concat(mirrors);
         return this;
     }
 
-    addGuide(guide)
-    {
+    addGuide(guide) {
         this.guides.push(guide);
         return this;
     }
 
-    removeGuide(guide)
-    {
+    removeGuide(guide) {
         this.guides.splice(this.guides.indexOf(guide), 1);
         return this;
     }
 
-    addGuides(guides)
-    {
+    addGuides(guides) {
         this.guides = this.guides.concat(guides);
         return this;
     }
 
-    addObject(object)
-    {
-        if(object instanceof Laser)
-        {
+    addObject(object) {
+        if (object instanceof Laser) {
             this.addLaser(object);
-        }
-
-        else if(object instanceof Mirror)
-        {
+        } else if (object instanceof Mirror) {
             this.addMirror(object);
-        }
-
-        else if(object instanceof Guide)
-        {
+        } else if (object instanceof Guide) {
             this.addGuide(object);
         }
-        
+
         return this;
     }
 
-    removeObject(object)
-    {
-        if(object instanceof Laser)
-        {
+    removeObject(object) {
+        if (object instanceof Laser) {
             this.removeLaser(object);
         }
 
-        if(object instanceof Mirror)
-        {
+        if (object instanceof Mirror) {
             this.removeMirror(object);
         }
 
-        if(object instanceof Guide)
-        {
+        if (object instanceof Guide) {
             this.removeGuide(object);
         }
     }
 
-    addObjects(objects)
-    {
-        for(let n = 0; n < objects.length; n++)
-        {
+    addObjects(objects) {
+        for (let n = 0; n < objects.length; n++) {
             this.addObject(objects[n]);
         }
-        
+
         return this;
     }
 
-    getMirrorsWithPointInside(p = pointOrigin)
-    {
+    getMirrorsWithPointInside(p = pointOrigin) {
         let mirrors = [];
 
-        for(let n = 0; n < this.mirrors.length; n++)
-        {
+        for (let n = 0; n < this.mirrors.length; n++) {
             let mirror = this.mirrors[n];
 
-            if(mirror.pointInside(p, true))
-            {
+            if (mirror.pointInside(p, true)) {
                 mirrors.push(mirror);
             }
         }
@@ -641,25 +515,21 @@ class Scene
         return mirrors;
     }
 
-    getClosestObjectToPoint(p = pointOrigin, objects = [])
-    {
+    getClosestObjectToPoint(p = pointOrigin, objects = []) {
         let closestObject;
         let distanceToClosestObject;
 
-        for(let n = 0; n < objects.length; n++)
-        {
+        for (let n = 0; n < objects.length; n++) {
             let object = objects[n];
             let distanceToObject = distance(p, object.position);
 
-            if(closestObject === undefined || distanceToObject < distanceToClosestObject)
-            {
+            if (closestObject === undefined || distanceToObject < distanceToClosestObject) {
                 closestObject = object;
                 distanceToClosestObject = distanceToObject;
             }
         }
 
-        if(closestObject === undefined)
-        {
+        if (closestObject === undefined) {
             return false;
         }
 
@@ -669,22 +539,18 @@ class Scene
         };
     }
 
-    getClosestMirrorToPoint(p = pointOrigin)
-    {
+    getClosestMirrorToPoint(p = pointOrigin) {
         let closest = this.getClosestObjectToPoint(p, this.mirrors);
         return closest;
     }
 
-    getReflectingMirrors()
-    {
+    getReflectingMirrors() {
         let mirrors = [];
 
-        for(let n = 0; n < this.mirrors.length; n++)
-        {
+        for (let n = 0; n < this.mirrors.length; n++) {
             let mirror = this.mirrors[n];
 
-            if(mirror.isReflecting)
-            {
+            if (mirror.isReflecting) {
                 mirrors.push(mirror);
             }
         }
@@ -692,51 +558,40 @@ class Scene
         return mirrors;
     }
 
-    laser(laser, insideMirrors = [], intersections = [], sideIgnore = null)
-    {
-        if(intersections.length === LASER_MAX_COLLISIONS)
-        {
+    laser(laser, insideMirrors = [], intersections = [], sideIgnore = null) {
+        if (intersections.length === LASER_MAX_COLLISIONS) {
             return intersections;
         }
-        
+
         let laserLine = Line.fromRay(laser.position, laser.rotation);
         let closestMirror;
         let closestIntersection;
         let distanceToClosestIntersection;
         let closestSide;
 
-        for(let n = 0; n < this.mirrors.length; n++)
-        {
+        for (let n = 0; n < this.mirrors.length; n++) {
             let mirror = this.mirrors[n];
             let lastVertex;
-            
-            if(mirror.closedShape || mirror.isRefracting)
-            {
+
+            if (mirror.closedShape || mirror.isRefracting) {
                 lastVertex = mirror.vertices.length;
-            }
-            
-            else
-            {
+            } else {
                 lastVertex = mirror.vertices.length - 1;
             }
 
-            for(let m = 0; m < lastVertex; m++)
-            {
+            for (let m = 0; m < lastVertex; m++) {
                 let side = mirror.getSide(m, true);
 
-                if(sideIgnore !== null && side.isEqual(sideIgnore))
-                {
+                if (sideIgnore !== null && side.isEqual(sideIgnore)) {
                     continue;
                 }
 
                 let intersection = intersectionSegmentRay(side, laserLine, false);
 
-                if(intersection !== false)
-                {
+                if (intersection !== false) {
                     let distanceToIntersection = distance(laser.position, intersection);
 
-                    if(closestIntersection === undefined ||  distanceToIntersection < distanceToClosestIntersection)
-                    {
+                    if (closestIntersection === undefined || distanceToIntersection < distanceToClosestIntersection) {
                         closestMirror = mirror;
                         closestIntersection = intersection;
                         distanceToClosestIntersection = distanceToIntersection;
@@ -747,68 +602,51 @@ class Scene
         }
 
         let newIntersections = [];
-        
-        for(let n = 0; n < intersections.length; n++)
-        {
+
+        for (let n = 0; n < intersections.length; n++) {
             newIntersections[n] = intersections[n].clone();
         }
 
-        if(closestMirror === undefined)
-        {
+        if (closestMirror === undefined) {
             newIntersections.push(laser.position.clone().addToPolar(LASER_RANGE, laser.rotation));
             return newIntersections;
         }
 
         newIntersections.push(closestIntersection);
 
-        if(closestMirror.isReflecting)
-        {
+        if (closestMirror.isReflecting) {
             return this.laser(new Laser(closestIntersection, closestSide.getAngleReflected(laser.rotation)), insideMirrors, newIntersections, closestSide);
-        }
-
-        else if(closestMirror.isRefracting)
-        {
+        } else if (closestMirror.isRefracting) {
             let newInsideMirrors = [];
 
-            for(let n = 0; n < insideMirrors.length; n++)
-            {
+            for (let n = 0; n < insideMirrors.length; n++) {
                 newInsideMirrors[n] = insideMirrors[n];
             }
 
-            if(!newInsideMirrors.includes(closestMirror))
-            {
+            if (!newInsideMirrors.includes(closestMirror)) {
                 newInsideMirrors.push(closestMirror);
-            }
-
-            else
-            {
+            } else {
                 newInsideMirrors.splice(newInsideMirrors.indexOf(closestMirror), 1);
             }
 
             let incidentIndex = 1;
             let refractedIndex = 1;
 
-            if(insideMirrors.length > 0)
-            {
+            if (insideMirrors.length > 0) {
                 incidentIndex = average(getPropertiesOfObjects(insideMirrors, "indexOfRefraction"));
             }
 
-            if(newInsideMirrors.length > 0)
-            {
+            if (newInsideMirrors.length > 0) {
                 refractedIndex = average(getPropertiesOfObjects(newInsideMirrors, "indexOfRefraction"));
             }
 
             let criticalAngle;
             let criticalAngleSine;
 
-            if(incidentIndex > refractedIndex)
-            {
+            if (incidentIndex > refractedIndex) {
                 criticalAngleSine = refractedIndex / incidentIndex;
                 criticalAngle = Math.asin(criticalAngleSine);
-            }
-
-            else
-            {
+            } else {
                 criticalAngle = Math.PI / 2;
                 criticalAngleSine = 1;
             }
@@ -816,67 +654,53 @@ class Scene
             let incidentAngleSine = laserLine.getSineOfAngleBetweenLinePerpendicular(closestSide);
             let incidentAngle = Math.asin(incidentAngleSine);
 
-            if(incidentAngleSine >= criticalAngleSine)
-            {
+            if (incidentAngleSine >= criticalAngleSine) {
                 newIntersections.push(closestIntersection);
                 return newIntersections;
-            }
-
-            else
-            {
+            } else {
                 let refractedAngleSine = incidentAngleSine * incidentIndex / refractedIndex;
                 let refractedAngle = Math.asin(refractedAngleSine);
                 return this.laser(new Laser(closestIntersection, laser.rotation - Math.sign(laserLine.getDotProductBetweenLine(closestSide)) * Math.sign(laserLine.getProjectionOfCrossProductBetweenLine(closestSide)) * (incidentAngle - refractedAngle)), newInsideMirrors, newIntersections, closestSide);
             }
-        }
-
-        else if(closestMirror.isAbsorbing)
-        {
+        } else if (closestMirror.isAbsorbing) {
             return newIntersections;
         }
     }
 
-    getLaserCollisions()
-    {
+    getLaserCollisions() {
         let lasersData = [];
 
-        for(let n = 0; n < this.lasers.length; n++)
-        {
+        for (let n = 0; n < this.lasers.length; n++) {
             let laser = this.lasers[n];
-            lasersData.push(this.laser(laser, this.getMirrorsWithPointInside(laser.position).filter(function(mirror) { return mirror.isRefracting; })));
+            lasersData.push(this.laser(laser, this.getMirrorsWithPointInside(laser.position).filter(function (mirror) {
+                return mirror.isRefracting;
+            })));
         }
 
         return lasersData;
     }
 
-    animate()
-    {
-        for(let n = 0; n < this.lasers.length; n++)
-        {
+    animate() {
+        for (let n = 0; n < this.lasers.length; n++) {
             this.lasers[n].animate();
         }
 
-        for(let n = 0; n < this.mirrors.length; n++)
-        {
+        for (let n = 0; n < this.mirrors.length; n++) {
             this.mirrors[n].animate();
         }
     }
 }
 
-class Laser extends Object
-{
-    constructor(position, rotation, brightness = 0.75)
-    {
+class Laser extends Object {
+    constructor(position, rotation, brightness = 0.75) {
         super(position, rotation);
         this.brightness = brightness;
         return this;
     }
 }
 
-class Mirror extends Object
-{
-    constructor(indexOfRefraction, position, rotation, vertices = [], closedShape = true)
-    {
+class Mirror extends Object {
+    constructor(indexOfRefraction, position, rotation, vertices = [], closedShape = true) {
         super(position, rotation);
         this.indexOfRefraction = indexOfRefraction;
         this.vertices = vertices;
@@ -884,69 +708,56 @@ class Mirror extends Object
         return this;
     }
 
-    static get refracting()
-    {
+    static get refracting() {
         return 1.5;
     }
 
-    static get reflecting()
-    {
+    static get reflecting() {
         return 0.5;
     }
 
-    static get absorbing()
-    {
+    static get absorbing() {
         return -0.5;
     }
 
-    get isRefracting()
-    {
+    get isRefracting() {
         return this.indexOfRefraction >= 1;
     }
 
-    get isReflecting()
-    {
+    get isReflecting() {
         return this.indexOfRefraction < 1 && this.indexOfRefraction >= 0;
     }
 
-    get isAbsorbing()
-    {
+    get isAbsorbing() {
         return this.indexOfRefraction < 0;
     }
 
-    get isNotAbsorbing()
-    {
+    get isNotAbsorbing() {
         return !this.isAbsorbing;
     }
 
-    getVertex(vertexNumber, absolute = false)
-    {
+    getVertex(vertexNumber, absolute = false) {
         let correctedVertexNumber = vertexNumber;
 
-        while(correctedVertexNumber < 0)
-        {
+        while (correctedVertexNumber < 0) {
             correctedVertexNumber += this.vertices.length;
         }
 
         let vertex = this.vertices[correctedVertexNumber % this.vertices.length];
 
-        if(absolute)
-        {
+        if (absolute) {
             vertex = vertex.clone().rotateAroundPoint(pointOrigin, this.rotation).addTo(this.position);
         }
 
         return vertex;
     }
 
-    getSide(sideNumber, absolute = false)
-    {
+    getSide(sideNumber, absolute = false) {
         return new Line(this.getVertex(sideNumber, absolute), this.getVertex(sideNumber + 1, absolute));
     }
 
-    getExtremes(absolute = false)
-    {
-        if(this.vertices.length === 0)
-        {
+    getExtremes(absolute = false) {
+        if (this.vertices.length === 0) {
             return false;
         }
 
@@ -955,27 +766,22 @@ class Mirror extends Object
         let upMost;
         let downMost;
 
-        for(let n = 0; n < this.vertices.length; n++)
-        {
-            let vertex = this.getVertex(n, absolute);                    
+        for (let n = 0; n < this.vertices.length; n++) {
+            let vertex = this.getVertex(n, absolute);
 
-            if(leftMost === undefined || vertex.x <= leftMost.x)
-            {
+            if (leftMost === undefined || vertex.x <= leftMost.x) {
                 leftMost = vertex;
             }
 
-            if(rightMost === undefined || vertex.x >= rightMost.x)
-            {
+            if (rightMost === undefined || vertex.x >= rightMost.x) {
                 rightMost = vertex;
             }
 
-            if(upMost === undefined || vertex.y <= upMost.y)
-            {
+            if (upMost === undefined || vertex.y <= upMost.y) {
                 upMost = vertex;
             }
 
-            if(downMost === undefined || vertex.y >= downMost.y)
-            {
+            if (downMost === undefined || vertex.y >= downMost.y) {
                 downMost = vertex;
             }
         }
@@ -988,18 +794,15 @@ class Mirror extends Object
         };
     }
 
-    pointInside(p, absolute)
-    {
+    pointInside(p, absolute) {
         let pointOutside = this.getExtremes(absolute).leftMost.clone().subtractTo(new Point(1, 0));
         let lineFromInsideToOutside = new Line(p, pointOutside);
         let sum = 0;
 
-        for(let n = 0; n < this.vertices.length; n++)
-        {
+        for (let n = 0; n < this.vertices.length; n++) {
             let side = this.getSide(n, absolute);
 
-            if(intersectSegmentSegment(lineFromInsideToOutside, side, false))
-            {
+            if (intersectSegmentSegment(lineFromInsideToOutside, side, false)) {
                 sum++;
             }
         }
@@ -1007,29 +810,24 @@ class Mirror extends Object
         return sum % 2 !== 0;
     }
 
-    findArea()
-    {
-        if(this.vertices.length < 3)
-        {
+    findArea() {
+        if (this.vertices.length < 3) {
             return 0;
         }
 
         let sum = 0;
 
-        for(let n = 1; n <= this.vertices.length; n++)
-        {
+        for (let n = 1; n <= this.vertices.length; n++) {
             sum += this.getVertex(n).x * this.getVertex(n + 1).y - this.getVertex(n + 1).x * this.getVertex(n).y;
         }
 
         return sum;
     }
 
-    findCenter()
-    {
+    findCenter() {
         let average = pointOrigin.clone();
 
-        for(let n = 0; n < this.vertices.length; n++)
-        {
+        for (let n = 0; n < this.vertices.length; n++) {
             let vertex = this.vertices[n];
             average.addTo(vertex);
         }
@@ -1039,56 +837,45 @@ class Mirror extends Object
         return average;
     }
 
-    moveAnchorTo(p)
-    {
+    moveAnchorTo(p) {
         this.translateVertices(this.position.clone().subtractTo(p));
         this.position.setTo(p);
     }
 
-    translateVertices(p)
-    {
-        for(let n = 0; n < this.vertices.length; n++)
-        {
+    translateVertices(p) {
+        for (let n = 0; n < this.vertices.length; n++) {
             let vertex = this.vertices[n];
             vertex.addTo(p);
         }
     }
 
-    scaleVertices(xs, ys = xs)
-    {
-        for(let n = 0; n < this.vertices.length; n++)
-        {
+    scaleVertices(xs, ys = xs) {
+        for (let n = 0; n < this.vertices.length; n++) {
             let vertex = this.vertices[n];
             vertex.scaleXY(xs, ys);
         }
     }
 
-    subdivideVertices(vertexMultiplier = 2)
-    {
-        for(let n = 0; n < this.vertices.length; n++)
-        {
+    subdivideVertices(vertexMultiplier = 2) {
+        for (let n = 0; n < this.vertices.length; n++) {
             let side = this.getSide(n);
             let interpolations = [];
 
-            for(let m = 1; m < vertexMultiplier; m++)
-            {
+            for (let m = 1; m < vertexMultiplier; m++) {
                 this.vertices.splice(n + 1, 0, side.p1.clone().interpolateToPointLinear(side.p2, m / (vertexMultiplier + 1)));
                 n++;
             }
         }
     }
 
-    smoothVertices(factor = 0.5, iterationsMultiplier = 1)
-    {
-        if(this.vertices.length === 0)
-        {
+    smoothVertices(factor = 0.5, iterationsMultiplier = 1) {
+        if (this.vertices.length === 0) {
             return;
         }
 
         let initialArea = this.findArea();
 
-        for(let n = 0; n < Math.round(this.vertices.length * iterationsMultiplier); n++)
-        {
+        for (let n = 0; n < Math.round(this.vertices.length * iterationsMultiplier); n++) {
             let previousVertex = this.getVertex(n - 1);
             let vertex = this.getVertex(n);
             let nextVertex = this.getVertex(n + 1);
@@ -1100,8 +887,7 @@ class Mirror extends Object
         this.scaleVertices(Math.sqrt(initialArea / finalArea));
     }
 
-    makeRectangle(width, height)
-    {
+    makeRectangle(width, height) {
         let halfWidth = width / 2;
         let halfHeight = height / 2;
         let topLeftCorner = new Point(-halfWidth, -halfHeight);
@@ -1112,55 +898,47 @@ class Mirror extends Object
         this.closedShape = true;
     }
 
-    makeCircle(radius, vertexCount)
-    {
+    makeCircle(radius, vertexCount) {
         this.vertices = [];
 
-        for(let n = 0; n < vertexCount; n++)
-        {
+        for (let n = 0; n < vertexCount; n++) {
             let vertex = new Point();
             vertex.addToPolar(radius, n / vertexCount * 2 * Math.PI);
             this.vertices.push(vertex);
         }
-        
+
         this.closedShape = true;
     }
 
-    makeRegularPolygon(radius, sideCount)
-    {
+    makeRegularPolygon(radius, sideCount) {
         this.vertices = [];
 
-        for(let n = 0; n < sideCount; n++)
-        {
+        for (let n = 0; n < sideCount; n++) {
             let angle = n / sideCount * 2 * Math.PI;
             this.vertices.push(new Point(radius * Math.cos(angle), radius * Math.sin(angle)));
         }
-        
-        this.closedShape = true;
-    }
-    
-    makeConcaveMirror(focalLength, length, vertexCount)
-    {
-        this.vertices = [new Point(100, length / 2), new Point(100, -length / 2)];
-        
-        for(let n = 0; n < vertexCount; n++)
-        {
-            let x = (n / (vertexCount - 1) - 0.5) * length;
-            this.vertices.push(new Point(Math.pow(x, 2) / (4 * focalLength), x));
-        }
-        
+
         this.closedShape = true;
     }
 
-    makeConvexMirror(focalLength, length, vertexCount)
-    {
+    makeConcaveMirror(focalLength, length, vertexCount) {
+        this.vertices = [new Point(100, length / 2), new Point(100, -length / 2)];
+
+        for (let n = 0; n < vertexCount; n++) {
+            let x = (n / (vertexCount - 1) - 0.5) * length;
+            this.vertices.push(new Point(Math.pow(x, 2) / (4 * focalLength), x));
+        }
+
+        this.closedShape = true;
+    }
+
+    makeConvexMirror(focalLength, length, vertexCount) {
         this.makeConcaveMirror(focalLength, length, vertexCount);
         this.vertices.shift();
         this.vertices.shift();
         let rightMost = this.getExtremes().rightMost;
 
-        for(let n = 0; n < this.vertices.length; n++)
-        {
+        for (let n = 0; n < this.vertices.length; n++) {
             let vertex = this.vertices[n];
             vertex.x = -(vertex.x + rightMost.x) - rightMost.x;
         }
@@ -1168,19 +946,16 @@ class Mirror extends Object
         this.closedShape = true;
     }
 
-    makeConcaveLens(focalLength, length, vertexCount)
-    {
+    makeConcaveLens(focalLength, length, vertexCount) {
         this.makeConvexMirror(focalLength, length, vertexCount);
         let rightMost = this.getExtremes().leftMost;
 
-        for(let n = 0; n < this.vertices.length; n++)
-        {
+        for (let n = 0; n < this.vertices.length; n++) {
             let vertex = this.vertices[n];
             vertex.x += length / 60;
         }
 
-        for(let n = this.vertices.length - 2; n >= 1; n--)
-        {
+        for (let n = this.vertices.length - 2; n >= 1; n--) {
             let vertex = this.vertices[n];
             this.vertices.push(new Point(-(vertex.x + rightMost.x) - rightMost.x - length / 60, vertex.y));
         }
@@ -1188,13 +963,11 @@ class Mirror extends Object
         this.closedShape = true;
     }
 
-    makeConvexLens(focalLength, length, vertexCount)
-    {
+    makeConvexLens(focalLength, length, vertexCount) {
         this.makeConvexMirror(focalLength, length, vertexCount);
         let rightMost = this.getExtremes().rightMost;
 
-        for(let n = this.vertices.length - 2; n >= 1; n--)
-        {
+        for (let n = this.vertices.length - 2; n >= 1; n--) {
             let vertex = this.vertices[n];
             this.vertices.push(new Point(-(vertex.x - rightMost.x) + rightMost.x, vertex.y));
         }
@@ -1202,79 +975,64 @@ class Mirror extends Object
         this.closedShape = true;
     }
 
-    makeBlob(averageRadius, maxRadiusDeviation, maxAngleDeviation, vertexCount)
-    {
+    makeBlob(averageRadius, maxRadiusDeviation, maxAngleDeviation, vertexCount) {
         // 0 > maxAngleDeviation < 1
         this.vertices = [];
 
-        for(let n = 0; n < vertexCount; n++)
-        {
+        for (let n = 0; n < vertexCount; n++) {
             let radius = clampMin(averageRadius + maxRadiusDeviation * averageRadius * 2 * (Math.random() - 0.5), -1);
             let angle = (n + maxAngleDeviation * 2 * (Math.random() - 0.5)) / vertexCount * 2 * Math.PI;
             this.vertices.push(new Point(radius * Math.cos(angle), radius * Math.sin(angle)));
         }
-        
+
         this.closedShape = true;
     }
 }
 
-class Guide extends Object
-{
-    constructor(position, rotation, guidance = 0.25)
-    {
+class Guide extends Object {
+    constructor(position, rotation, guidance = 0.25) {
         super(position, rotation);
         this.guidance = guidance;
         return this;
     }
 }
 
-class MouseAction
-{
-    static get drag()
-    {
+class MouseAction {
+    static get drag() {
         return 0;
     }
 
-    static get dragX()
-    {
+    static get dragX() {
         return 1;
     }
 
-    static get dragY()
-    {
+    static get dragY() {
         return 2;
     }
 
-    static get rotate()
-    {
+    static get rotate() {
         return 3;
     }
 
-    static get change()
-    {
+    static get change() {
         return 4;
     }
 
-    static get laser()
-    {
+    static get laser() {
         return 5;
     }
 
-    static get interferer()
-    {
+    static get interferer() {
         return 6;
     }
 
-    static get guide()
-    {
+    static get guide() {
         return 7;
     }
 }
 
-class Animation
-{
-    constructor(keyframes, interpolationFunction, duration, isLooping = true)
-    {
+class Animation {
+    constructor(keyframes, interpolationFunction, duration, isLooping = true) {
         this.time = 0;
         this.keyframes = keyframes;
         this.interpolationFunction = interpolationFunction;
@@ -1283,83 +1041,65 @@ class Animation
         return this;
     }
 
-    getValues()
-    {
+    getValues() {
         let lowKeyframe;
 
-        for(let n = 0; n < this.keyframes.length; n++)
-        {
+        for (let n = 0; n < this.keyframes.length; n++) {
             let keyframe = this.keyframes[n];
-            if((lowKeyframe === undefined || keyframe.time >= lowKeyframe.time) && keyframe.time <= this.time)
-            {
+            if ((lowKeyframe === undefined || keyframe.time >= lowKeyframe.time) && keyframe.time <= this.time) {
                 lowKeyframe = keyframe;
             }
         }
 
         let highKeyframe;
 
-        for(let n = 0; n < this.keyframes.length; n++)
-        {
+        for (let n = 0; n < this.keyframes.length; n++) {
             let keyframe = this.keyframes[n];
-            if((highKeyframe === undefined || keyframe.time <= highKeyframe.time) && keyframe.time >= this.time)
-            {
+            if ((highKeyframe === undefined || keyframe.time <= highKeyframe.time) && keyframe.time >= this.time) {
                 highKeyframe = keyframe;
             }
         }
 
-        if(lowKeyframe === undefined)
-        {
+        if (lowKeyframe === undefined) {
             return highKeyframe.values;
         }
 
-        if(highKeyframe === undefined)
-        {
+        if (highKeyframe === undefined) {
             return lowKeyframe.values;
         }
 
-        if(lowKeyframe === highKeyframe)
-        {
+        if (lowKeyframe === highKeyframe) {
             return lowKeyframe.values;
         }
 
         let mapped = map(this.time, lowKeyframe.time, highKeyframe.time, 0, 1);
 
-        if(Array.isArray(this.keyframes[0].values))
-        {
+        if (Array.isArray(this.keyframes[0].values)) {
             let values = [];
 
-            for(let n = 0; n < this.keyframes[0].values.length; n++)
-            {
+            for (let n = 0; n < this.keyframes[0].values.length; n++) {
                 values.push(this.interpolationFunction(lowKeyframe.values[n], highKeyframe.values[n], mapped));
             }
 
             return values;
-        }
-
-        else
-        {
+        } else {
             return this.interpolationFunction(lowKeyframe.values, highKeyframe.values, mapped);
         }
     }
 
-    animate()
-    {
+    animate() {
         this.time++;
 
-        if(this.isLooping)
-        {
-            while(this.time >= this.duration)
-            {
+        if (this.isLooping) {
+            while (this.time >= this.duration) {
                 this.time -= this.duration;
             }
         }
     }
 }
 
-class Keyframe
-{
-    constructor(time, values)
-    {
+class Keyframe {
+    constructor(time, values) {
         this.time = time;
         this.values = values;
         return this;
@@ -1416,84 +1156,55 @@ const scene = new Scene();
 let time = 0;
 loadExample(1);
 
-function render()
-{
-    if(scene.draggedObject !== false)
-    {
-        if(mouseAction === MouseAction.drag)
-        {
+function render() {
+    if (scene.draggedObject !== false) {
+        if (mouseAction === MouseAction.drag) {
             scene.draggedObject.position.setTo(mousePosition).addTo(cameraPosition).subtractTo(scene.draggedObject.dragOffset);
-        }
-
-        else if(mouseAction === MouseAction.dragX)
-        {
+        } else if (mouseAction === MouseAction.dragX) {
             scene.draggedObject.position.x = mousePosition.x + cameraPosition.x - scene.draggedObject.dragOffset.x;
-        }
-
-        else if(mouseAction === MouseAction.dragY)
-        {
+        } else if (mouseAction === MouseAction.dragY) {
             scene.draggedObject.position.y = mousePosition.y + cameraPosition.y - scene.draggedObject.dragOffset.y;
-        }
-        
-        else if(mouseAction === MouseAction.rotate)
-        {
+        } else if (mouseAction === MouseAction.rotate) {
             let line = new Line(scene.draggedObject.position.clone().subtractTo(cameraPosition), mousePosition);
             scene.draggedObject.rotation = modulus(line.getAngle(), 2 * Math.PI);
-        }
-
-        else if(mouseAction === MouseAction.change)
-        {
-            if(scene.draggedObject instanceof Mirror)
-            {
+        } else if (mouseAction === MouseAction.change) {
+            if (scene.draggedObject instanceof Mirror) {
                 scene.draggedMirror.indexOfRefraction = clampMin(scene.draggedMirror.dragIndexOfRefraction + (scene.draggedMirror.mousePositionOnDrag.y - mousePosition.y) / 100, -2);
-            }
-
-            else if(scene.draggedObject instanceof Laser)
-            {
+            } else if (scene.draggedObject instanceof Laser) {
                 scene.draggedLaser.brightness = map(Math.round(modulus(scene.draggedLaser.dragBrightness + (scene.draggedLaser.mousePositionOnDrag.y - mousePosition.y) / 300, 1)), 0, 1, 0.25, 0.75);
-            }
-
-            else if(scene.draggedObject instanceof Guide)
-            {
+            } else if (scene.draggedObject instanceof Guide) {
                 scene.draggedGuide.guidance = map(Math.round(modulus(scene.draggedGuide.dragGuidance + (scene.draggedGuide.mousePositionOnDrag.y - mousePosition.y) / 300, 1)), 0, 1, 0.25, 0.75);
             }
         }
     }
 
     scene.animate();
-    
-    if(keysPressed.includes("ArrowLeft") || keysPressed.includes("a") || keysPressed.includes("A"))
-    {
+
+    if (keysPressed.includes("ArrowLeft") || keysPressed.includes("a") || keysPressed.includes("A")) {
         cameraPosition.x -= 10;
     }
-    
-    if(keysPressed.includes("ArrowRight") || keysPressed.includes("d") || keysPressed.includes("D"))
-    {
+
+    if (keysPressed.includes("ArrowRight") || keysPressed.includes("d") || keysPressed.includes("D")) {
         cameraPosition.x += 10;
     }
-    
-    if(keysPressed.includes("ArrowUp") || keysPressed.includes("w") || keysPressed.includes("W"))
-    {
+
+    if (keysPressed.includes("ArrowUp") || keysPressed.includes("w") || keysPressed.includes("W")) {
         cameraPosition.y -= 10;
     }
-    
-    if(keysPressed.includes("ArrowDown") || keysPressed.includes("s") || keysPressed.includes("S"))
-    {
+
+    if (keysPressed.includes("ArrowDown") || keysPressed.includes("s") || keysPressed.includes("S")) {
         cameraPosition.y += 10;
     }
 
     let lasersCollisions = scene.getLaserCollisions();
 
-    if(scene.draggedGuide !== false && mouseAction === MouseAction.drag && scene.draggedObject instanceof Guide && Math.round(scene.draggedObject.guidance) === 1)
-    {
+    if (scene.draggedGuide !== false && mouseAction === MouseAction.drag && scene.draggedObject instanceof Guide && Math.round(scene.draggedObject.guidance) === 1) {
         let objects = [];
-        for(let n = 0; n < lasersCollisions.length; n++)
-        {
+        for (let n = 0; n < lasersCollisions.length; n++) {
             objects.push({position: scene.lasers[n].position});
             let laserCollisions = lasersCollisions[n];
 
-            for(let m = 0; m < laserCollisions.length; m++)
-            {
+            for (let m = 0; m < laserCollisions.length; m++) {
                 let laserCollision = laserCollisions[m];
                 objects.push({position: laserCollision});
             }
@@ -1501,8 +1212,7 @@ function render()
 
         let closest = scene.getClosestObjectToPoint(scene.draggedObject.position, objects);
 
-        if(closest !== false && closest.distanceToObject <= 50)
-        {
+        if (closest !== false && closest.distanceToObject <= 50) {
             scene.draggedObject.position.setTo(closest.object.position);
         }
     }
@@ -1512,12 +1222,10 @@ function render()
     ctx.shadowBlur = 0;
     ctx.fillRect(cameraPosition.x - 960, cameraPosition.y - 540, 1920, 1080);
 
-    for(let n = 0; n < scene.guides.length; n++)
-    {
+    for (let n = 0; n < scene.guides.length; n++) {
         let guide = scene.guides[n];
 
-        if(scene.draggedObject === false || !scene.draggedObject instanceof Guide || scene.draggedObject !== guide)
-        {
+        if (scene.draggedObject === false || !scene.draggedObject instanceof Guide || scene.draggedObject !== guide) {
             ctx.globalAlpha = 0.5;
         }
 
@@ -1525,14 +1233,10 @@ function render()
         ctx.translate(guide.position.x, guide.position.y);
         ctx.rotate(guide.rotation);
 
-        if(Math.round(guide.guidance) === 0)
-        {
+        if (Math.round(guide.guidance) === 0) {
             ctx.rotate(Math.PI / 2)
             ctx.drawImage(rulerImage, -400, -57.5, 800, 115);
-        }
-
-        else
-        {
+        } else {
             ctx.drawImage(protractorImage, -300, -300, 600, 600);
         }
 
@@ -1545,52 +1249,35 @@ function render()
 
     let mirrors = scene.mirrors;
 
-    for(let n = 0; n < 3; n++)
-    {
+    for (let n = 0; n < 3; n++) {
         let selectedMirrors;
 
-        if(n === 0)
-        {
-            selectedMirrors = mirrors.filter(function(mirror)
-            {
+        if (n === 0) {
+            selectedMirrors = mirrors.filter(function (mirror) {
                 return !mirror.isNotAbsorbing;
             });
 
             ctx.strokeStyle = "#ffffff";
-        }
-
-        else
-        {
-            if(n === 1)
-            {
-                selectedMirrors = mirrors.filter(function(mirror)
-                {
+        } else {
+            if (n === 1) {
+                selectedMirrors = mirrors.filter(function (mirror) {
                     return mirror.isNotAbsorbing;
                 });
 
-                if(scene.draggedMirror !== false)
-                {
+                if (scene.draggedMirror !== false) {
                     let index = selectedMirrors.indexOf(scene.draggedMirror);
 
-                    if(index !== -1)
-                    {
+                    if (index !== -1) {
                         selectedMirrors.splice(index, 1);
                     }
                 }
 
                 ctx.strokeStyle = "#ff0000";
                 ctx.shadowBlur = getGlowBlur(20);
-            }
-
-            else
-            {
-                if(scene.draggedMirror === false)
-                {
+            } else {
+                if (scene.draggedMirror === false) {
                     selectedMirrors = [];
-                }
-
-                else
-                {
+                } else {
                     selectedMirrors = [scene.draggedMirror];
                 }
 
@@ -1602,8 +1289,7 @@ function render()
             ctx.fillStyle = ctx.strokeStyle;
         }
 
-        for(let m = 0; m < selectedMirrors.length; m++)
-        {
+        for (let m = 0; m < selectedMirrors.length; m++) {
             let mirror = selectedMirrors[m];
             let vertices = mirror.vertices;
             ctx.save();
@@ -1612,21 +1298,18 @@ function render()
             ctx.beginPath();
             ctx.moveTo(vertices[0].x, vertices[0].y);
 
-            for(let v = 1; v < vertices.length; v++)
-            {
+            for (let v = 1; v < vertices.length; v++) {
                 let vertex = vertices[v];
                 ctx.lineTo(vertex.x, vertex.y);
             }
-            
-            if(mirror.closedShape || mirror.isRefracting)
-            {
+
+            if (mirror.closedShape || mirror.isRefracting) {
                 ctx.closePath();
             }
-            
+
             ctx.stroke();
 
-            if(mirror.isRefracting)
-            {
+            if (mirror.isRefracting) {
                 ctx.globalAlpha = clamp(1 - 1 / Math.pow(Math.E, 0.1 * (mirror.indexOfRefraction - 1)), 0, 1);
                 ctx.shadowBlur = 0;
                 ctx.fill();
@@ -1637,43 +1320,35 @@ function render()
 
     ctx.lineWidth = 3;
 
-    for(let n = 0; n < lasersCollisions.length; n++)
-    {
+    for (let n = 0; n < lasersCollisions.length; n++) {
         let laser = scene.lasers[n];
         let laserCollisions = lasersCollisions[n];
 
-        if(Math.round(laser.brightness) !== 0)
-        {
+        if (Math.round(laser.brightness) !== 0) {
             ctx.strokeStyle = "hsl(120, 100%, 50%)";
             ctx.shadowColor = ctx.strokeStyle;
             ctx.shadowBlur = getGlowBlur(20);
             ctx.globalAlpha = clamp(Math.round(laser.brightness), 0, 1);
             ctx.beginPath();
             ctx.moveTo(laser.position.x, laser.position.y);
-            
-            for(let m = 0; m < laserCollisions.length; m++)
-            {
+
+            for (let m = 0; m < laserCollisions.length; m++) {
                 let laserCollision = laserCollisions[m];
                 ctx.lineTo(laserCollision.x, laserCollision.y);
             }
-    
+
             ctx.stroke();
         }
     }
 
-    for(let l = 0; l < scene.lasers.length; l++)
-    {
+    for (let l = 0; l < scene.lasers.length; l++) {
         let laser = scene.lasers[l];
         ctx.globalAlpha = 1;
 
-        if(scene.draggedObject === laser)
-        {
+        if (scene.draggedObject === laser) {
             ctx.shadowColor = "#ffffff";
             ctx.shadowBlur = getGlowBlur(30);
-        }
-
-        else
-        {
+        } else {
             ctx.shadowBlur = 0;
         }
 
@@ -1684,102 +1359,71 @@ function render()
         ctx.restore();
     }
 
-    if(scene.draggedObject !== false)
-    {
+    if (scene.draggedObject !== false) {
         let text;
         let doDrawText = true;
 
-        if(mouseAction === MouseAction.dragX)
-        {
+        if (mouseAction === MouseAction.dragX) {
             text = "x: " + Math.round(scene.draggedObject.position.x);
         }
 
-        if(mouseAction === MouseAction.dragY)
-        {
+        if (mouseAction === MouseAction.dragY) {
             text = "y: " + Math.round(-scene.draggedObject.position.y);
         }
 
-        if(mouseAction === MouseAction.drag)
-        {
+        if (mouseAction === MouseAction.drag) {
             text = "x: " + Math.round(scene.draggedObject.position.x) + ", y: " + Math.round(-scene.draggedObject.position.y);
         }
 
-        if(mouseAction === MouseAction.rotate)
-        {
+        if (mouseAction === MouseAction.rotate) {
             text = "r: " + Math.floor((2 * Math.PI - scene.draggedObject.rotation) * 180 / Math.PI) + " deg";
         }
 
-        if(mouseAction === MouseAction.change)
-        {
-            if(scene.draggedObject instanceof Laser)
-            {
-                if(Math.round(scene.draggedLaser.brightness) === 1)
-                {
+        if (mouseAction === MouseAction.change) {
+            if (scene.draggedObject instanceof Laser) {
+                if (Math.round(scene.draggedLaser.brightness) === 1) {
                     text = "Laser: ON";
-                }
-
-                else
-                {
+                } else {
                     text = "Laser: OFF";
                 }
-            }
-
-            else if(scene.draggedObject instanceof Mirror)
-            {
-                if(scene.draggedMirror.isRefracting)
-                {
+            } else if (scene.draggedObject instanceof Mirror) {
+                if (scene.draggedMirror.isRefracting) {
                     text = "Refractive, IOR: " + Math.round(100 * scene.draggedObject.indexOfRefraction) / 100;
                 }
 
-                if(scene.draggedMirror.isReflecting)
-                {
+                if (scene.draggedMirror.isReflecting) {
                     text = "Reflective";
                 }
 
-                if(scene.draggedMirror.isAbsorbing)
-                {
+                if (scene.draggedMirror.isAbsorbing) {
                     text = "Absorbtive";
                 }
             }
 
-            if(scene.draggedObject instanceof Guide)
-            {
-                if(Math.round(scene.draggedGuide.guidance) === 0)
-                {
+            if (scene.draggedObject instanceof Guide) {
+                if (Math.round(scene.draggedGuide.guidance) === 0) {
                     text = "Ruler";
-                }
-
-                else
-                {
+                } else {
                     text = "Protractor";
                 }
             }
         }
 
-        if(doDrawText)
-        {
+        if (doDrawText) {
             let extraSpace = 0;
-            
-            if(scene.draggedObject instanceof Laser)
-            {
-                if(scene.draggedLaser.rotation < Math.PI)
-                {
-                    extraSpace = -70;
-                }
 
-                else
-                {
+            if (scene.draggedObject instanceof Laser) {
+                if (scene.draggedLaser.rotation < Math.PI) {
+                    extraSpace = -70;
+                } else {
                     extraSpace = 70;
                 }
-            }
-
-            else if(scene.draggedObject instanceof Guide && Math.round(scene.draggedObject.guidance) === 1)
-            {
+            } else if (scene.draggedObject instanceof Guide && Math.round(scene.draggedObject.guidance) === 1) {
                 extraSpace = 100;
             }
 
             let textWidth = ctx.measureText(text).width;
-            
+
             ctx.shadowBlur = 0;
             ctx.fillStyle = "#000000";
             ctx.fillRect(scene.draggedObject.position.x - textWidth / 2 - 5, scene.draggedObject.position.y - 25 - 5 + extraSpace, textWidth + 10, 50 + 10);
@@ -1789,7 +1433,7 @@ function render()
             ctx.fillText(text, scene.draggedObject.position.x - textWidth / 2, scene.draggedObject.position.y + 25 + extraSpace);
         }
     }
-    
+
     ctx.resetTransform();
 
     ctx.shadowBlur = 0;
@@ -1808,43 +1452,21 @@ function render()
     let interfererColor = "#111111";
     let guideColor = "#111111";
 
-    if(mouseAction === MouseAction.dragX)
-    {
+    if (mouseAction === MouseAction.dragX) {
         dragXColor = "#42b6f5";
-    }
-
-    else if(mouseAction === MouseAction.dragY)
-    {
+    } else if (mouseAction === MouseAction.dragY) {
         dragYColor = "#42b6f5";
-    }
-
-    else if(mouseAction === MouseAction.drag)
-    {
+    } else if (mouseAction === MouseAction.drag) {
         dragColor = "#42b6f5";
-    }
-
-    else if(mouseAction === MouseAction.rotate)
-    {
+    } else if (mouseAction === MouseAction.rotate) {
         rotateColor = "#42b6f5";
-    }
-
-    else if(mouseAction === MouseAction.change)
-    {
+    } else if (mouseAction === MouseAction.change) {
         changeColor = "#42b6f5";
-    }
-
-    else if(mouseAction === MouseAction.laser)
-    {
+    } else if (mouseAction === MouseAction.laser) {
         laserColor = "#42b6f5";
-    }
-
-    else if(mouseAction === MouseAction.interferer)
-    {
+    } else if (mouseAction === MouseAction.interferer) {
         interfererColor = "#42b6f5";
-    }
-
-    else if(mouseAction === MouseAction.guide)
-    {
+    } else if (mouseAction === MouseAction.guide) {
         guideColor = "#42b6f5";
     }
 
@@ -1865,18 +1487,13 @@ function render()
     ctx.fillStyle = guideColor;
     ctx.fillRect(1780, 0, 140, 140);
 
-    if((distance(new Point(mousePosition.x + 960, mousePosition.y), new Point(0, 0)) < 500 || distance(new Point(mousePosition.x + 960, mousePosition.y), new Point(1920, 0)) < 500) && scene.draggedObject === false)
-    {
+    if ((distance(new Point(mousePosition.x + 960, mousePosition.y), new Point(0, 0)) < 500 || distance(new Point(mousePosition.x + 960, mousePosition.y), new Point(1920, 0)) < 500) && scene.draggedObject === false) {
         keysHelp = clampMin(keysHelp - 0.05, 0);
-    }
-    
-    else
-    {
+    } else {
         keysHelp = clampMax(keysHelp + 0.05, 1);
     }
 
-    if(keysHelp > 0.01)
-    {
+    if (keysHelp > 0.01) {
         ctx.globalAlpha = clamp(keysHelp, 0, 1);
         ctx.drawImage(letterXImage, 17, -283, 36, 36);
         ctx.drawImage(letterYImage, 91, -283, 36, 36);
@@ -1888,8 +1505,7 @@ function render()
         ctx.drawImage(letterGImage, 1814, 34, 72, 72);
     }
 
-    if(keysHelp < 0.99)
-    {
+    if (keysHelp < 0.99) {
         ctx.globalAlpha = clamp(1 - keysHelp, 0, 1);
         ctx.drawImage(dragXImage, 17, -283, 36, 36);
         ctx.drawImage(dragYImage, 90, -283, 36, 36);
@@ -1899,50 +1515,30 @@ function render()
         ctx.drawImage(addLaserImage, 1814, -266, 72, 72);
         ctx.drawImage(addInterfererImage, 1814, -116, 72, 72);
 
-        if(scene.guides.length === 0)
-        {
+        if (scene.guides.length === 0) {
             ctx.drawImage(addRulerImage, 1814, 34, 72, 72);
-        }
-    
-        else if(scene.guides.length === 1)
-        {
-            if(Math.round(scene.guides[0].guidance) === 0)
-            {
+        } else if (scene.guides.length === 1) {
+            if (Math.round(scene.guides[0].guidance) === 0) {
                 ctx.drawImage(addProtractorImage, 1814, 34, 72, 72);
-            }
-    
-            else
-            {
+            } else {
                 ctx.drawImage(addRulerImage, 1814, 34, 72, 72);
             }
-        }
-    
-        else if(scene.guides.length === 2)
-        {
-            if(Math.round(scene.guides[1].guidance) === 0)
-            {
+        } else if (scene.guides.length === 2) {
+            if (Math.round(scene.guides[1].guidance) === 0) {
                 ctx.drawImage(addProtractorImage, 1814, 34, 72, 72);
-            }
-    
-            else
-            {
+            } else {
                 ctx.drawImage(addRulerImage, 1814, 34, 72, 72);
             }
         }
     }
-    
+
     ctx.globalAlpha = 1;
     ctx.resetTransform();
 
-    if(time < 120)
-    {
-        if(time < 60)
-        {
+    if (time < 120) {
+        if (time < 60) {
             ctx.globalAlpha = 1;
-        }
-        
-        else
-        {
+        } else {
             ctx.globalAlpha = clamp(map(time, 60, 120, 1, 0), 0, 1);
         }
 
@@ -1958,43 +1554,22 @@ function render()
     ctx.save();
     ctx.translate(mousePosition.x + 960, mousePosition.y + 540);
 
-    if(scene.draggedObject === false)
-    {
-        if(mouseAction === MouseAction.laser || mouseAction === MouseAction.interferer || mouseAction === MouseAction.guide)
-        {
+    if (scene.draggedObject === false) {
+        if (mouseAction === MouseAction.laser || mouseAction === MouseAction.interferer || mouseAction === MouseAction.guide) {
             ctx.drawImage(objectImage, -18, -18, 36, 36);
-        }
-        
-        else
-        {
+        } else {
             ctx.drawImage(pointImage, -5, -5, 36, 36);
         }
-    }
-
-    else
-    {
-        if(mouseAction === MouseAction.drag)
-        {
+    } else {
+        if (mouseAction === MouseAction.drag) {
             ctx.drawImage(dragImage, -18, -18, 36, 36);
-        }
-
-        else if(mouseAction === MouseAction.dragX)
-        {
+        } else if (mouseAction === MouseAction.dragX) {
             ctx.drawImage(dragXImage, -18, -18, 36, 36);
-        }
-
-        else if(mouseAction === MouseAction.dragY)
-        {
+        } else if (mouseAction === MouseAction.dragY) {
             ctx.drawImage(dragYImage, -18, -18, 36, 36);
-        }
-
-        else if(mouseAction === MouseAction.rotate)
-        {
+        } else if (mouseAction === MouseAction.rotate) {
             ctx.drawImage(rotateImage, -18, -18, 36, 36);
-        }
-
-        else if(mouseAction === MouseAction.change)
-        {
+        } else if (mouseAction === MouseAction.change) {
             ctx.drawImage(grabImage, -18, -18, 36, 36);
         }
     }
@@ -2004,13 +1579,11 @@ function render()
     request = requestAnimationFrame(render);
 }
 
-function loadExample(n)
-{
+function loadExample(n) {
     scene.reset();
     cameraPosition.setTo(pointOrigin);
 
-    switch(n)
-    {
+    switch (n) {
         case 1:
             scene.lasers.push(new Laser(new Point(100, -250), Math.PI / 4));
             let triangle = new Mirror(Mirror.absorbing, new Point(-300, 375), 0)
@@ -2031,11 +1604,9 @@ function loadExample(n)
         case 2:
             scene.lasers.push(new Laser(new Point(-150, -200), Math.PI / 10));
             scene.mirrors = [];
-            
-            for(let x = -2; x <= 2; x++)
-            {
-                for(let y = -1; y <= 1; y++)
-                {
+
+            for (let x = -2; x <= 2; x++) {
+                for (let y = -1; y <= 1; y++) {
                     let position = new Point(300 * x, 300 * y);
                     let square = new Mirror(3, new Animation([new Keyframe(0, [position.x, position.y]), new Keyframe(90 + 20 * Math.random(), [position.x + 40 + 20 * Math.random(), position.y + 40 + 20 * Math.random()]), new Keyframe(200, [position.x, position.y])], interpolateElastic, 200), new Animation([new Keyframe(0, 0), new Keyframe(20, Math.PI / 100), new Keyframe(40, 0)], interpolateLinear, 40));
                     square.makeRectangle(150, 150);
@@ -2089,72 +1660,50 @@ window.onresize = resize;
 window.onmousemove = mousemove;
 window.onkeydown = keydown;
 window.onkeyup = keyup;
-window.onload = function()
-{
+window.onload = function () {
     request = requestAnimationFrame(render);
 }
-window.oncontextmenu = function(event) { event.preventDefault(); };
+window.oncontextmenu = function (event) {
+    event.preventDefault();
+};
 resize();
 
-function resize()
-{
+function resize() {
     windowWidth = window.innerWidth;
     windowHeight = window.innerHeight;
-    
-    if(windowWidth / windowHeight > 1920 / 1080)
-    {
+
+    if (windowWidth / windowHeight > 1920 / 1080) {
         canvas.style.width = `${(windowHeight / windowWidth) * (1920 / 1080) * 100}%`;
         canvas.style.height = "100%";
-    }
-    
-    else
-    {
+    } else {
         canvas.style.width = "100%";
         canvas.style.height = `${(windowWidth / windowHeight) * (1080 / 1920) * 100}%`;
     }
 }
 
-function mousedown(event)
-{
-    if(!event)
-    {
+function mousedown(event) {
+    if (!event) {
         event = window.event;
     }
 
-    if(time < 90)
-    {
+    if (time < 90) {
         return;
     }
 
     mouseButtons[event.button] = true;
 
-    if(mousePosition.x + 960 > -10 && mousePosition.y > -310 && mousePosition.x + 960 < 150 && mousePosition.y < 230)
-    {
-        if(mousePosition.y < -225)
-        {
-            if(mousePosition.x + 960 < 70)
-            {
+    if (mousePosition.x + 960 > -10 && mousePosition.y > -310 && mousePosition.x + 960 < 150 && mousePosition.y < 230) {
+        if (mousePosition.y < -225) {
+            if (mousePosition.x + 960 < 70) {
                 mouseAction = MouseAction.dragX;
-            }
-
-            else
-            {
+            } else {
                 mouseAction = MouseAction.dragY;
             }
-        }
-
-        else if(mousePosition.y < -75)
-        {
+        } else if (mousePosition.y < -75) {
             mouseAction = MouseAction.drag;
-        }
-
-        else if(mousePosition.y < 75)
-        {
+        } else if (mousePosition.y < 75) {
             mouseAction = MouseAction.rotate;
-        }
-
-        else
-        {
+        } else {
             mouseAction = MouseAction.change;
         }
 
@@ -2162,20 +1711,12 @@ function mousedown(event)
         return;
     }
 
-    if(mousePosition.x + 960 > 1770 && mousePosition.y > -310 && mousePosition.x + 960 < 1930 && mousePosition.y < 150)
-    {
-        if(mousePosition.y < -155)
-        {
+    if (mousePosition.x + 960 > 1770 && mousePosition.y > -310 && mousePosition.x + 960 < 1930 && mousePosition.y < 150) {
+        if (mousePosition.y < -155) {
             mouseAction = MouseAction.laser;
-        }
-
-        else if(mousePosition.y < -5)
-        {
+        } else if (mousePosition.y < -5) {
             mouseAction = MouseAction.interferer;
-        }
-
-        else
-        {
+        } else {
             mouseAction = MouseAction.guide;
         }
 
@@ -2183,8 +1724,7 @@ function mousedown(event)
         return;
     }
 
-    if(mouseAction === MouseAction.laser)
-    {
+    if (mouseAction === MouseAction.laser) {
         let laser = new Laser(mousePosition.clone().addTo(cameraPosition), randomFloat(0, 2 * Math.PI));
         scene.addLaser(laser);
         laser.dragBrightness = 0.75;
@@ -2196,10 +1736,7 @@ function mousedown(event)
         scene.draggedLaser = laser;
         mouseAction = MouseAction.rotate;
         return;
-    }
-
-    else if(mouseAction === MouseAction.interferer)
-    {
+    } else if (mouseAction === MouseAction.interferer) {
         let mirror = new Mirror(Mirror.reflecting, mousePosition.clone().addTo(cameraPosition), randomFloat(0, 2 * Math.PI));
         mirror.makeRegularPolygon(randomFloat(150, 200), randomInteger(3, 6));
         scene.addMirror(mirror);
@@ -2212,24 +1749,16 @@ function mousedown(event)
         scene.draggedMirror = mirror;
         mouseAction = MouseAction.change;
         return;
-    }
-
-    else if(mouseAction === MouseAction.guide)
-    {
+    } else if (mouseAction === MouseAction.guide) {
         let guide;
 
-        if(scene.guides.length === 0)
-        {
+        if (scene.guides.length === 0) {
             guide = new Guide(mousePosition.clone().addTo(cameraPosition), 0);
-        }
-
-        else
-        {
-            if(scene.guides.length === 2)
-            {
+        } else {
+            if (scene.guides.length === 2) {
                 scene.removeGuide(scene.guides[0]);
             }
-            
+
             guide = new Guide(mousePosition.clone().addTo(cameraPosition), 0, modulus(scene.guides[0].guidance + 0.5, 1));
         }
 
@@ -2247,36 +1776,33 @@ function mousedown(event)
     }
 
     let point = mousePosition.clone().addTo(cameraPosition);
-    let closestLaser = scene.getClosestObjectToPoint(point, scene.lasers.filter(function(z) {return z.interactive;}));
+    let closestLaser = scene.getClosestObjectToPoint(point, scene.lasers.filter(function (z) {
+        return z.interactive;
+    }));
     let laser;
 
-    if(closestLaser !== false && closestLaser.distanceToObject <= 200)
-    {
+    if (closestLaser !== false && closestLaser.distanceToObject <= 200) {
         laser = [closestLaser.object];
-    }
-
-    else
-    {
+    } else {
         laser = [];
     }
 
-    let closestGuide = scene.getClosestObjectToPoint(point, scene.guides.filter(function(z) {return z.interactive;}));
+    let closestGuide = scene.getClosestObjectToPoint(point, scene.guides.filter(function (z) {
+        return z.interactive;
+    }));
     let guide;
 
-    if(closestGuide !== false && closestGuide.distanceToObject <= 300)
-    {
+    if (closestGuide !== false && closestGuide.distanceToObject <= 300) {
         guide = [closestGuide.object];
-    }
-
-    else
-    {
+    } else {
         guide = [];
     }
 
-    let closest = scene.getClosestObjectToPoint(point, scene.getMirrorsWithPointInside(point).filter(function(z) {return z.interactive;}).concat(laser, guide));
+    let closest = scene.getClosestObjectToPoint(point, scene.getMirrorsWithPointInside(point).filter(function (z) {
+        return z.interactive;
+    }).concat(laser, guide));
 
-    if(closest !== false)
-    {
+    if (closest !== false) {
         let object = closest.object;
         scene.setDraggedObjectTo(object);
         object.dragOffset = point.subtractTo(object.position);
@@ -2284,51 +1810,36 @@ function mousedown(event)
         object.dragPosition = object.position.clone();
         object.dragRotation = object.rotation;
 
-        if(object instanceof Laser)
-        {
+        if (object instanceof Laser) {
             object.dragBrightness = object.brightness;
-        }
-
-        else if(object instanceof Mirror)
-        {
+        } else if (object instanceof Mirror) {
             object.dragIndexOfRefraction = object.indexOfRefraction;
-        }
-
-        else if(object instanceof Guide)
-        {
+        } else if (object instanceof Guide) {
             object.dragGuidance = object.guidance;
         }
 
         clickSound.play();
-    }
-
-    else
-    {
+    } else {
         misclickSound.play();
     }
 }
 
-function mouseup(event)
-{
-    if(!event)
-    {
+function mouseup(event) {
+    if (!event) {
         event = window.event;
     }
 
     mouseButtons[event.button] = false;
 
-    if(scene.draggedObject !== false)
-    {
+    if (scene.draggedObject !== false) {
         clickSound.play();
     }
 
     scene.setDraggedObjectTo(false);
 }
 
-function mousemove(event)
-{
-    if(!event)
-    {
+function mousemove(event) {
+    if (!event) {
         event = window.event;
     }
 
@@ -2336,152 +1847,94 @@ function mousemove(event)
     mousePosition.setTo(new Point(((event.clientX - rect.left) / (rect.right - rect.left) - 0.5) * 1920, ((event.clientY - rect.top) / (rect.bottom - rect.top) - 0.5) * 1080));
 }
 
-function keydown(event)
-{
-    if(!event)
-    {
+function keydown(event) {
+    if (!event) {
         event = window.event;
     }
-    
+
     const eventKey = event.key;
-    
-    if(keysPressed.includes(eventKey) === false)
-    {
+
+    if (keysPressed.includes(eventKey) === false) {
         keysPressed.push(eventKey);
     }
 
-    if(!keysFired)
-    {
+    if (!keysFired) {
         keysFired = true;
 
-        if(eventKey.toUpperCase() === "T")
-        {
+        if (eventKey.toUpperCase() === "T") {
             mouseAction = MouseAction.drag;
-        }
-
-        else if(eventKey.toUpperCase() === "X")
-        {
-            if(mouseAction === MouseAction.drag || mouseAction === MouseAction.dragY)
-            {
+        } else if (eventKey.toUpperCase() === "X") {
+            if (mouseAction === MouseAction.drag || mouseAction === MouseAction.dragY) {
                 mouseAction = MouseAction.dragX;
             }
-        }
-
-        else if(eventKey.toUpperCase() === "Y")
-        {
-            if(mouseAction === MouseAction.drag || mouseAction === MouseAction.dragX)
-            {
+        } else if (eventKey.toUpperCase() === "Y") {
+            if (mouseAction === MouseAction.drag || mouseAction === MouseAction.dragX) {
                 mouseAction = MouseAction.dragY;
             }
-        }
-
-        else if(eventKey.toUpperCase() === "R")
-        {
+        } else if (eventKey.toUpperCase() === "R") {
             mouseAction = MouseAction.rotate;
-        }
-
-        else if(eventKey.toUpperCase() === "C")
-        {
+        } else if (eventKey.toUpperCase() === "C") {
             mouseAction = MouseAction.change;
-        }
-
-        else if(eventKey.toUpperCase() === "L")
-        {
+        } else if (eventKey.toUpperCase() === "L") {
             mouseAction = MouseAction.laser;
-        }
-
-        else if(eventKey.toUpperCase() === "I")
-        {
+        } else if (eventKey.toUpperCase() === "I") {
             mouseAction = MouseAction.interferer
-        }
-
-        else if(eventKey.toUpperCase() === "G")
-        {
+        } else if (eventKey.toUpperCase() === "G") {
             mouseAction = MouseAction.guide;
-        }
-
-        else if(eventKey === "Backspace" || eventKey === "Delete")
-        {
+        } else if (eventKey === "Backspace" || eventKey === "Delete") {
             scene.reset();
-        }
-
-        else if(eventKey.toUpperCase() === "Z")
-        {
+        } else if (eventKey.toUpperCase() === "Z") {
             glow = !glow;
-        }
-        
-        else if(eventKey === "1")
-        {
+        } else if (eventKey === "1") {
             loadExample(1);
-        }
-        
-        else if(eventKey === "2")
-        {
+        } else if (eventKey === "2") {
             loadExample(2);
-        }
-        
-        else if(eventKey === "3")
-        {
+        } else if (eventKey === "3") {
             loadExample(3);
-        }
-        
-        else if(eventKey === "4")
-        {
+        } else if (eventKey === "4") {
             loadExample(4);
-        }
-
-        else if(eventKey === "5")
-        {
+        } else if (eventKey === "5") {
             loadExample(5);
         }
     }
 }
 
-function keyup(event)
-{
-    if(!event)
-    {
+function keyup(event) {
+    if (!event) {
         event = window.event;
     }
-    
+
     const eventKey = event.key;
-    
+
     keysPressed.splice(keysPressed.indexOf(eventKey), 1);
     keysFired = false;
 }
 
-function getGlowBlur(shadowBlur)
-{
-    if(glow)
-    {
+function getGlowBlur(shadowBlur) {
+    if (glow) {
         return shadowBlur;
     }
 
     return 0;
 }
 
-function getPropertiesOfObjects(objects, property)
-{
+function getPropertiesOfObjects(objects, property) {
     let properties = [];
 
-    for(let n = 0; n < objects.length; n++)
-    {
+    for (let n = 0; n < objects.length; n++) {
         properties.push(objects[n][property]);
     }
 
     return properties;
 }
 
-function minimum(values)
-{
+function minimum(values) {
     let min;
 
-    for(let n = 0; n < values.length; n++)
-    {
+    for (let n = 0; n < values.length; n++) {
         let value = values[n];
 
-        if(min === undefined || value < min)
-        {
+        if (min === undefined || value < min) {
             min = value;
         }
     }
@@ -2489,16 +1942,13 @@ function minimum(values)
     return min;
 }
 
-function maximum(values)
-{
+function maximum(values) {
     let max;
 
-    for(let n = 0; n < values.length; n++)
-    {
+    for (let n = 0; n < values.length; n++) {
         let value = values[n];
 
-        if(max === undefined || value > max)
-        {
+        if (max === undefined || value > max) {
             max = value;
         }
     }
@@ -2506,136 +1956,109 @@ function maximum(values)
     return max;
 }
 
-function average(values)
-{
+function average(values) {
     let sum = 0;
 
-    for(let n = 0; n < values.length; n++)
-    {
+    for (let n = 0; n < values.length; n++) {
         sum += values[n];
     }
 
     return sum / values.length;
 }
 
-function randomInteger(min = 0, max = 1)
-{
+function randomInteger(min = 0, max = 1) {
     return Math.floor(randomFloat(min, max + 1));
 }
 
-function randomFloat(min = 0, max = 1)
-{
+function randomFloat(min = 0, max = 1) {
     return Math.random() * (max - min) + min;
 }
 
-function clampMin(num, min)
-{
+function clampMin(num, min) {
     return Math.max(num, min)
 }
 
-function clampMax(num, max)
-{
+function clampMax(num, max) {
     return Math.min(num, max);
 }
 
-function clamp(num, min, max)
-{
+function clamp(num, min, max) {
     return Math.min(Math.max(num, min), max);
 }
 
-function map(value, start1, stop1, start2, stop2)
-{
+function map(value, start1, stop1, start2, stop2) {
     return ((value - start1) / (stop1 - start1)) * (stop2 - start2) + start2;
 }
 
-function distance(p1, p2 = pointOrigin)
-{
+function distance(p1, p2 = pointOrigin) {
     return Math.hypot(p1.x - p2.x, p1.y - p2.y);
 }
 
-function distanceSquared(p1, p2)
-{
+function distanceSquared(p1, p2) {
     return Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2);
 }
 
-function distanceManhattan(p1, p2)
-{
+function distanceManhattan(p1, p2) {
     return Math.abs(p1.x - p2.x) + Math.abs(p1.y - p2.y);
 }
 
-function interpolateLinear(startingValue, endingValue, t)
-{
+function interpolateLinear(startingValue, endingValue, t) {
     return (startingValue + (endingValue - startingValue) * t);
 }
 
-function interpolateQuadratic(startingValue, endingValue, t)
-{
+function interpolateQuadratic(startingValue, endingValue, t) {
     return interpolateLinear(startingValue, endingValue, t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
 }
 
-function interpolateElastic(startingValue, endingValue, t)
-{
+function interpolateElastic(startingValue, endingValue, t) {
     const c5 = (2 * Math.PI) / 4.5;
     return interpolateLinear(startingValue, endingValue, t === 0 ? 0 : t === 1 ? 1 : t < 0.5 ? -(Math.pow(2, 20 * t - 10) * Math.sin((20 * t - 11.125) * c5)) / 2 : (Math.pow(2, -20 * t + 10) * Math.sin((20 * t - 11.125) * c5)) / 2 + 1);
 }
 
-function calculateAngleDifference(a1, a2)
-{
+function calculateAngleDifference(a1, a2) {
     let difference = a2 - a1;
-    while(difference < -Math.PI)
+    while (difference < -Math.PI)
         difference += 2 * Math.PI;
-    while(difference > Math.PI)
+    while (difference > Math.PI)
         difference -= 2 * Math.PI;
     return difference;
 }
 
-function intersectSegmentSegment(line1, line2, line1p1inclusive = true, line1p2inclusive = true, line2p1inclusive = true, line2p2inclusive = true)
-{
+function intersectSegmentSegment(line1, line2, line1p1inclusive = true, line1p2inclusive = true, line2p1inclusive = true, line2p2inclusive = true) {
     return intersectionSegmentSegment(line1, line2, line1p1inclusive, line1p2inclusive, line2p1inclusive, line2p2inclusive) !== false;
 }
 
-function intersectionLineLine(line1, line2)
-{
-    return intersectionStraightStraight(line1, line2, function(ua, ub)
-    {
+function intersectionLineLine(line1, line2) {
+    return intersectionStraightStraight(line1, line2, function (ua, ub) {
         return true;
     });
 }
 
-function intersectionLineSegment(line1, line2)
-{
-    return intersectionStraightStraight(line1, line2, function(ua, ub)
-    {
+function intersectionLineSegment(line1, line2) {
+    return intersectionStraightStraight(line1, line2, function (ua, ub) {
         return !(ub < 0 || ub > 1);
     });
 }
 
-function intersectionSegmentSegment(line1, line2, line1p1inclusive = true, line1p2inclusive = true, line2p1inclusive = true, line2p2inclusive = true)
-{
-    return intersectionStraightStraight(line1, line2, function(ua, ub)
-    {
-        if(ua < 0 || ua > 1 || ub < 0 || ub > 1)
-        {
+function intersectionSegmentSegment(line1, line2, line1p1inclusive = true, line1p2inclusive = true, line2p1inclusive = true, line2p2inclusive = true) {
+    return intersectionStraightStraight(line1, line2, function (ua, ub) {
+        if (ua < 0 || ua > 1 || ub < 0 || ub > 1) {
             return false;
         }
 
-        if(ua === 0 && line1p1inclusive === false)
-        {
+        if (ua === 0 && line1p1inclusive === false) {
             return false;
         }
 
-        if(ua === 1 && line1p2inclusive === false)
-        {
+        if (ua === 1 && line1p2inclusive === false) {
             return false;
         }
 
-        if(ub === 0 && line2p1inclusive === false)
-        {
+        if (ub === 0 && line2p1inclusive === false) {
             return false;
         }
 
-        if(ub === 1 && line2p2inclusive === false)
-        {
+        if (ub === 1 && line2p2inclusive === false) {
             return false;
         }
 
@@ -2643,27 +2066,21 @@ function intersectionSegmentSegment(line1, line2, line1p1inclusive = true, line1
     });
 }
 
-function intersectionSegmentRay(line1, line2, line1p1inclusive = true, line1p2inclusive = true, line2p1inclusive = true)
-{
-    return intersectionStraightStraight(line1, line2, function(ua, ub)
-    {
-        if(ua < 0 || ua > 1 || ub < 0)
-        {
+function intersectionSegmentRay(line1, line2, line1p1inclusive = true, line1p2inclusive = true, line2p1inclusive = true) {
+    return intersectionStraightStraight(line1, line2, function (ua, ub) {
+        if (ua < 0 || ua > 1 || ub < 0) {
             return false;
         }
 
-        if(ua === 0 && line1p1inclusive === false)
-        {
+        if (ua === 0 && line1p1inclusive === false) {
             return false;
         }
 
-        if(ua === 1 && line1p2inclusive === false)
-        {
+        if (ua === 1 && line1p2inclusive === false) {
             return false;
         }
 
-        if(ub === 0 && line2p1inclusive === false)
-        {
+        if (ub === 0 && line2p1inclusive === false) {
             return false;
         }
 
@@ -2671,8 +2088,7 @@ function intersectionSegmentRay(line1, line2, line1p1inclusive = true, line1p2in
     });
 }
 
-function intersectionStraightStraight(line1, line2, eliminationFunction)
-{
+function intersectionStraightStraight(line1, line2, eliminationFunction) {
     let x1 = line1.p1.x;
     let y1 = line1.p1.y;
     let x2 = line1.p2.x;
@@ -2682,23 +2098,20 @@ function intersectionStraightStraight(line1, line2, eliminationFunction)
     let x4 = line2.p2.x;
     let y4 = line2.p2.y;
 
-    if ((x1 === x2 && y1 === y2) || (x3 === x4 && y3 === y4))
-    {
+    if ((x1 === x2 && y1 === y2) || (x3 === x4 && y3 === y4)) {
         return false
     }
 
     denominator = ((y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1))
 
-    if (denominator === 0)
-    {
+    if (denominator === 0) {
         return false
     }
 
     let ua = ((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3)) / denominator
     let ub = ((x2 - x1) * (y1 - y3) - (y2 - y1) * (x1 - x3)) / denominator
 
-    if(eliminationFunction(ua, ub) === false)
-    {
+    if (eliminationFunction(ua, ub) === false) {
         return false;
     }
 
@@ -2708,7 +2121,6 @@ function intersectionStraightStraight(line1, line2, eliminationFunction)
     return new Point(x, y);
 }
 
-function modulus(dividend, divisor)
-{
+function modulus(dividend, divisor) {
     return ((dividend % divisor) + divisor) % divisor;
 }
