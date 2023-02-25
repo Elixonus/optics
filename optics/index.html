@@ -8,6 +8,7 @@
         <meta name="author" content="Elias Dobrin">
         <title>Laser Optics Simulation</title>
         <link rel="icon" type="image/x-icon" href="./favicon.ico">
+        <link rel="stylesheet" href="./style.css">
     </head>
     
     <body>
@@ -39,33 +40,7 @@
         <img id="icon-letter-g" class="hidden" src="./images/icons/letter-g.png">
         <audio id="sound-click" class="hidden"><source src="./sounds/click.mp3"></audio>
         <audio id="sound-misclick" class="hidden"><source src="./sounds/misclick.mp3"></audio>
-        <audio id="sound-switch" class="hidden"><source src="./sounds/switch.mp3"></audio>
-
-        <style>
-
-            body
-            {
-                background-color: #151515;
-            }
-
-            #canvas
-            {
-                position: absolute;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%) scale(0.8);
-                border-radius: 5vmin;
-                outline: 3vmin solid #000000;
-                cursor: none;
-            }
-
-            .hidden
-            {
-                display: none;
-            }
-            
-        </style>
-        
-        <script src="./optics.js"></script>
+        <audio id="sound-switch" class="hidden"><source src="./sounds/switch.mp3"></audio>        
+        <script src="./script.js"></script>
     </body>
 </html>
