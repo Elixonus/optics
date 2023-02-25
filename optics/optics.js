@@ -1004,12 +1004,7 @@ class Mirror extends Object
             }
         }
 
-        if(sum % 2 === 0)
-        {
-            return false;
-        }
-
-        return true;
+        return sum % 2 !== 0;
     }
 
     findArea()
@@ -1547,24 +1542,6 @@ function render()
 
     ctx.lineWidth = 5;
     ctx.lineJoin = "round";
-
-    let reflectingMirrors = [];
-    let nonReflectingMirrors = [];
-
-    for(let n = 0; n < scene.mirrors.length; n++)
-    {
-        let mirror = scene.mirrors[n];
-
-        if(mirror.isReflecting)
-        {
-            reflectingMirrors.push(mirror);
-        }
-
-        else
-        {
-            nonReflectingMirrors.push(mirror);
-        }
-    }
 
     let mirrors = scene.mirrors;
 
@@ -2629,12 +2606,7 @@ function intersectionLineSegment(line1, line2)
 {
     return intersectionStraightStraight(line1, line2, function(ua, ub)
     {
-        if(ub < 0 || ub > 1)
-        {
-            return false;
-        }
-
-        return true;
+        return !(ub < 0 || ub > 1);
     });
 }
 
