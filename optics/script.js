@@ -2099,17 +2099,17 @@ function intersectionStraightStraight(line1, line2, eliminationFunction) {
     let y4 = line2.p2.y;
 
     if ((x1 === x2 && y1 === y2) || (x3 === x4 && y3 === y4)) {
-        return false
+        return false;
     }
 
-    denominator = ((y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1))
+    let denominator = ((y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1));
 
     if (denominator === 0) {
-        return false
+        return false;
     }
 
-    let ua = ((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3)) / denominator
-    let ub = ((x2 - x1) * (y1 - y3) - (y2 - y1) * (x1 - x3)) / denominator
+    let ua = ((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3)) / denominator;
+    let ub = ((x2 - x1) * (y1 - y3) - (y2 - y1) * (x1 - x3)) / denominator;
 
     if (eliminationFunction(ua, ub) === false) {
         return false;
