@@ -515,9 +515,9 @@ class Scene {
         return mirrors;
     }
 
-    getClosestObjectToPoint(p = pointOrigin, objects = []) {
-        let closestObject;
-        let distanceToClosestObject;
+    static getClosestObjectToPoint(p = pointOrigin, objects = []) {
+        let closestObject = undefined;
+        let distanceToClosestObject = undefined;
 
         for (let n = 0; n < objects.length; n++) {
             let object = objects[n];
@@ -540,7 +540,7 @@ class Scene {
     }
 
     getClosestMirrorToPoint(p = pointOrigin) {
-        let closest = this.getClosestObjectToPoint(p, this.mirrors);
+        let closest = Scene.getClosestObjectToPoint(p, this.mirrors);
         return closest;
     }
 
@@ -564,14 +564,14 @@ class Scene {
         }
 
         let laserLine = Line.fromRay(laser.position, laser.rotation);
-        let closestMirror;
-        let closestIntersection;
-        let distanceToClosestIntersection;
-        let closestSide;
+        let closestMirror = undefined;
+        let closestIntersection = undefined;
+        let distanceToClosestIntersection = undefined;
+        let closestSide = undefined;
 
         for (let n = 0; n < this.mirrors.length; n++) {
             let mirror = this.mirrors[n];
-            let lastVertex;
+            let lastVertex = undefined;
 
             if (mirror.closedShape || mirror.isRefracting) {
                 lastVertex = mirror.vertices.length;
@@ -640,14 +640,13 @@ class Scene {
                 refractedIndex = average(getPropertiesOfObjects(newInsideMirrors, "indexOfRefraction"));
             }
 
-            let criticalAngle;
-            let criticalAngleSine;
+            let criticalAngle = undefined;
+            let criticalAngleSine = undefined;
 
             if (incidentIndex > refractedIndex) {
                 criticalAngleSine = refractedIndex / incidentIndex;
                 criticalAngle = Math.asin(criticalAngleSine);
             } else {
-                criticalAngle = Math.PI / 2;
                 criticalAngleSine = 1;
             }
 
@@ -761,10 +760,10 @@ class Mirror extends Object {
             return false;
         }
 
-        let leftMost;
-        let rightMost;
-        let upMost;
-        let downMost;
+        let leftMost = undefined;
+        let rightMost = undefined;
+        let upMost = undefined;
+        let downMost = undefined;
 
         for (let n = 0; n < this.vertices.length; n++) {
             let vertex = this.getVertex(n, absolute);
@@ -859,7 +858,6 @@ class Mirror extends Object {
     subdivideVertices(vertexMultiplier = 2) {
         for (let n = 0; n < this.vertices.length; n++) {
             let side = this.getSide(n);
-            let interpolations = [];
 
             for (let m = 1; m < vertexMultiplier; m++) {
                 this.vertices.splice(n + 1, 0, side.p1.clone().interpolateToPointLinear(side.p2, m / (vertexMultiplier + 1)));
@@ -1042,7 +1040,7 @@ class Animation {
     }
 
     getValues() {
-        let lowKeyframe;
+        let lowKeyframe = undefined;
 
         for (let n = 0; n < this.keyframes.length; n++) {
             let keyframe = this.keyframes[n];
@@ -1051,7 +1049,7 @@ class Animation {
             }
         }
 
-        let highKeyframe;
+        let highKeyframe = undefined;
 
         for (let n = 0; n < this.keyframes.length; n++) {
             let keyframe = this.keyframes[n];
@@ -1106,9 +1104,7 @@ class Keyframe {
     }
 }
 
-let request;
-const requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
-const cancelAnimationFrame = window.cancelAnimationFrame || window.mozCancelAnimationFrame || window.webkitCancelAnimationFrame || window.msCancelAnimationFrame;
+let request = undefined;
 let windowWidth = window.innerWidth;
 let windowHeight = window.innerHeight;
 const canvas = document.getElementById("canvas");
@@ -1210,7 +1206,7 @@ function render() {
             }
         }
 
-        let closest = scene.getClosestObjectToPoint(scene.draggedObject.position, objects);
+        let closest = Scene.getClosestObjectToPoint(scene.draggedObject.position, objects);
 
         if (closest !== false && closest.distanceToObject <= 50) {
             scene.draggedObject.position.setTo(closest.object.position);
@@ -1250,7 +1246,7 @@ function render() {
     let mirrors = scene.mirrors;
 
     for (let n = 0; n < 3; n++) {
-        let selectedMirrors;
+        let selectedMirrors = undefined;
 
         if (n === 0) {
             selectedMirrors = mirrors.filter(function (mirror) {
@@ -1360,7 +1356,7 @@ function render() {
     }
 
     if (scene.draggedObject !== false) {
-        let text;
+        let text = undefined;
         let doDrawText = true;
 
         if (mouseAction === MouseAction.dragX) {
@@ -1576,7 +1572,7 @@ function render() {
 
     ctx.restore();
     time += 1;
-    request = requestAnimationFrame(render);
+    request = window.requestAnimationFrame(render);
 }
 
 function loadExample(n) {
@@ -1661,7 +1657,7 @@ window.onmousemove = mousemove;
 window.onkeydown = keydown;
 window.onkeyup = keyup;
 window.onload = function () {
-    request = requestAnimationFrame(render);
+    request = window.requestAnimationFrame(render);
 }
 window.oncontextmenu = function (event) {
     event.preventDefault();
@@ -1750,7 +1746,7 @@ function mousedown(event) {
         mouseAction = MouseAction.change;
         return;
     } else if (mouseAction === MouseAction.guide) {
-        let guide;
+        let guide = undefined;
 
         if (scene.guides.length === 0) {
             guide = new Guide(mousePosition.clone().addTo(cameraPosition), 0);
@@ -1776,10 +1772,10 @@ function mousedown(event) {
     }
 
     let point = mousePosition.clone().addTo(cameraPosition);
-    let closestLaser = scene.getClosestObjectToPoint(point, scene.lasers.filter(function (z) {
+    let closestLaser = Scene.getClosestObjectToPoint(point, scene.lasers.filter(function (z) {
         return z.interactive;
     }));
-    let laser;
+    let laser = undefined;
 
     if (closestLaser !== false && closestLaser.distanceToObject <= 200) {
         laser = [closestLaser.object];
@@ -1787,10 +1783,10 @@ function mousedown(event) {
         laser = [];
     }
 
-    let closestGuide = scene.getClosestObjectToPoint(point, scene.guides.filter(function (z) {
+    let closestGuide = Scene.getClosestObjectToPoint(point, scene.guides.filter(function (z) {
         return z.interactive;
     }));
-    let guide;
+    let guide = undefined;
 
     if (closestGuide !== false && closestGuide.distanceToObject <= 300) {
         guide = [closestGuide.object];
@@ -1798,7 +1794,7 @@ function mousedown(event) {
         guide = [];
     }
 
-    let closest = scene.getClosestObjectToPoint(point, scene.getMirrorsWithPointInside(point).filter(function (z) {
+    let closest = Scene.getClosestObjectToPoint(point, scene.getMirrorsWithPointInside(point).filter(function (z) {
         return z.interactive;
     }).concat(laser, guide));
 
@@ -1929,12 +1925,12 @@ function getPropertiesOfObjects(objects, property) {
 }
 
 function minimum(values) {
-    let min;
+    let min = values[0];
 
-    for (let n = 0; n < values.length; n++) {
+    for (let n = 1; n < values.length; n++) {
         let value = values[n];
 
-        if (min === undefined || value < min) {
+        if (value < min) {
             min = value;
         }
     }
@@ -1943,12 +1939,12 @@ function minimum(values) {
 }
 
 function maximum(values) {
-    let max;
+    let max = values[0];
 
-    for (let n = 0; n < values.length; n++) {
+    for (let n = 1; n < values.length; n++) {
         let value = values[n];
 
-        if (max === undefined || value > max) {
+        if (value > max) {
             max = value;
         }
     }
