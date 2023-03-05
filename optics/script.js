@@ -97,18 +97,6 @@ class Point {
         return this;
     }
 
-    absolute(x = true, y = true) {
-        if (x) {
-            this.x = Math.abs(x);
-        }
-
-        if (y) {
-            this.y = Math.abs(y);
-        }
-
-        return this;
-    }
-
     interpolateToPointLinear(p, t) {
         this.x = interpolateLinear(this.x, p.x, t);
         this.y = interpolateLinear(this.y, p.y, t);
@@ -282,10 +270,10 @@ class Object {
     constructor(position, rotation) {
         this.setPositionTo(position);
         this.setRotationTo(rotation);
-        this.dragOffset;
-        this.dragPosition;
-        this.dragRotation;
-        this.dragIndexOfRefraction;
+        this.dragOffset = undefined;
+        this.dragPosition = undefined;
+        this.dragRotation = undefined;
+        this.dragIndexOfRefraction = undefined;
         this.interactive = true;
         this.animate();
     }
@@ -1678,10 +1666,6 @@ function resize() {
 }
 
 function mousedown(event) {
-    if (!event) {
-        event = window.event;
-    }
-
     if (time < 90) {
         return;
     }
@@ -1821,10 +1805,6 @@ function mousedown(event) {
 }
 
 function mouseup(event) {
-    if (!event) {
-        event = window.event;
-    }
-
     mouseButtons[event.button] = false;
 
     if (scene.draggedObject !== false) {
@@ -1835,19 +1815,11 @@ function mouseup(event) {
 }
 
 function mousemove(event) {
-    if (!event) {
-        event = window.event;
-    }
-
     let rect = canvas.getBoundingClientRect();
     mousePosition.setTo(new Point(((event.clientX - rect.left) / (rect.right - rect.left) - 0.5) * 1920, ((event.clientY - rect.top) / (rect.bottom - rect.top) - 0.5) * 1080));
 }
 
 function keydown(event) {
-    if (!event) {
-        event = window.event;
-    }
-
     const eventKey = event.key;
 
     if (keysPressed.includes(eventKey) === false) {
@@ -1896,10 +1868,6 @@ function keydown(event) {
 }
 
 function keyup(event) {
-    if (!event) {
-        event = window.event;
-    }
-
     const eventKey = event.key;
 
     keysPressed.splice(keysPressed.indexOf(eventKey), 1);
