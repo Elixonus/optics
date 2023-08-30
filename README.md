@@ -8,6 +8,8 @@ Designed mostly for **education** and not professional use. 📚
 
 ## User Interface 👌
 
+![Screenshot](./screenshot.png)
+
 ### Input
 
 There are three different mouse tools to interact with the lasers and mirrors. The bar on the left shows which tool is currently activated.

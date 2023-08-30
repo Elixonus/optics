@@ -1646,7 +1646,7 @@ window.onkeydown = keydown;
 window.onkeyup = keyup;
 window.onload = function () {
     request = window.requestAnimationFrame(render);
-}
+};
 window.oncontextmenu = function (event) {
     event.preventDefault();
 };
