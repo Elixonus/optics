@@ -231,25 +231,29 @@ class Line {
         return Math.acos(this.getDotProductBetweenLine(l) / (this.getLength() * l.getLength()));
     }
 
-    //
+    // find the angle formed by the perpendiculars of the current and caller lines if put next to each other
     getAngleBetweenLinePerpendicular(l) {
         return Math.asin(this.getSineOfAngleBetweenLinePerpendicular(l));
     }
 
+    // find the sine of the angle formed by the perpendiculars of the current and caller lines if put next to each other
     getSineOfAngleBetweenLinePerpendicular(l) {
         return Math.abs(this.getDotProductBetweenLine(l)) / (this.getLength() * l.getLength());
     }
 
+    // find the angle of reflection given an incident ray with an angle of incidence hitting current reflecive line
     getAngleReflected(angleOfIncidence) {
         return 2 * this.getAngle() - angleOfIncidence;
     }
 }
 
 class Polygon {
+    // create a polygon containing a finite array of points
     constructor(vertices) {
         this.vertices = vertices;
     }
 
+    // set the vertices of the polygon using an array of points and update the polygon bounds and sides
     set vertices(value) {
         delete this._leftVertex;
         delete this._rightVertex;
@@ -282,32 +286,39 @@ class Polygon {
         }
     }
 
+    // get the vertices of the polygon as an array of points
     get vertices() {
         return this._vertices;
     }
 
+    // get the sides of the polygon as an array of lines connecting each pair of adjacent vertices
     get sides() {
         return this._sides;
     }
 
+    // get the left-most bounding vertex of the polygon as a point
     get leftVertex() {
         return this._leftVertex;
     }
 
+    // get the right-most bounding vertex of the polygon as a point
     get rightVertex() {
         return this._rightVertex;
     }
 
+    // get the top-most bounding vertex of the polygon as a point
     get topVertex() {
         return this._topVertex;
     }
 
+    // get the bottom-most bounding vertex of the polygon as a point
     get bottomVertex() {
         return this._bottomVertex;
     }
 }
 
 class Object {
+    // create a generic draggable? object from a position vector point and rotation angle
     constructor(position, rotation) {
         this.setPositionTo(position);
         this.setRotationTo(rotation);
@@ -319,6 +330,7 @@ class Object {
         this.animate();
     }
 
+    // set the center position of the object to caller point
     setPositionTo(position) {
         if (position instanceof Point) {
             this.position = position;
@@ -329,6 +341,7 @@ class Object {
         return this;
     }
 
+    // set the angle of the object to the caller angle
     setRotationTo(rotation) {
         if (rotation instanceof Animation) {
             this.rotationAnimation = rotation;
@@ -339,6 +352,7 @@ class Object {
         return this;
     }
 
+    // update the position and rotation of the object using the animation function properties
     animate() {
         if (this.hasOwnProperty("positionAnimation")) {
             let values = this.positionAnimation.getValues();
@@ -354,6 +368,7 @@ class Object {
 }
 
 class Scene {
+    // create a scene consisting of lasers, mirrors, and guides from an array of generic objects
     constructor(objects = []) {
         this._lasers = [];
         this._mirrors = [];
@@ -370,6 +385,7 @@ class Scene {
         return this.addObject(objects);
     }
 
+    // set the laser objects of the scene using caller array of lasers
     set lasers(value) {
         this._lasers = value;
 
@@ -383,10 +399,12 @@ class Scene {
         }
     }
 
+    // get the laser objects of the scene as an array of lasers
     get lasers() {
         return this._lasers;
     }
 
+    // set the mirror objects of the scene using caller array of mirrors
     set mirrors(value) {
         this._mirrors = value;
 
@@ -400,14 +418,12 @@ class Scene {
         }
     }
 
+    // get the mirror objects of the scene as an array of mirrors
     get mirrors() {
         return this._mirrors;
     }
 
-    get guides() {
-        return this._guides;
-    }
-
+    // set the guide objects of the scene using caller array of guides
     set guides(value) {
         this._guides = value;
 
@@ -421,6 +437,12 @@ class Scene {
         }
     }
 
+    // get the guide objects of the scene as an array of guides
+    get guides() {
+        return this._guides;
+    }
+
+    // delete all the lasers, mirrors, and guides
     reset() {
         this.lasers = [];
         this.mirrors = [];
@@ -431,6 +453,7 @@ class Scene {
         this.draggedObject = false;
     }
 
+    // mark an object of the scene as currently dragged
     setDraggedObjectTo(object) {
         if (object === false) {
             this.draggedLaser = false;
@@ -451,51 +474,61 @@ class Scene {
         this.draggedObject = object;
     }
 
+    // add a laser object to the scene using a caller laser
     addLaser(laser) {
         this.lasers.push(laser);
         return this;
     }
 
+    // remove a laser object from the scene given a reference to caller laser
     removeLaser(laser) {
         this.lasers.splice(this.lasers.indexOf(laser), 1);
         return this;
     }
 
+    // add an array of laser objects to the scene using a caller array of lasers
     addLasers(lasers) {
         this.lasers = this.lasers.concat(lasers);
         return this;
     }
 
+    // add a mirror object to the scene using a caller mirror
     addMirror(mirror) {
         this.mirrors.push(mirror);
         return this;
     }
 
+    // remove a mirror object from the scene given a reference to caller mirror
     removeMirror(mirror) {
         this.mirrors.splice(this.mirrors.indexOf(mirror), 1);
         return this;
     }
 
+    // add an array of mirror objects to the scene using a caller array of mirrors
     addMirrors(mirrors) {
         this.mirrors = this.mirrors.concat(mirrors);
         return this;
     }
 
+    // add a guide object to the scene using a caller guide
     addGuide(guide) {
         this.guides.push(guide);
         return this;
     }
 
+    // remove a guide object from the scene given a reference to caller guide
     removeGuide(guide) {
         this.guides.splice(this.guides.indexOf(guide), 1);
         return this;
     }
 
+    // add an array of guide objects to the scene using a caller array of guides
     addGuides(guides) {
         this.guides = this.guides.concat(guides);
         return this;
     }
 
+    // add a laser, mirror, or guide to the scene using a caller object
     addObject(object) {
         if (object instanceof Laser) {
             this.addLaser(object);
@@ -508,6 +541,7 @@ class Scene {
         return this;
     }
 
+    // remove a laser, mirror, or guide from the scene given a reference to caller object
     removeObject(object) {
         if (object instanceof Laser) {
             this.removeLaser(object);
@@ -522,6 +556,7 @@ class Scene {
         }
     }
 
+    // add an array of lasers, mirrors, and guides to the scene using a caller array of objects
     addObjects(objects) {
         for (let n = 0; n < objects.length; n++) {
             this.addObject(objects[n]);
@@ -530,6 +565,7 @@ class Scene {
         return this;
     }
 
+    // get an array of mirrors in the scene whose contour currently enclose a caller point
     getMirrorsWithPointInside(p = pointOrigin) {
         let mirrors = [];
 
@@ -544,6 +580,7 @@ class Scene {
         return mirrors;
     }
 
+    // get the closest object from a caller array of objects to a caller point
     static getClosestObjectToPoint(p = pointOrigin, objects = []) {
         let closestObject = undefined;
         let distanceToClosestObject = undefined;
@@ -568,11 +605,13 @@ class Scene {
         };
     }
 
+    // get the closest mirror to a caller point in the scene
     getClosestMirrorToPoint(p = pointOrigin) {
         let closest = Scene.getClosestObjectToPoint(p, this.mirrors);
         return closest;
     }
 
+    // get an array of mirrors which are currently reflecting in the scene
     getReflectingMirrors() {
         let mirrors = [];
 
@@ -587,7 +626,9 @@ class Scene {
         return mirrors;
     }
 
+    // shine a virtual ray in the scene given a caller laser and record the intersections with objects as an array of points
     laser(laser, insideMirrors = [], intersections = [], sideIgnore = null) {
+        // stop path tracing if the laser light collides a certain number of times
         if (intersections.length === LASER_MAX_COLLISIONS) {
             return intersections;
         }
@@ -598,6 +639,7 @@ class Scene {
         let distanceToClosestIntersection = undefined;
         let closestSide = undefined;
 
+        // check collision with each mirrors in the scene
         for (let n = 0; n < this.mirrors.length; n++) {
             let mirror = this.mirrors[n];
             let lastVertex = undefined;
@@ -608,13 +650,16 @@ class Scene {
                 lastVertex = mirror.vertices.length - 1;
             }
 
+            // check collision with each side of the polygonal mirror
             for (let m = 0; m < lastVertex; m++) {
                 let side = mirror.getSide(m, true);
 
+                // prevent collision with side current laser ray originated from
                 if (sideIgnore !== null && side.isEqual(sideIgnore)) {
                     continue;
                 }
 
+                // find the point of intersection between polygon side segment and laser ray
                 let intersection = intersectionSegmentRay(side, laserLine, false);
 
                 if (intersection !== false) {
