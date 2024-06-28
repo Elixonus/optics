@@ -1,92 +1,113 @@
 class Point {
+    // create a new point from x and y components
     constructor(x = 0, y = 0) {
         this.x = x;
         this.y = y;
         return this;
     }
 
+    // copy x and y components of existing point
     clone() {
         return new Point(this.x, this.y);
     }
 
+    // check if all components of points match
     isEqual(p) {
         return (this.x === p.x && this.y === p.y);
     }
 
+    // copy components of caller point to current point
     setTo(p) {
         this.x = p.x;
         this.y = p.y;
         return this;
     }
 
+    // add components of caller point to current point
     addTo(p) {
         this.x += p.x;
         this.y += p.y;
         return this;
     }
 
+    // add x component to current point
     addToX(x) {
         this.x += x;
         return this;
     }
 
+    // add y component to current point
     addToY(y) {
         this.y += y;
         return this;
     }
 
+    // add each individual x and y component to current point
     addToXY(x, y) {
         return this.addToX(x).addToY(y);
     }
 
+    // add components of polar vector with radius and angle to current point
     addToPolar(r, a) {
         this.x += r * Math.cos(a);
         this.y += r * Math.sin(a);
         return this;
     }
 
+    // subtract components of caller point from current point
     subtractTo(p) {
         return this.addToXY(-p.x, -p.y);
     }
 
+    // subtract x component from current x
     subtractToX(x) {
         return this.addToX(-x);
     }
 
+    // subtract y component from current y
     subtractToY(y) {
         return this.addToY(-y);
     }
 
+    // subtract x and y components from current point
     subtractToXY(x, y) {
         return this.subtractToX(x).subtractToY(y);
     }
 
+    // multiply current point components by factor
     multiplyBy(x) {
         return this.scaleXY(x);
     }
 
+    // divide current point components by division factor
     divideBy(x) {
         return this.scaleXY(1 / x);
     }
 
+    // multiply current point components by caller point components
     scale(p) {
         return this.scaleXY(p.x, p.y);
     }
 
+    // multiply current x component by x factor
     scaleX(x) {
         this.x *= x;
         return this;
     }
 
+    // multiply current y component by y factor
     scaleY(y) {
         this.y *= y;
         return this;
     }
 
+    // multiply current point components by x and y factor
     scaleXY(x, y = x) {
         return this.scaleX(x).scaleY(y);
     }
 
+    // rotate current point around caller point by angle in radians
+    // if angle is positive, rotate from x axis towards y axis otherwise from y axis towards x axis
     rotateAroundPoint(p, rotation) {
         let cosine = Math.cos(rotation);
         let sine = Math.sin(rotation);
@@ -97,83 +118,100 @@ class Point {
         return this;
     }
 
+    // move current point to a point on the line between the current and caller points
+    // if interpolation factor is 0, use current point, if interpolation factor is 1, use caller point
     interpolateToPointLinear(p, t) {
         this.x = interpolateLinear(this.x, p.x, t);
         this.y = interpolateLinear(this.y, p.y, t);
         return this;
     }
 
+    // if interpolation factor is 0, use current point, if interpolation factor is 1, use caller point
     interpolateToPointQuadratic(p, t) {
-        this.x = interpolateLinear(this.x, p.x, t);
-        this.y = interpolateLinear(this.y, p.y, t);
+        this.x = interpolateQuadratic(this.x, p.x, t);
+        this.y = interpolateQuadratic(this.y, p.y, t);
         return this;
     }
 
+    // move current point to a point halfway between current and caller points
     midPointTo(p) {
         this.x = (this.x + p.x) / 2;
         this.y = (this.y + p.y) / 2;
         return this;
     }
 
+    // find how far current point is from the origin
     getMagnitude() {
         return this.getDistanceTo();
     }
 
+    // find the distance from the current point to the caller point
     getDistanceTo(p = pointOrigin) {
         return Math.hypot(this.x - p.x, this.y - p.y);
     }
 }
 
 class Line {
+    // create a line from two point objects
     constructor(p1, p2) {
         this.p1 = p1;
         this.p2 = p2;
         return this;
     }
 
+    // create a line from a point object and angle towards next point on the line
     static fromRay(center, angle) {
         return new Line(center, center.clone().addToPolar(1, angle));
     }
 
+    // create a line from a point object and slope towards next point on the line
     static fromPointSlope(point, slope) {
         return new Line(point, point.addTo(new Point(1, slope)));
     }
 
+    // copy components of the two points on the line
     clone() {
         return new Line(this.p1.clone(), this.p2.clone());
     }
 
+    // check if components of points of caller line match components of points of current line
     isEqual(l) {
         return (this.p1.isEqual(l.p1) && this.p2.isEqual(l.p2))
     }
 
+    // translate line by components of caller point
     addTo(p) {
         this.p1.addTo(p);
         this.p2.addTo(p);
         return this;
     }
 
+    // translate line by components of caller point in the opposite direction
     subtractTo(p) {
         this.p1.subtractTo(p);
         this.p2.subtractTo(p);
         return this;
     }
 
+    // rotate points on the line around caller point by angle in radians
     rotateAroundPoint(p, rotation) {
         this.p1.rotateAroundPoint(p, rotation);
         this.p2.rotateAroundPoint(p, rotation);
         return this;
     }
 
+    // find distance between points on the line
     getLength() {
         return distance(this.p1, this.p2);
     }
 
+    // find angle from first point to second point on the line in radians
     getAngle() {
         let differencePoint = this.p1.clone().subtractTo(this.p2);
         return Math.atan2(differencePoint.y, differencePoint.x);
     }
 
+    // find the dot product of current and caller lines as vectors
     getDotProductBetweenLine(l) {
         let vector1 = this.p1.clone().subtractTo(this.p2);
         let vector2 = l.p1.clone().subtractTo(l.p2);
@@ -181,16 +219,19 @@ class Line {
         return scalarProduct;
     }
 
+    // find the magnitude of cross product of current and caller lines as vectors
     getProjectionOfCrossProductBetweenLine(l) {
         let vector1 = this.p1.clone().subtractTo(this.p2);
         let vector2 = l.p1.clone().subtractTo(l.p2);
         return vector1.x * vector2.y - vector1.y * vector2.x;
     }
 
+    // find the angle formed by the current and caller lines if put next to each other
     getAngleBetweenLine(l) {
         return Math.acos(this.getDotProductBetweenLine(l) / (this.getLength() * l.getLength()));
     }
 
+    //
     getAngleBetweenLinePerpendicular(l) {
         return Math.asin(this.getSineOfAngleBetweenLinePerpendicular(l));
     }
