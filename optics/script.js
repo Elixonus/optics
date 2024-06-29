@@ -639,7 +639,8 @@ class Scene {
         let distanceToClosestIntersection = undefined;
         let closestSide = undefined;
 
-        // check collision with each mirrors in the scene
+        // check collision with each mirrors in the scene and record the closest point
+        // of intersection in order to find where the light will interact
         for (let n = 0; n < this.mirrors.length; n++) {
             let mirror = this.mirrors[n];
             let lastVertex = undefined;
@@ -662,9 +663,11 @@ class Scene {
                 // find the point of intersection between polygon side segment and laser ray
                 let intersection = intersectionSegmentRay(side, laserLine, false);
 
+                // check if intersection found
                 if (intersection !== false) {
                     let distanceToIntersection = distance(laser.position, intersection);
 
+                    // check if intersection is closer than current closest and if it is, update current closest
                     if (closestIntersection === undefined || distanceToIntersection < distanceToClosestIntersection) {
                         closestMirror = mirror;
                         closestIntersection = intersection;
@@ -675,6 +678,7 @@ class Scene {
             }
         }
 
+        // form a new array of intersections copy with an additional new closest interaction
         let newIntersections = [];
 
         for (let n = 0; n < intersections.length; n++) {
@@ -682,15 +686,20 @@ class Scene {
         }
 
         if (closestMirror === undefined) {
+            // if no collisions are found, add a final laser light point into the void
             newIntersections.push(laser.position.clone().addToPolar(LASER_RANGE, laser.rotation));
             return newIntersections;
         }
 
         newIntersections.push(closestIntersection);
 
+        // recursively find the path of the laser light after interaction
         if (closestMirror.isReflecting) {
+            // reflect light and proceed recursively
             return this.laser(new Laser(closestIntersection, closestSide.getAngleReflected(laser.rotation)), insideMirrors, newIntersections, closestSide);
         } else if (closestMirror.isRefracting) {
+            // conditionally refract light
+            // find an array of mirrors which currently encloes the laser light interaction
             let newInsideMirrors = [];
 
             for (let n = 0; n < insideMirrors.length; n++) {
@@ -703,39 +712,48 @@ class Scene {
                 newInsideMirrors.splice(newInsideMirrors.indexOf(closestMirror), 1);
             }
 
+            // record the incident and refracted index during interaction
             let incidentIndex = 1;
             let refractedIndex = 1;
 
             if (insideMirrors.length > 0) {
+                // average the indices of refraction of the mirrors which enclose the start of the laser light interaction
                 incidentIndex = average(getPropertiesOfObjects(insideMirrors, "indexOfRefraction"));
             }
 
             if (newInsideMirrors.length > 0) {
+                // average the indices of refraction of the mirrors which enclose the end of the laser light interaction
                 refractedIndex = average(getPropertiesOfObjects(newInsideMirrors, "indexOfRefraction"));
             }
 
             let criticalAngle = undefined;
             let criticalAngleSine = undefined;
 
+            // find the critical angle sine to determine whether refraction occurs
             if (incidentIndex > refractedIndex) {
                 criticalAngleSine = refractedIndex / incidentIndex;
+                // find the critical angle just in case if needed
                 criticalAngle = Math.asin(criticalAngleSine);
             } else {
                 criticalAngleSine = 1;
             }
 
+            // find the angle of incidence in the interaction
             let incidentAngleSine = laserLine.getSineOfAngleBetweenLinePerpendicular(closestSide);
             let incidentAngle = Math.asin(incidentAngleSine);
 
-            if (incidentAngleSine >= criticalAngleSine) {
-                newIntersections.push(closestIntersection);
-                return newIntersections;
+            // check whether refraction or total internal reflection should occur
+            if(incidentAngleSine >= criticalAngleSine) {
+                // reflect (total internal) light and proceed recursively
+                return this.laser(new Laser(closestIntersection, closestSide.getAngleReflected(laser.rotation)), insideMirrors, newIntersections, closestSide);
             } else {
                 let refractedAngleSine = incidentAngleSine * incidentIndex / refractedIndex;
                 let refractedAngle = Math.asin(refractedAngleSine);
+                // find angle of refraction in world space and proceed recursively
                 return this.laser(new Laser(closestIntersection, laser.rotation - Math.sign(laserLine.getDotProductBetweenLine(closestSide)) * Math.sign(laserLine.getProjectionOfCrossProductBetweenLine(closestSide)) * (incidentAngle - refractedAngle)), newInsideMirrors, newIntersections, closestSide);
             }
         } else if (closestMirror.isAbsorbing) {
+            // absorb light and stop recursion
             return newIntersections;
         }
     }
