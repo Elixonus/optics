@@ -149,6 +149,11 @@ class Point {
     getDistanceTo(p = pointOrigin) {
         return Math.hypot(this.x - p.x, this.y - p.y);
     }
+
+    matchesWith(ref, epsilon)
+    {
+        return (numberMatches(this.x, ref.x, epsilon) && numberMatches(this.y, ref.y, epsilon));
+    }
 }
 
 class Line {
@@ -244,6 +249,11 @@ class Line {
     // find the angle of reflection given an incident ray with an angle of incidence hitting current reflecive line
     getAngleReflected(angleOfIncidence) {
         return 2 * this.getAngle() - angleOfIncidence;
+    }
+
+    matchesWith(ref, epsilon)
+    {
+        return (this.p1.matchesWith(ref.p1, epsilon) && this.p2.matchesWith(ref.p2, epsilon));
     }
 }
 
@@ -2129,9 +2139,21 @@ function intersectionLineLine(line1, line2) {
     });
 }
 
-function intersectionLineSegment(line1, line2) {
+function intersectionLineSegment(line1, line2, line2p1inclusive = true, line2p2inclusive = true) {
     return intersectionStraightStraight(line1, line2, function (ua, ub) {
-        return !(ub < 0 || ub > 1);
+        if (ub < 0 || ub > 1) {
+            return false;
+        }
+
+        if(numberMatches(ub, 0, 1e-9) && line2p1inclusive === false) {
+            return false;
+        }
+
+        if(numberMatches(ub, 1, 1e-9) && line2p2inclusive === false) {
+            return false;
+        }
+
+        return true;
     });
 }
 
@@ -2141,19 +2163,19 @@ function intersectionSegmentSegment(line1, line2, line1p1inclusive = true, line1
             return false;
         }
 
-        if (ua === 0 && line1p1inclusive === false) {
+        if (numberMatches(ua, 0, 1e-9) && line1p1inclusive === false) {
             return false;
         }
 
-        if (ua === 1 && line1p2inclusive === false) {
+        if (numberMatches(ua, 1, 1e-9) && line1p2inclusive === false) {
             return false;
         }
 
-        if (ub === 0 && line2p1inclusive === false) {
+        if (numberMatches(ub, 0, 1e-9) && line2p1inclusive === false) {
             return false;
         }
 
-        if (ub === 1 && line2p2inclusive === false) {
+        if (numberMatches(ub, 1, 1e-9) && line2p2inclusive === false) {
             return false;
         }
 
@@ -2167,15 +2189,15 @@ function intersectionSegmentRay(line1, line2, line1p1inclusive = true, line1p2in
             return false;
         }
 
-        if (ua === 0 && line1p1inclusive === false) {
+        if (numberMatches(ua, 0, 1e-9) && line1p1inclusive === false) {
             return false;
         }
 
-        if (ua === 1 && line1p2inclusive === false) {
+        if (numberMatches(ua, 1, 1e-9) && line1p2inclusive === false) {
             return false;
         }
 
-        if (ub === 0 && line2p1inclusive === false) {
+        if (numberMatches(ub, 0, 1e-9) && line2p1inclusive === false) {
             return false;
         }
 
@@ -2184,38 +2206,32 @@ function intersectionSegmentRay(line1, line2, line1p1inclusive = true, line1p2in
 }
 
 function intersectionStraightStraight(line1, line2, eliminationFunction) {
-    let x1 = line1.p1.x;
-    let y1 = line1.p1.y;
-    let x2 = line1.p2.x;
-    let y2 = line1.p2.y;
-    let x3 = line2.p1.x;
-    let y3 = line2.p1.y;
-    let x4 = line2.p2.x;
-    let y4 = line2.p2.y;
-
-    if ((x1 === x2 && y1 === y2) || (x3 === x4 && y3 === y4)) {
+    if (line1.p1.matchesWith(line1.p2) || line2.p1.matchesWith(line2.p2)) {
         return false;
     }
 
-    let denominator = ((y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1));
+    let denominator = line1.getProjectionOfCrossProductBetweenLine(line2);
 
-    if (denominator === 0) {
+    if (numberMatches(denominator, 0, 1e-9)) {
         return false;
     }
 
-    let ua = ((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3)) / denominator;
-    let ub = ((x2 - x1) * (y1 - y3) - (y2 - y1) * (x1 - x3)) / denominator;
+    let line = new Line(line1.p1, line2.p1);
+    let ua = line.getProjectionOfCrossProductBetweenLine(line2) / denominator;
+    let ub = line.getProjectionOfCrossProductBetweenLine(line1) / denominator;
 
     if (eliminationFunction(ua, ub) === false) {
         return false;
     }
 
-    let x = x1 + ua * (x2 - x1);
-    let y = y1 + ua * (y2 - y1);
-
-    return new Point(x, y);
+    return line1.p1.clone().addTo(line1.p2.clone().subtractTo(line1.p1).multiplyBy(ua));
 }
 
 function modulus(dividend, divisor) {
     return ((dividend % divisor) + divisor) % divisor;
+}
+
+function numberMatches(num, ref, epsilon)
+{
+    return (Math.abs(num - ref) <= epsilon);
 }
