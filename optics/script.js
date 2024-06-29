@@ -651,7 +651,7 @@ class Scene {
                 lastVertex = mirror.vertices.length - 1;
             }
 
-            // check collision with each side of the polygonal mirror
+            // check collision with each side of the polygon mirror
             for (let m = 0; m < lastVertex; m++) {
                 let side = mirror.getSide(m, true);
 
@@ -758,6 +758,7 @@ class Scene {
         }
     }
 
+    // get all the laser paths in the scene as an array of arrays of points
     getLaserCollisions() {
         let lasersData = [];
 
@@ -771,6 +772,7 @@ class Scene {
         return lasersData;
     }
 
+    // animate all the lasers and mirrors by updating their positions and rotations in time
     animate() {
         for (let n = 0; n < this.lasers.length; n++) {
             this.lasers[n].animate();
@@ -783,6 +785,7 @@ class Scene {
 }
 
 class Laser extends Object {
+    // create a laser object from a position vector point, rotation angle, and laser brightness from 0 to 1
     constructor(position, rotation, brightness = 0.75) {
         super(position, rotation);
         this.brightness = brightness;
@@ -791,6 +794,9 @@ class Laser extends Object {
 }
 
 class Mirror extends Object {
+    // create a mirror object from a position vector point, rotation angle, and index of refraction number
+    // as well as from an array of points representing the vertices of the polygon and a parameter determining
+    // whether the shape of the polygon is closed from start to end
     constructor(indexOfRefraction, position, rotation, vertices = [], closedShape = true) {
         super(position, rotation);
         this.indexOfRefraction = indexOfRefraction;
@@ -799,42 +805,46 @@ class Mirror extends Object {
         return this;
     }
 
+    // get a fake index of refraction for a refracting mirror
     static get refracting() {
         return 1.5;
     }
 
+    // get a fake index of refraction for a reflecting mirror
     static get reflecting() {
         return 0.5;
     }
 
+    // get a fake index of refraction for an absorbing mirror
     static get absorbing() {
         return -0.5;
     }
 
+    // find if the mirror has a refracting property
     get isRefracting() {
         return this.indexOfRefraction >= 1;
     }
 
+    // find if the mirror has a reflecting property
     get isReflecting() {
         return this.indexOfRefraction < 1 && this.indexOfRefraction >= 0;
     }
 
+    // find if the mirror has an absorbing property
     get isAbsorbing() {
         return this.indexOfRefraction < 0;
     }
 
+    // find if the mirror has not an absorbing property
     get isNotAbsorbing() {
         return !this.isAbsorbing;
     }
 
+    // get a vertex from the polygon mirror as a point
+    // if not absolute, return an existing wrapping vertex in the object space
+    // otherwise if absolute, return a new transformed point in the world space
     getVertex(vertexNumber, absolute = false) {
-        let correctedVertexNumber = vertexNumber;
-
-        while (correctedVertexNumber < 0) {
-            correctedVertexNumber += this.vertices.length;
-        }
-
-        let vertex = this.vertices[correctedVertexNumber % this.vertices.length];
+        let vertex = this.vertices[modulus(vertexNumber, this.vertices.length)];
 
         if (absolute) {
             vertex = vertex.clone().rotateAroundPoint(pointOrigin, this.rotation).addTo(this.position);
@@ -843,10 +853,14 @@ class Mirror extends Object {
         return vertex;
     }
 
+    // get a new side from the polygon mirror as a line
+    // if not absolute, return a line with two existing wrapping vertices in the object space
+    // otherwise if absolute, return a line with two new transformed points in the world space
     getSide(sideNumber, absolute = false) {
         return new Line(this.getVertex(sideNumber, absolute), this.getVertex(sideNumber + 1, absolute));
     }
 
+    // get an anonymous object containing 4 rectangularly bounding vertices
     getExtremes(absolute = false) {
         if (this.vertices.length === 0) {
             return false;
@@ -885,11 +899,15 @@ class Mirror extends Object {
         };
     }
 
+    // find if the polygon mirror encloses point
+    // if absolute parameter is false, the point parameter is considered in object space
+    // otherwise, if absolute parameter is true, the point parameter is considered in world space
     pointInside(p, absolute) {
         let pointOutside = this.getExtremes(absolute).leftMost.clone().subtractTo(new Point(1, 0));
         let lineFromInsideToOutside = new Line(p, pointOutside);
         let sum = 0;
 
+        // calculate the number of sides that intersect with an imaginary line from inside to outside of the polygon
         for (let n = 0; n < this.vertices.length; n++) {
             let side = this.getSide(n, absolute);
 
@@ -898,9 +916,12 @@ class Mirror extends Object {
             }
         }
 
+        // if the number of sides intersected is odd, the point is inside the polygon
+        // otherwise if it is even, the point is outside the polygon
         return sum % 2 !== 0;
     }
 
+    // find the area of the polygon mirror as a number
     findArea() {
         if (this.vertices.length < 3) {
             return 0;
@@ -908,13 +929,16 @@ class Mirror extends Object {
 
         let sum = 0;
 
+        // uses Shoelace Theorem to find the area of the polygon
         for (let n = 1; n <= this.vertices.length; n++) {
             sum += this.getVertex(n).x * this.getVertex(n + 1).y - this.getVertex(n + 1).x * this.getVertex(n).y;
         }
 
-        return sum;
+        // absolute value in case went in wrong direction
+        return Math.abs(sum);
     }
 
+    // find the center of the polygon mirror as a point in world space
     findCenter() {
         let average = pointOrigin.clone();
 
@@ -928,11 +952,13 @@ class Mirror extends Object {
         return average;
     }
 
+    // move the center of the polygon mirror without moving the vertices
     moveAnchorTo(p) {
         this.translateVertices(this.position.clone().subtractTo(p));
         this.position.setTo(p);
     }
 
+    // translate the vertices of the polygon mirror by a vector point
     translateVertices(p) {
         for (let n = 0; n < this.vertices.length; n++) {
             let vertex = this.vertices[n];
@@ -940,6 +966,7 @@ class Mirror extends Object {
         }
     }
 
+    // scale the vertices of the polygon mirror by an x and y factor from the center
     scaleVertices(xs, ys = xs) {
         for (let n = 0; n < this.vertices.length; n++) {
             let vertex = this.vertices[n];
