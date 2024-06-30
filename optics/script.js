@@ -671,7 +671,7 @@ class Scene {
                 }
 
                 // find the point of intersection between polygon side segment and laser ray
-                let intersection = intersectionSegmentRay(side, laserLine, false);
+                let intersection = intersectionSegmentRay(side, laserLine);
 
                 // check if intersection found
                 if (intersection !== false) {
@@ -856,7 +856,7 @@ class Mirror extends Object {
     getVertex(vertexNumber, absolute = false) {
         let vertex = this.vertices[modulus(vertexNumber, this.vertices.length)];
 
-        if (absolute) {
+        if (absolute === true) {
             vertex = vertex.clone().rotateAroundPoint(pointOrigin, this.rotation).addTo(this.position);
         }
 
@@ -912,7 +912,7 @@ class Mirror extends Object {
     // find if the polygon mirror encloses point
     // if absolute parameter is false, the point parameter is considered in object space
     // otherwise, if absolute parameter is true, the point parameter is considered in world space
-    pointInside(p, absolute) {
+    pointInside(p, absolute = false) {
         let pointOutside = this.getExtremes(absolute).leftMost.clone().subtractTo(new Point(1, 0));
         let lineFromInsideToOutside = new Line(p, pointOutside);
         let sum = 0;
@@ -921,7 +921,7 @@ class Mirror extends Object {
         for (let n = 0; n < this.vertices.length; n++) {
             let side = this.getSide(n, absolute);
 
-            if (intersectSegmentSegment(lineFromInsideToOutside, side, false)) {
+            if (intersectSegmentSegment(lineFromInsideToOutside, side)) {
                 sum++;
             }
         }
@@ -949,11 +949,16 @@ class Mirror extends Object {
     }
 
     // find the center of the polygon mirror as a point in world space
-    findCenter() {
+    findCenter(absolute = false) {
         let average = pointOrigin.clone();
 
         for (let n = 0; n < this.vertices.length; n++) {
             let vertex = this.vertices[n];
+
+            if (absolute === true) {
+                vertex = vertex.clone().rotateAroundPoint(pointOrigin, this.rotation).addTo(this.position);
+            }
+
             average.addTo(vertex);
         }
 
@@ -1073,6 +1078,7 @@ class Mirror extends Object {
         this.closedShape = true;
     }
 
+    // need help with creating correct geometry of lenses
     makeConcaveLens(focalLength, length, vertexCount) {
         this.makeConvexMirror(focalLength, length, vertexCount);
         let rightMost = this.getExtremes().leftMost;
@@ -1090,6 +1096,7 @@ class Mirror extends Object {
         this.closedShape = true;
     }
 
+    // need help with creating correct geometry of lenses
     makeConvexLens(focalLength, length, vertexCount) {
         this.makeConvexMirror(focalLength, length, vertexCount);
         let rightMost = this.getExtremes().rightMost;
@@ -1342,6 +1349,8 @@ function render() {
         }
     }
 
+    ctx.fillStyle = "#000000";
+    ctx.fillRect(0, 0, 1920, 1080);
     ctx.translate(960 - cameraPosition.x, 540 - cameraPosition.y);
     ctx.fillStyle = ctx.createPattern(tileImage, "repeat");
     ctx.shadowBlur = 0;
@@ -1747,19 +1756,6 @@ function loadExample(n) {
             scene.mirrors = [blob];
             break;
         case 4:
-            scene.lasers = [
-                new Laser(new Point(-100, -200), 0),
-                new Laser(new Point(-100, -100), 0),
-                new Laser(new Point(-100, -0), 0),
-                new Laser(new Point(-100, 100), 0),
-                new Laser(new Point(-100, 200), 0),
-            ];
-            let parabola = new Mirror(Mirror.reflecting, new Point(300, 0), 0);
-            parabola.makeConcaveLens(-200, 600, 100);
-            parabola.closedShape = true;
-            scene.mirrors = [parabola];
-            break;
-        case 5:
             scene.lasers = [new Laser(new Point(700, 0), 1 * Math.PI, 1)];
             scene.mirrors = [
                 new Mirror(Mirror.absorbing, new Point(0, 0), 0),
@@ -1776,11 +1772,64 @@ function loadExample(n) {
             scene.mirrors[3].makeRectangle(300, 50);
             scene.mirrors[4].makeRectangle(300, 50);
             scene.mirrors[5].makeRectangle(300, 50);
+            break;
+        case 5:
+            scene.lasers = [
+                new Laser(new Point(-100, -200), 0),
+                new Laser(new Point(-100, -100), 0),
+                new Laser(new Point(-100, -0), 0),
+                new Laser(new Point(-100, 100), 0),
+                new Laser(new Point(-100, 200), 0),
+            ];
+            let parabola = new Mirror(Mirror.reflecting, new Point(300, 0), 0);
+            parabola.makeConcaveMirror(-200, 600, 100);
+            parabola.moveAnchorTo(parabola.findCenter(true));
+            scene.mirrors = [parabola];
+            break;
+        case 6:
+            scene.lasers = [
+                new Laser(new Point(-100, -200), 0),
+                new Laser(new Point(-100, -100), 0),
+                new Laser(new Point(-100, -0), 0),
+                new Laser(new Point(-100, 100), 0),
+                new Laser(new Point(-100, 200), 0),
+            ];
+            let parabola2 = new Mirror(Mirror.reflecting, new Point(300, 0), 0);
+            parabola2.makeConvexMirror(-200, 600, 100);
+            parabola2.moveAnchorTo(parabola2.findCenter(true));
+            scene.mirrors = [parabola2];
+            break;
+        case 7:
+            scene.lasers = [
+                new Laser(new Point(-100, -200), 0),
+                new Laser(new Point(-100, -100), 0),
+                new Laser(new Point(-100, -0), 0),
+                new Laser(new Point(-100, 100), 0),
+                new Laser(new Point(-100, 200), 0),
+            ];
+            let parabola3 = new Mirror(Mirror.refracting, new Point(300, 0), 0);
+            parabola3.makeConvexLens(-200, 600, 100);
+            parabola3.moveAnchorTo(parabola3.findCenter(true));
+            scene.mirrors = [parabola3];
+            break;
+        case 8:
+            scene.lasers = [
+                new Laser(new Point(-100, -200), 0),
+                new Laser(new Point(-100, -100), 0),
+                new Laser(new Point(-100, -0), 0),
+                new Laser(new Point(-100, 100), 0),
+                new Laser(new Point(-100, 200), 0),
+            ];
+            let parabola4 = new Mirror(Mirror.refracting, new Point(300, 0), 0);
+            parabola4.makeConcaveLens(-200, 600, 100);
+            parabola4.moveAnchorTo(parabola4.findCenter(true));
+            scene.mirrors = [parabola4];
+            break;
     }
 }
 
-canvas.onmousedown = mousedown;
-canvas.onmouseup = mouseup;
+window.onmousedown = mousedown;
+window.onmouseup = mouseup;
 window.onresize = resize;
 window.onmousemove = mousemove;
 window.onkeydown = keydown;
@@ -1957,7 +2006,8 @@ function mouseup(event) {
 
 function mousemove(event) {
     let rect = canvas.getBoundingClientRect();
-    mousePosition.setTo(new Point(((event.clientX - rect.left) / (rect.right - rect.left) - 0.5) * 1920, ((event.clientY - rect.top) / (rect.bottom - rect.top) - 0.5) * 1080));
+    let point = new Point(((event.clientX - rect.left) / (rect.right - rect.left) - 0.5), ((event.clientY - rect.top) / (rect.bottom - rect.top) - 0.5)).scaleXY(1920, 1080);
+    mousePosition.setTo(point);
 }
 
 function keydown(event) {
@@ -2004,6 +2054,12 @@ function keydown(event) {
             loadExample(4);
         } else if (eventKey === "5") {
             loadExample(5);
+        } else if (eventKey === "6") {
+            loadExample(6);
+        } else if (eventKey === "7") {
+            loadExample(7);
+        } else if (eventKey === "8") {
+            loadExample(8);
         }
     }
 }
@@ -2129,8 +2185,8 @@ function calculateAngleDifference(a1, a2) {
     return difference;
 }
 
-function intersectSegmentSegment(line1, line2, line1p1inclusive = true, line1p2inclusive = true, line2p1inclusive = true, line2p2inclusive = true) {
-    return intersectionSegmentSegment(line1, line2, line1p1inclusive, line1p2inclusive, line2p1inclusive, line2p2inclusive) !== false;
+function intersectSegmentSegment(line1, line2) {
+    return intersectionSegmentSegment(line1, line2) !== false;
 }
 
 function intersectionLineLine(line1, line2) {
@@ -2139,65 +2195,29 @@ function intersectionLineLine(line1, line2) {
     });
 }
 
-function intersectionLineSegment(line1, line2, line2p1inclusive = true, line2p2inclusive = true) {
+function intersectionLineSegment(line1, line2) {
     return intersectionStraightStraight(line1, line2, function (ua, ub) {
         if (ub < 0 || ub > 1) {
             return false;
         }
 
-        if(numberMatches(ub, 0, 1e-9) && line2p1inclusive === false) {
-            return false;
-        }
-
-        if(numberMatches(ub, 1, 1e-9) && line2p2inclusive === false) {
-            return false;
-        }
-
         return true;
     });
 }
 
-function intersectionSegmentSegment(line1, line2, line1p1inclusive = true, line1p2inclusive = true, line2p1inclusive = true, line2p2inclusive = true) {
+function intersectionSegmentSegment(line1, line2) {
     return intersectionStraightStraight(line1, line2, function (ua, ub) {
         if (ua < 0 || ua > 1 || ub < 0 || ub > 1) {
             return false;
         }
 
-        if (numberMatches(ua, 0, 1e-9) && line1p1inclusive === false) {
-            return false;
-        }
-
-        if (numberMatches(ua, 1, 1e-9) && line1p2inclusive === false) {
-            return false;
-        }
-
-        if (numberMatches(ub, 0, 1e-9) && line2p1inclusive === false) {
-            return false;
-        }
-
-        if (numberMatches(ub, 1, 1e-9) && line2p2inclusive === false) {
-            return false;
-        }
-
         return true;
     });
 }
 
-function intersectionSegmentRay(line1, line2, line1p1inclusive = true, line1p2inclusive = true, line2p1inclusive = true) {
+function intersectionSegmentRay(line1, line2) {
     return intersectionStraightStraight(line1, line2, function (ua, ub) {
         if (ua < 0 || ua > 1 || ub < 0) {
-            return false;
-        }
-
-        if (numberMatches(ua, 0, 1e-9) && line1p1inclusive === false) {
-            return false;
-        }
-
-        if (numberMatches(ua, 1, 1e-9) && line1p2inclusive === false) {
-            return false;
-        }
-
-        if (numberMatches(ub, 0, 1e-9) && line2p1inclusive === false) {
             return false;
         }
 
@@ -2206,7 +2226,7 @@ function intersectionSegmentRay(line1, line2, line1p1inclusive = true, line1p2in
 }
 
 function intersectionStraightStraight(line1, line2, eliminationFunction) {
-    if (line1.p1.matchesWith(line1.p2) || line2.p1.matchesWith(line2.p2)) {
+    if (line1.p1.matchesWith(line1.p2, 1e-9) || line2.p1.matchesWith(line2.p2, 1e-9)) {
         return false;
     }
 
