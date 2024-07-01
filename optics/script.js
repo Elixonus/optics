@@ -1222,7 +1222,7 @@ class Animation {
     }
 
     animate() {
-        this.time++;
+        this.time += timeScale;
 
         if (this.isLooping) {
             while (this.time >= this.duration) {
@@ -1286,9 +1286,26 @@ const LASER_MAX_COLLISIONS = 50;
 const LASER_RANGE = 10000;
 const scene = new Scene();
 let time = 0;
+let previousTime = Date.now();
+const targetFramerate = 60;
+let framerate = targetFramerate;
+let deltaTime = 1000 / framerate;
+let timeScale = 1;
 loadExample(1);
 
 function render() {
+    let currentTime = Date.now();
+    deltaTime = currentTime - previousTime;
+    previousTime = currentTime;
+
+    if (numberMatches(deltaTime, 0, 1e-9) === true) {
+        framerate = targetFramerate;
+    } else {
+        framerate = 1000 / deltaTime;
+    }
+
+    timeScale = targetFramerate / clampMin(framerate, 20);
+
     if (scene.draggedObject !== false) {
         if (mouseAction === MouseAction.drag) {
             scene.draggedObject.position.setTo(mousePosition).addTo(cameraPosition).subtractTo(scene.draggedObject.dragOffset);
@@ -1313,19 +1330,19 @@ function render() {
     scene.animate();
 
     if (keysPressed.includes("ArrowLeft") || keysPressed.includes("a") || keysPressed.includes("A")) {
-        cameraPosition.x -= 10;
+        cameraPosition.x -= 10 * timeScale;
     }
 
     if (keysPressed.includes("ArrowRight") || keysPressed.includes("d") || keysPressed.includes("D")) {
-        cameraPosition.x += 10;
+        cameraPosition.x += 10 * timeScale;
     }
 
     if (keysPressed.includes("ArrowUp") || keysPressed.includes("w") || keysPressed.includes("W")) {
-        cameraPosition.y -= 10;
+        cameraPosition.y -= 10 * timeScale;
     }
 
     if (keysPressed.includes("ArrowDown") || keysPressed.includes("s") || keysPressed.includes("S")) {
-        cameraPosition.y += 10;
+        cameraPosition.y += 10 * timeScale;
     }
 
     let lasersCollisions = scene.getLaserCollisions();
@@ -1622,9 +1639,9 @@ function render() {
     ctx.fillRect(1780, 0, 140, 140);
 
     if ((distance(new Point(mousePosition.x + 960, mousePosition.y), new Point(0, 0)) < 500 || distance(new Point(mousePosition.x + 960, mousePosition.y), new Point(1920, 0)) < 500) && scene.draggedObject === false) {
-        keysHelp = clampMin(keysHelp - 0.05, 0);
+        keysHelp = clampMin(keysHelp - 0.05 * timeScale, 0);
     } else {
-        keysHelp = clampMax(keysHelp + 0.05, 1);
+        keysHelp = clampMax(keysHelp + 0.05 * timeScale, 1);
     }
 
     if (keysHelp > 0.01) {
@@ -1709,7 +1726,7 @@ function render() {
     }
 
     ctx.restore();
-    time += 1;
+    time += timeScale;
     request = window.requestAnimationFrame(render);
 }
 
@@ -1750,8 +1767,8 @@ function loadExample(n) {
             break;
         case 3:
             scene.lasers = [new Laser(new Point(-700, -300), Math.PI / 10)];
-            let blob = new Mirror(Mirror.reflecting, new Point(0, 0), new Animation([new Keyframe(0, 0), new Keyframe(2500, 7 * Math.PI)], interpolateLinear, 2500));
-            blob.makeBlob(300, 0.5, 0.5, 100);
+            let blob = new Mirror(Mirror.reflecting, new Point(0, 0), new Animation([new Keyframe(0, 0), new Keyframe(5000, 7 * Math.PI)], interpolateLinear, 5000));
+            blob.makeBlob(300, 0.9, 0.9, 100);
             blob.smoothVertices(0.5, 10);
             scene.mirrors = [blob];
             break;
