@@ -969,12 +969,21 @@ class Mirror extends Object {
 
     // move the center of the polygon mirror without moving the vertices
     moveAnchorTo(p) {
-        this.translateVertices(this.position.clone().subtractTo(p));
-        this.position.setTo(p);
+//        let oldPosition = this.position.clone();
+        //this.position.setTo(p);
+//        this.position.x = 0;
+//        this.position.y = 0;
+        this.translateVertices(this.position.clone());
+        this.position.setTo(new Point(0, 0));
     }
 
     // translate the vertices of the polygon mirror by a vector point
     translateVertices(p) {
+        // TODO: FIX BUG AND POSSIBLY OTHERS
+        let oldVertices = []
+        for (let n = 0; n < this.vertices.length; n++) {
+            oldVertices.push(this.vertices[n].clone());
+        }
         for (let n = 0; n < this.vertices.length; n++) {
             let vertex = this.vertices[n];
             vertex.addTo(p);
@@ -989,12 +998,14 @@ class Mirror extends Object {
         }
     }
 
-    subdivideVertices(vertexMultiplier = 2) {
+    // add a number of vertices between existing vertices equal to a number
+    // number of new vertices equal to vertices multiplier * number of existing vertices
+    subdivideVertices(verticesMultiplier = 2) {
         for (let n = 0; n < this.vertices.length; n++) {
             let side = this.getSide(n);
 
-            for (let m = 1; m < vertexMultiplier; m++) {
-                this.vertices.splice(n + 1, 0, side.p1.clone().interpolateToPointLinear(side.p2, m / (vertexMultiplier + 1)));
+            for (let m = 1; m < verticesMultiplier; m++) {
+                this.vertices.splice(n + 1, 0, side.p1.clone().interpolateToPointLinear(side.p2, m / (verticesMultiplier + 1)));
                 n++;
             }
         }
@@ -1005,7 +1016,8 @@ class Mirror extends Object {
             return;
         }
 
-        let initialArea = this.findArea();
+        let initialCenter = this.findCenter();
+        let initialArea = this.findArea(true);
 
         for (let n = 0; n < Math.round(this.vertices.length * iterationsMultiplier); n++) {
             let previousVertex = this.getVertex(n - 1);
