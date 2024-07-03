@@ -962,7 +962,7 @@ class Mirror extends Object {
         return average;
     }
 
-    // translate the vertices of the polygon mirror by a vector point
+    // translate the vertices of the polygon mirror by a vector point in object space
     translateVerticesLocally(p) {
         for (let n = 0; n < this.vertices.length; n++) {
             let vertex = this.vertices[n];
@@ -970,7 +970,7 @@ class Mirror extends Object {
         }
     }
 
-    // scale the vertices of the polygon mirror by an x and y factor from the center
+    // scale the vertices of the polygon mirror by an x and y factor from the center in object space
     scaleVerticesLocally(xs, ys = xs) {
         for (let n = 0; n < this.vertices.length; n++) {
             let vertex = this.vertices[n];
@@ -991,14 +991,18 @@ class Mirror extends Object {
         }
     }
 
+    // smooth the contour of the polygon mirror with a smoothing factor from 0 to 1
+    // as well as an iteration multiplier representing number of smoothing passes
     smoothVertices(factor = 0.5, iterationsMultiplier = 1) {
         if (this.vertices.length === 0) {
             return;
         }
 
-        let initialCenter = this.findCenter();
+        // finding initial area to perform correcting scale later on
         let initialArea = this.findArea(true);
 
+        // do a number of smoothing passes on each vertex of the polygon
+        // a smoothing operation moves a vertex towards the midpoint of the neighboring vertices
         for (let n = 0; n < Math.round(this.vertices.length * iterationsMultiplier); n++) {
             let previousVertex = this.getVertex(n - 1);
             let vertex = this.getVertex(n);
@@ -1007,10 +1011,12 @@ class Mirror extends Object {
             vertex.interpolateToPointLinear(midPoint, factor);
         }
 
-        let finalArea = this.findArea();
-        this.scaleVerticesLocally(Math.sqrt(initialArea / finalArea));
+        // finding uncorrected area and scaling to retain initial area
+        let uncorrectedArea = this.findArea();
+        this.scaleVerticesLocally(Math.sqrt(initialArea / uncorrectedArea));
     }
 
+    // set the vertices of the mirror to corners of a rectangle
     makeRectangle(width, height) {
         let halfWidth = width / 2;
         let halfHeight = height / 2;
@@ -1022,6 +1028,7 @@ class Mirror extends Object {
         this.closedShape = true;
     }
 
+    // set the vertices of the polygon mirror to points on the edge of a circle (uniformly)
     makeCircle(radius, vertexCount) {
         this.vertices = [];
 
@@ -1034,6 +1041,7 @@ class Mirror extends Object {
         this.closedShape = true;
     }
 
+    // set the vertices of the polygon mirror to vertices of a regular polygon with a number of sides
     makeRegularPolygon(radius, sideCount) {
         this.vertices = [];
 
@@ -1045,22 +1053,26 @@ class Mirror extends Object {
         this.closedShape = true;
     }
 
-    makeConcaveMirror(focalLength, ylength, xlength, vertexCount) {
+    // set the vertices of the polygon mirror to match the shape of a concave mirror
+    // xLength and yLength are the width and height of the concave mirror (respectively)
+    makeConcaveMirror(focalLength, yLength, xLength, vertexCount) {
         this.vertices = [];
 
         for (let n = 0; n < vertexCount; n++) {
-            let x = (n / (vertexCount - 1) - 0.5) * ylength;
+            let x = (n / (vertexCount - 1) - 0.5) * yLength;
             this.vertices.push(new Point(Math.pow(x, 2) / (4 * focalLength), x));
         }
 
         let rightMost = this.getExtremes().rightMost.clone();
-        this.vertices.push(new Point(rightMost.x - xlength, ylength / 2), new Point(rightMost.x - xlength, -ylength / 2));
+        this.vertices.push(new Point(rightMost.x - xLength, yLength / 2), new Point(rightMost.x - xLength, -yLength / 2));
 
         this.closedShape = true;
     }
 
-    makeConvexMirror(focalLength, ylength, vertexCount) {
-        this.makeConcaveMirror(focalLength, ylength, 0, vertexCount);
+    // set the vertices of the polygon mirror to match the shape of a convex mirror
+    // yLength is the height of the convex mirror
+    makeConvexMirror(focalLength, yLength, vertexCount) {
+        this.makeConcaveMirror(focalLength, yLength, 0, vertexCount);
         this.vertices.pop();
         this.vertices.pop();
         let rightMost = this.getExtremes().rightMost.clone();
@@ -1074,26 +1086,26 @@ class Mirror extends Object {
     }
 
     // need help with creating correct geometry of lenses
-    makeConcaveLens(focalLength, ylength, xlength, vertexCount) {
-        this.makeConvexMirror(focalLength, ylength, vertexCount);
+    makeConcaveLens(focalLength, yLength, xLength, vertexCount) {
+        this.makeConvexMirror(focalLength, yLength, vertexCount);
         let rightMost = this.getExtremes().leftMost.clone();
 
         for (let n = 0; n < this.vertices.length; n++) {
             let vertex = this.vertices[n];
-            vertex.x += -xlength / 2 + rightMost.x;
+            vertex.x += -xLength / 2 + rightMost.x;
         }
 
         for (let n = this.vertices.length - 2; n >= 1; n--) {
             let vertex = this.vertices[n];
-            this.vertices.push(new Point(-(vertex.x + rightMost.x) - rightMost.x - ylength / 60, vertex.y));
+            this.vertices.push(new Point(-(vertex.x + rightMost.x) - rightMost.x - yLength / 60, vertex.y));
         }
 
         this.closedShape = true;
     }
 
     // need help with creating correct geometry of lenses
-    makeConvexLens(focalLength, ylength, vertexCount) {
-        this.makeConvexMirror(focalLength, ylength, vertexCount);
+    makeConvexLens(focalLength, yLength, vertexCount) {
+        this.makeConvexMirror(focalLength, yLength, vertexCount);
 
         for (let n = this.vertices.length - 2; n >= 1; n--) {
             let vertex = this.vertices[n];
@@ -1794,7 +1806,6 @@ function loadExample(n) {
             ];
             let parabola = new Mirror(Mirror.reflecting, new Point(300, 0), Math.PI);
             parabola.makeConcaveMirror(200, 600, 175, 100);
-            //parabola.moveAnchorTo(parabola.findCenter(true));
             scene.mirrors = [parabola];
             break;
         case 6:
@@ -1807,7 +1818,6 @@ function loadExample(n) {
             ];
             let parabola2 = new Mirror(Mirror.reflecting, new Point(300, 0), Math.PI);
             parabola2.makeConvexMirror(200, 600, 100);
-            //parabola2.moveAnchorTo(parabola2.findCenter(true));
             scene.mirrors = [parabola2];
             break;
         case 7:
@@ -1820,7 +1830,6 @@ function loadExample(n) {
             ];
             let parabola3 = new Mirror(Mirror.refracting, new Point(300, 0), 0);
             parabola3.makeConvexLens(200, 600, 100);
-            //parabola3.moveAnchorTo(parabola3.findCenter(true));
             scene.mirrors = [parabola3];
             break;
         case 8:
@@ -1833,7 +1842,6 @@ function loadExample(n) {
             ];
             let parabola4 = new Mirror(Mirror.refracting, new Point(300, 0), 0);
             parabola4.makeConcaveLens(200, 600, 300, 100);
-            //parabola4.moveAnchorTo(parabola4.findCenter(true));
             scene.mirrors = [parabola4];
             break;
     }
