@@ -16,14 +16,14 @@ class Point {
         return (this.x === p.x && this.y === p.y);
     }
 
-    // copy components of caller point to current point
+    // copy components of parameter point to current point
     setTo(p) {
         this.x = p.x;
         this.y = p.y;
         return this;
     }
 
-    // add components of caller point to current point
+    // add components of parameter point to current point
     addTo(p) {
         this.x += p.x;
         this.y += p.y;
@@ -54,7 +54,7 @@ class Point {
         return this;
     }
 
-    // subtract components of caller point from current point
+    // subtract components of parameter point from current point
     subtractTo(p) {
         return this.addToXY(-p.x, -p.y);
     }
@@ -84,7 +84,7 @@ class Point {
         return this.scaleXY(1 / x);
     }
 
-    // multiply current point components by caller point components
+    // multiply current point components by parameter point components
     scale(p) {
         return this.scaleXY(p.x, p.y);
     }
@@ -106,7 +106,7 @@ class Point {
         return this.scaleX(x).scaleY(y);
     }
 
-    // rotate current point around caller point by angle in radians
+    // rotate current point around parameter point by angle in radians
     // if angle is positive, rotate from x axis towards y axis otherwise from y axis towards x axis
     rotateAroundPoint(p, rotation) {
         let cosine = Math.cos(rotation);
@@ -118,22 +118,22 @@ class Point {
         return this;
     }
 
-    // move current point to a point on the line between the current and caller points
-    // if interpolation factor is 0, use current point, if interpolation factor is 1, use caller point
+    // move current point to a point on the line between the current and parameter points
+    // if interpolation factor is 0, use current point, if interpolation factor is 1, use parameter point
     interpolateToPointLinear(p, t) {
         this.x = interpolateLinear(this.x, p.x, t);
         this.y = interpolateLinear(this.y, p.y, t);
         return this;
     }
 
-    // if interpolation factor is 0, use current point, if interpolation factor is 1, use caller point
+    // if interpolation factor is 0, use current point, if interpolation factor is 1, use parameter point
     interpolateToPointQuadratic(p, t) {
         this.x = interpolateQuadratic(this.x, p.x, t);
         this.y = interpolateQuadratic(this.y, p.y, t);
         return this;
     }
 
-    // move current point to a point halfway between current and caller points
+    // move current point to a point halfway between current and parameter points
     midPointTo(p) {
         this.x = (this.x + p.x) / 2;
         this.y = (this.y + p.y) / 2;
@@ -145,11 +145,12 @@ class Point {
         return this.getDistanceTo();
     }
 
-    // find the distance from the current point to the caller point
+    // find the distance from the current point to the parameter point
     getDistanceTo(p = pointOrigin) {
         return Math.hypot(this.x - p.x, this.y - p.y);
     }
 
+    // check whether each component of the current point match the reference parameter point within a threshold
     matchesWith(ref, epsilon)
     {
         return (numberMatches(this.x, ref.x, epsilon) && numberMatches(this.y, ref.y, epsilon));
@@ -179,26 +180,26 @@ class Line {
         return new Line(this.p1.clone(), this.p2.clone());
     }
 
-    // check if components of points of caller line match components of points of current line
+    // check if components of points of parameter line match components of points of current line
     isEqual(l) {
         return (this.p1.isEqual(l.p1) && this.p2.isEqual(l.p2))
     }
 
-    // translate line by components of caller point
+    // translate line by components of parameter point
     addTo(p) {
         this.p1.addTo(p);
         this.p2.addTo(p);
         return this;
     }
 
-    // translate line by components of caller point in the opposite direction
+    // translate line by components of parameter point in the opposite direction
     subtractTo(p) {
         this.p1.subtractTo(p);
         this.p2.subtractTo(p);
         return this;
     }
 
-    // rotate points on the line around caller point by angle in radians
+    // rotate points on the line around parameter point by angle in radians
     rotateAroundPoint(p, rotation) {
         this.p1.rotateAroundPoint(p, rotation);
         this.p2.rotateAroundPoint(p, rotation);
@@ -216,7 +217,7 @@ class Line {
         return Math.atan2(differencePoint.y, differencePoint.x);
     }
 
-    // find the dot product of current and caller lines as vectors
+    // find the dot product of current and parameter lines as vectors
     getDotProductBetweenLine(l) {
         let vector1 = this.p1.clone().subtractTo(this.p2);
         let vector2 = l.p1.clone().subtractTo(l.p2);
@@ -224,24 +225,24 @@ class Line {
         return scalarProduct;
     }
 
-    // find the magnitude of cross product of current and caller lines as vectors
+    // find the magnitude of cross product of current and parameter lines as vectors
     getProjectionOfCrossProductBetweenLine(l) {
         let vector1 = this.p1.clone().subtractTo(this.p2);
         let vector2 = l.p1.clone().subtractTo(l.p2);
         return vector1.x * vector2.y - vector1.y * vector2.x;
     }
 
-    // find the angle formed by the current and caller lines if put next to each other
+    // find the angle formed by the current and parameter lines if put next to each other
     getAngleBetweenLine(l) {
         return Math.acos(this.getDotProductBetweenLine(l) / (this.getLength() * l.getLength()));
     }
 
-    // find the angle formed by the perpendiculars of the current and caller lines if put next to each other
+    // find the angle formed by the perpendiculars of the current and parameter lines if put next to each other
     getAngleBetweenLinePerpendicular(l) {
         return Math.asin(this.getSineOfAngleBetweenLinePerpendicular(l));
     }
 
-    // find the sine of the angle formed by the perpendiculars of the current and caller lines if put next to each other
+    // find the sine of the angle formed by the perpendiculars of the current and parameter lines if put next to each other
     getSineOfAngleBetweenLinePerpendicular(l) {
         return Math.abs(this.getDotProductBetweenLine(l)) / (this.getLength() * l.getLength());
     }
@@ -340,7 +341,7 @@ class Object {
         this.animate();
     }
 
-    // set the center position of the object to caller point
+    // set the center position of the object to parameter point
     setPositionTo(position) {
         if (position instanceof Point) {
             this.position = position;
@@ -351,7 +352,7 @@ class Object {
         return this;
     }
 
-    // set the angle of the object to the caller angle
+    // set the angle of the object to the parameter angle
     setRotationTo(rotation) {
         if (rotation instanceof Animation) {
             this.rotationAnimation = rotation;
@@ -395,7 +396,7 @@ class Scene {
         return this.addObject(objects);
     }
 
-    // set the laser objects of the scene using caller array of lasers
+    // set the laser objects of the scene using parameter array of lasers
     set lasers(value) {
         this._lasers = value;
 
@@ -414,7 +415,7 @@ class Scene {
         return this._lasers;
     }
 
-    // set the mirror objects of the scene using caller array of mirrors
+    // set the mirror objects of the scene using parameter array of mirrors
     set mirrors(value) {
         this._mirrors = value;
 
@@ -433,7 +434,7 @@ class Scene {
         return this._mirrors;
     }
 
-    // set the guide objects of the scene using caller array of guides
+    // set the guide objects of the scene using parameter array of guides
     set guides(value) {
         this._guides = value;
 
@@ -484,61 +485,61 @@ class Scene {
         this.draggedObject = object;
     }
 
-    // add a laser object to the scene using a caller laser
+    // add a laser object to the scene using a parameter laser
     addLaser(laser) {
         this.lasers.push(laser);
         return this;
     }
 
-    // remove a laser object from the scene given a reference to caller laser
+    // remove a laser object from the scene given a reference to parameter laser
     removeLaser(laser) {
         this.lasers.splice(this.lasers.indexOf(laser), 1);
         return this;
     }
 
-    // add an array of laser objects to the scene using a caller array of lasers
+    // add an array of laser objects to the scene using a parameter array of lasers
     addLasers(lasers) {
         this.lasers = this.lasers.concat(lasers);
         return this;
     }
 
-    // add a mirror object to the scene using a caller mirror
+    // add a mirror object to the scene using a parameter mirror
     addMirror(mirror) {
         this.mirrors.push(mirror);
         return this;
     }
 
-    // remove a mirror object from the scene given a reference to caller mirror
+    // remove a mirror object from the scene given a reference to parameter mirror
     removeMirror(mirror) {
         this.mirrors.splice(this.mirrors.indexOf(mirror), 1);
         return this;
     }
 
-    // add an array of mirror objects to the scene using a caller array of mirrors
+    // add an array of mirror objects to the scene using a parameter array of mirrors
     addMirrors(mirrors) {
         this.mirrors = this.mirrors.concat(mirrors);
         return this;
     }
 
-    // add a guide object to the scene using a caller guide
+    // add a guide object to the scene using a parameter guide
     addGuide(guide) {
         this.guides.push(guide);
         return this;
     }
 
-    // remove a guide object from the scene given a reference to caller guide
+    // remove a guide object from the scene given a reference to parameter guide
     removeGuide(guide) {
         this.guides.splice(this.guides.indexOf(guide), 1);
         return this;
     }
 
-    // add an array of guide objects to the scene using a caller array of guides
+    // add an array of guide objects to the scene using a parameter array of guides
     addGuides(guides) {
         this.guides = this.guides.concat(guides);
         return this;
     }
 
-    // add a laser, mirror, or guide to the scene using a caller object
+    // add a laser, mirror, or guide to the scene using a parameter object
     addObject(object) {
         if (object instanceof Laser) {
             this.addLaser(object);
@@ -551,7 +552,7 @@ class Scene {
         return this;
     }
 
-    // remove a laser, mirror, or guide from the scene given a reference to caller object
+    // remove a laser, mirror, or guide from the scene given a reference to parameter object
     removeObject(object) {
         if (object instanceof Laser) {
             this.removeLaser(object);
@@ -566,7 +567,7 @@ class Scene {
         }
     }
 
-    // add an array of lasers, mirrors, and guides to the scene using a caller array of objects
+    // add an array of lasers, mirrors, and guides to the scene using a parameter array of objects
     addObjects(objects) {
         for (let n = 0; n < objects.length; n++) {
             this.addObject(objects[n]);
@@ -575,7 +576,7 @@ class Scene {
         return this;
     }
 
-    // get an array of mirrors in the scene whose contour currently enclose a caller point
+    // get an array of mirrors in the scene whose contour currently enclose a parameter point
     getMirrorsWithPointInside(p = pointOrigin) {
         let mirrors = [];
 
@@ -590,7 +591,7 @@ class Scene {
         return mirrors;
     }
 
-    // get the closest object from a caller array of objects to a caller point
+    // get the closest object from a parameter array of objects to a parameter point
     static getClosestObjectToPoint(p = pointOrigin, objects = []) {
         let closestObject = undefined;
         let distanceToClosestObject = undefined;
@@ -615,7 +616,7 @@ class Scene {
         };
     }
 
-    // get the closest mirror to a caller point in the scene
+    // get the closest mirror to a parameter point in the scene
     getClosestMirrorToPoint(p = pointOrigin) {
         let closest = Scene.getClosestObjectToPoint(p, this.mirrors);
         return closest;
@@ -636,7 +637,7 @@ class Scene {
         return mirrors;
     }
 
-    // shine a virtual ray in the scene given a caller laser and record the intersections with objects as an array of points
+    // shine a virtual ray in the scene given a parameter laser and record the intersections with objects as an array of points
     laser(laser, insideMirrors = [], intersections = [], sideIgnore = null) {
         // stop path tracing if the laser light collides a certain number of times
         if (intersections.length === LASER_MAX_COLLISIONS) {
@@ -1592,28 +1593,35 @@ function render() {
         ctx.restore();
     }
 
+    // draw text overlay if user is currently dragging an object
     if (scene.draggedObject !== false) {
         let text = undefined;
         let doDrawText = true;
 
+        // check and set the text to indicate the horizontal position of the object
         if (mouseAction === MouseAction.dragX) {
             text = "x: " + Math.round(scene.draggedObject.position.x);
         }
 
+        // check and set the text to indicate the vertical position of the object
         if (mouseAction === MouseAction.dragY) {
             text = "y: " + Math.round(-scene.draggedObject.position.y);
         }
 
+        // check and set the text to indicate the position of the object
         if (mouseAction === MouseAction.drag) {
             text = "x: " + Math.round(scene.draggedObject.position.x) + ", y: " + Math.round(-scene.draggedObject.position.y);
         }
 
+        // check and set the text to indicate the rotation of the object
         if (mouseAction === MouseAction.rotate) {
-            text = "r: " + Math.floor((2 * Math.PI - scene.draggedObject.rotation) * 180 / Math.PI) + " deg";
+            text = "r: " + Math.floor(modulus((2 * Math.PI - scene.draggedObject.rotation) * 180 / Math.PI, 360)) + " deg";
         }
 
+        // check and set the text depending on which object is currently being dragged
         if (mouseAction === MouseAction.change) {
             if (scene.draggedObject instanceof Laser) {
+                // set the text to indicate whether the laser is toggled on or off
                 if (Math.round(scene.draggedLaser.brightness) === 1) {
                     text = "Laser: ON";
                 } else {
@@ -1621,19 +1629,23 @@ function render() {
                 }
             } else if (scene.draggedObject instanceof Mirror) {
                 if (scene.draggedMirror.isRefracting) {
+                    // set the text to indicate the index of refraction of the lens
                     text = "Refractive, IOR: " + Math.round(100 * scene.draggedObject.indexOfRefraction) / 100;
                 }
 
                 if (scene.draggedMirror.isReflecting) {
+                    // set the text to indicate that the interferer is reflective
                     text = "Reflective";
                 }
 
                 if (scene.draggedMirror.isAbsorbing) {
-                    text = "Absorbtive";
+                    // set the text to indicate that the interferer is absorptive
+                    text = "Absorptive";
                 }
             }
 
             if (scene.draggedObject instanceof Guide) {
+                // set the text to indicate that the guide tool is a ruler or protractor
                 if (Math.round(scene.draggedGuide.guidance) === 0) {
                     text = "Ruler";
                 } else {
@@ -1642,40 +1654,52 @@ function render() {
             }
         }
 
+        // do text offsets and do the actual rendering of the text as well as its background
         if (doDrawText) {
             let extraSpace = 0;
 
+            // determining whether the currently dragged object's text needs an offset
             if (scene.draggedObject instanceof Laser) {
+                // offset the text to reveal the beam of light
                 if (scene.draggedLaser.rotation < Math.PI) {
                     extraSpace = -70;
                 } else {
                     extraSpace = 70;
                 }
             } else if (scene.draggedObject instanceof Guide && Math.round(scene.draggedObject.guidance) === 1) {
+                // offset the text of the protractor to reveal its center
                 extraSpace = 100;
             }
 
+            // find the width of the text in pixels to be used for centering the text
             let textWidth = ctx.measureText(text).width;
 
+            // render the text overlay's background
             ctx.shadowBlur = 0;
             ctx.fillStyle = "#000000";
             ctx.fillRect(scene.draggedObject.position.x - textWidth / 2 - 5, scene.draggedObject.position.y - 25 - 5 + extraSpace, textWidth + 10, 50 + 10);
 
+            // render the text overlay's text
             ctx.fillStyle = "#ffffff";
             ctx.font = "50px Verdana";
             ctx.fillText(text, scene.draggedObject.position.x - textWidth / 2, scene.draggedObject.position.y + 25 + extraSpace);
         }
     }
 
+    // go from world space to canvas space
     ctx.resetTransform();
 
     ctx.shadowBlur = 0;
+    // go from canvas space to button space
     ctx.translate(0, 540);
 
     ctx.fillStyle = "#222222";
+    // render the canvas buttons' background
     ctx.fillRect(-10, -310, 160, 540);
     ctx.fillRect(1770, -310, 160, 460);
 
+    // use gray as the background color otherwise if the button is active
+    // then use blue as the background color
     let dragXColor = "#111111";
     let dragYColor = "#111111";
     let dragColor = "#111111";
@@ -1703,6 +1727,7 @@ function render() {
         guideColor = "#42b6f5";
     }
 
+    // render each individual button's background
     ctx.fillStyle = dragXColor;
     ctx.fillRect(0, -300, 68, 70);
     ctx.fillStyle = dragYColor;
@@ -1720,12 +1745,14 @@ function render() {
     ctx.fillStyle = guideColor;
     ctx.fillRect(1780, 0, 140, 140);
 
+    // check and set whether it's best to show the icon symbols or letters
     if ((distance(new Point(mousePosition.x + 960, mousePosition.y), new Point(0, 0)) < 500 || distance(new Point(mousePosition.x + 960, mousePosition.y), new Point(1920, 0)) < 500) && scene.draggedObject === false) {
         keysHelp = clampMin(keysHelp - 0.05 * timeScale, 0);
     } else {
         keysHelp = clampMax(keysHelp + 0.05 * timeScale, 1);
     }
 
+    // check and draw the icon letters
     if (keysHelp > 0.01) {
         ctx.globalAlpha = clamp(keysHelp, 0, 1);
         ctx.drawImage(letterXImage, 17, -283, 36, 36);
@@ -1738,6 +1765,7 @@ function render() {
         ctx.drawImage(letterGImage, 1814, 34, 72, 72);
     }
 
+    // check and draw the icon symbols
     if (keysHelp < 0.99) {
         ctx.globalAlpha = clamp(1 - keysHelp, 0, 1);
         ctx.drawImage(dragXImage, 17, -283, 36, 36);
@@ -1748,6 +1776,7 @@ function render() {
         ctx.drawImage(addLaserImage, 1814, -266, 72, 72);
         ctx.drawImage(addInterfererImage, 1814, -116, 72, 72);
 
+        // show a ruler or protractor icon depending which will be added first
         if (scene.guides.length === 0) {
             ctx.drawImage(addRulerImage, 1814, 34, 72, 72);
         } else if (scene.guides.length === 1) {
@@ -1766,9 +1795,11 @@ function render() {
     }
 
     ctx.globalAlpha = 1;
+    // go from button space to canvas space
     ctx.resetTransform();
 
-    if (time < 120) {
+    // check if time ranges from 0 to 120 and draw the canvas wallpaper
+    if (time <= 120) {
         if (time < 60) {
             ctx.globalAlpha = 1;
         } else {
@@ -1776,7 +1807,9 @@ function render() {
         }
 
         ctx.fillStyle = "#000000";
+        // draw the background of the wallpaper
         ctx.fillRect(0, 0, 1920, 1080)
+        // draw the canvas wallpaper
         ctx.drawImage(wallpaperImage, 0, 0);
     }
 
@@ -1784,9 +1817,11 @@ function render() {
     ctx.shadowBlur = 5;
     ctx.shadowColor = "#000000";
 
+    // go from canvas space to mouse space
     ctx.save();
     ctx.translate(mousePosition.x + 960, mousePosition.y + 540);
 
+    // draw the mouse's associated mouse action icon
     if (scene.draggedObject === false) {
         if (mouseAction === MouseAction.laser || mouseAction === MouseAction.interferer || mouseAction === MouseAction.guide) {
             ctx.drawImage(objectImage, -18, -18, 36, 36);
@@ -1807,13 +1842,16 @@ function render() {
         }
     }
 
+    // go from mouse space to canvas space
     ctx.restore();
     time += timeScale;
     request = window.requestAnimationFrame(render);
 }
 
+// function to reset the scene and set the objects to match a hardcoded value
 function loadExample(n) {
     scene.reset();
+    // recenter the camera position
     cameraPosition.setTo(pointOrigin);
 
     switch (n) {
@@ -1849,7 +1887,7 @@ function loadExample(n) {
             break;
         case 3:
             scene.lasers = [new Laser(new Point(-700, -300), Math.PI / 10)];
-            let blob = new Mirror(Mirror.reflecting, new Point(0, 0), new Animation([new Keyframe(0, 0), new Keyframe(5000, 7 * Math.PI)], interpolateLinear, 5000));
+            let blob = new Mirror(Mirror.reflecting, new Point(0, 0), new Animation([new Keyframe(0, 0), new Keyframe(5000, 6 * Math.PI)], interpolateLinear, 5000));
             blob.makeBlob(300, 0.9, 0.9, 100);
             blob.smoothVertices(0.5, 10);
             scene.mirrors = [blob];
@@ -1923,24 +1961,30 @@ function loadExample(n) {
     }
 }
 
+// register window mouse and key events as well as loading and window resize event
 window.onmousedown = mousedown;
 window.onmouseup = mouseup;
 window.onresize = resize;
 window.onmousemove = mousemove;
 window.onkeydown = keydown;
 window.onkeyup = keyup;
+// render once all the images in the HTML have loaded
 window.onload = function () {
     request = window.requestAnimationFrame(render);
 };
+// prevent right click registration
 window.oncontextmenu = function (event) {
     event.preventDefault();
 };
+// resize the canvas on start
 resize();
 
+// function to reset the style width and height of the canvas
 function resize() {
     windowWidth = window.innerWidth;
     windowHeight = window.innerHeight;
 
+    // finding dimensions to maximize constrained viewing space
     if (windowWidth / windowHeight > 1920 / 1080) {
         canvas.style.width = `${(windowHeight / windowWidth) * (1920 / 1080) * 100}%`;
         canvas.style.height = "100%";
@@ -1950,13 +1994,20 @@ function resize() {
     }
 }
 
+// function to register a mousedown event, sets the mouse button and action
+// and plays a sound and adds appropriate interferer if needed as well as fixing
+// the properties of the dragged object
 function mousedown(event) {
+    // prevent registering mouse before wallpaper shown
     if (time < 90) {
         return;
     }
 
+    // set index 0, 1 or 2 of mouse buttons to active
     mouseButtons[event.button] = true;
 
+    // check the left side of the canvas buttons to see where mouse was
+    // clicked and set mouse action accordingly
     if (mousePosition.x + 960 > -10 && mousePosition.y > -310 && mousePosition.x + 960 < 150 && mousePosition.y < 230) {
         if (mousePosition.y < -225) {
             if (mousePosition.x + 960 < 70) {
@@ -1976,6 +2027,7 @@ function mousedown(event) {
         return;
     }
 
+    // do the same thing for the right side of the canvas buttons
     if (mousePosition.x + 960 > 1770 && mousePosition.y > -310 && mousePosition.x + 960 < 1930 && mousePosition.y < 150) {
         if (mousePosition.y < -155) {
             mouseAction = MouseAction.laser;
@@ -1989,6 +2041,7 @@ function mousedown(event) {
         return;
     }
 
+    // check whether to add a laser, interferer or guide tool to the scene
     if (mouseAction === MouseAction.laser) {
         let laser = new Laser(mousePosition.clone().addTo(cameraPosition), randomFloat(0, 2 * Math.PI));
         scene.addLaser(laser);
@@ -2017,6 +2070,8 @@ function mousedown(event) {
     } else if (mouseAction === MouseAction.guide) {
         let guide = undefined;
 
+        // check whether to add a ruler or a protractor guide tool
+        // while limiting maximum guides in the scene to 2
         if (scene.guides.length === 0) {
             guide = new Guide(mousePosition.clone().addTo(cameraPosition), 0);
         } else {
@@ -2040,6 +2095,7 @@ function mousedown(event) {
         return;
     }
 
+    // some hacky shit
     let point = mousePosition.clone().addTo(cameraPosition);
     let closestLaser = Scene.getClosestObjectToPoint(point, scene.lasers.filter(function (z) {
         return z.interactive;
@@ -2089,6 +2145,8 @@ function mousedown(event) {
     }
 }
 
+// function to register a mouseup event, sets the mouse button
+// and plays a sound and fixes the scene
 function mouseup(event) {
     mouseButtons[event.button] = false;
 
@@ -2099,12 +2157,15 @@ function mouseup(event) {
     scene.setDraggedObjectTo(false);
 }
 
+// function to register a mousemove event, sets the mouse position to coordinate values
 function mousemove(event) {
     let rect = canvas.getBoundingClientRect();
     let point = new Point(((event.clientX - rect.left) / (rect.right - rect.left) - 0.5), ((event.clientY - rect.top) / (rect.bottom - rect.top) - 0.5)).scaleXY(1920, 1080);
     mousePosition.setTo(point);
 }
 
+// function to register a keydown event, adds the event key
+// and checks the event key to determine how to change the scene
 function keydown(event) {
     const eventKey = event.key;
 
@@ -2159,6 +2220,7 @@ function keydown(event) {
     }
 }
 
+// function to register a keyup event, removed the event key from the array
 function keyup(event) {
     const eventKey = event.key;
 
@@ -2166,6 +2228,7 @@ function keyup(event) {
     keysFired = false;
 }
 
+// function to get the amount of shadowBlur to be used for a glow effect
 function getGlowBlur(shadowBlur) {
     if (glow) {
         return shadowBlur;
@@ -2174,6 +2237,7 @@ function getGlowBlur(shadowBlur) {
     return 0;
 }
 
+// function to get the properties of objects as an array of properties
 function getPropertiesOfObjects(objects, property) {
     let properties = [];
 
@@ -2184,6 +2248,7 @@ function getPropertiesOfObjects(objects, property) {
     return properties;
 }
 
+// function to get the minimum of an array of numbers
 function minimum(values) {
     let min = values[0];
 
@@ -2198,6 +2263,7 @@ function minimum(values) {
     return min;
 }
 
+// function to get the maximum of an array of numbers
 function maximum(values) {
     let max = values[0];
 
@@ -2212,6 +2278,7 @@ function maximum(values) {
     return max;
 }
 
+// function to get the average of an array of numbers
 function average(values) {
     let sum = 0;
 
@@ -2222,55 +2289,68 @@ function average(values) {
     return sum / values.length;
 }
 
+// function to get a random integer from a minimum to a maximum value
 function randomInteger(min = 0, max = 1) {
     return Math.floor(randomFloat(min, max + 1));
 }
 
+// function to get a random float from a minimum to a maximum value
 function randomFloat(min = 0, max = 1) {
     return Math.random() * (max - min) + min;
 }
 
+// function to get the value of a number clamped to a minimum
 function clampMin(num, min) {
     return Math.max(num, min)
 }
 
+// function to get the value of a number clamped to a maximum
 function clampMax(num, max) {
     return Math.min(num, max);
 }
 
+// function to get the value of a number clamped to a minimum and maximum
 function clamp(num, min, max) {
     return Math.min(Math.max(num, min), max);
 }
 
+// function to get the mapping value of a number from first space to the second space
 function map(value, start1, stop1, start2, stop2) {
     return ((value - start1) / (stop1 - start1)) * (stop2 - start2) + start2;
 }
 
+// function to get the distance between two point objects
 function distance(p1, p2 = pointOrigin) {
     return Math.hypot(p1.x - p2.x, p1.y - p2.y);
 }
 
-function distanceSquared(p1, p2) {
+// function to get the squared distance between two point objects
+function distanceSquared(p1, p2 = pointOrigin) {
     return Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2);
 }
 
-function distanceManhattan(p1, p2) {
+// function to get the manhattan distance between two point objects (sum of absolutes)
+function distanceManhattan(p1, p2 = pointOrigin) {
     return Math.abs(p1.x - p2.x) + Math.abs(p1.y - p2.y);
 }
 
+// function to get the linearly interpolated value from a starting and ending value
 function interpolateLinear(startingValue, endingValue, t) {
     return (startingValue + (endingValue - startingValue) * t);
 }
 
+// function to get the quadratically interpolated value from a starting and ending value
 function interpolateQuadratic(startingValue, endingValue, t) {
     return interpolateLinear(startingValue, endingValue, t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
 }
 
+// function to get an elastically interpolated value from a starting and ending value
 function interpolateElastic(startingValue, endingValue, t) {
     const c5 = (2 * Math.PI) / 4.5;
     return interpolateLinear(startingValue, endingValue, t === 0 ? 0 : t === 1 ? 1 : t < 0.5 ? -(Math.pow(2, 20 * t - 10) * Math.sin((20 * t - 11.125) * c5)) / 2 : (Math.pow(2, -20 * t + 10) * Math.sin((20 * t - 11.125) * c5)) / 2 + 1);
 }
 
+// function to get the minimum signed angle between two angles
 function calculateAngleDifference(a1, a2) {
     let difference = a2 - a1;
     while (difference < -Math.PI)
@@ -2280,16 +2360,19 @@ function calculateAngleDifference(a1, a2) {
     return difference;
 }
 
+// function to get whether two segments intersects using two line objects
 function intersectSegmentSegment(line1, line2) {
     return intersectionSegmentSegment(line1, line2) !== false;
 }
 
+// function to get the intersection of two lines using two line objects
 function intersectionLineLine(line1, line2) {
     return intersectionStraightStraight(line1, line2, function (ua, ub) {
         return true;
     });
 }
 
+// function to get the intersection of a line and segment using two line objects
 function intersectionLineSegment(line1, line2) {
     return intersectionStraightStraight(line1, line2, function (ua, ub) {
         if (ub < 0 || ub > 1) {
@@ -2300,6 +2383,7 @@ function intersectionLineSegment(line1, line2) {
     });
 }
 
+// function to get the intersection of two segments using two line objects
 function intersectionSegmentSegment(line1, line2) {
     return intersectionStraightStraight(line1, line2, function (ua, ub) {
         if (ua < 0 || ua > 1 || ub < 0 || ub > 1) {
@@ -2310,6 +2394,7 @@ function intersectionSegmentSegment(line1, line2) {
     });
 }
 
+// function to get the intersection of a segment and a ray using two line objects
 function intersectionSegmentRay(line1, line2) {
     return intersectionStraightStraight(line1, line2, function (ua, ub) {
         if (ua < 0 || ua > 1 || ub < 0) {
@@ -2320,6 +2405,8 @@ function intersectionSegmentRay(line1, line2) {
     });
 }
 
+// generic function to get the intersection of two capped or uncapped lines
+// using an elimination function of two lines
 function intersectionStraightStraight(line1, line2, eliminationFunction) {
     if (line1.p1.matchesWith(line1.p2, 1e-9) || line2.p1.matchesWith(line2.p2, 1e-9)) {
         return false;
@@ -2342,10 +2429,12 @@ function intersectionStraightStraight(line1, line2, eliminationFunction) {
     return line1.p1.clone().addTo(line1.p2.clone().subtractTo(line1.p1).multiplyBy(ua));
 }
 
+// function to get the real modulus (working correctly with negative numbers)
 function modulus(dividend, divisor) {
     return ((dividend % divisor) + divisor) % divisor;
 }
 
+// function to check whether a number matches a reference within a certain threshold
 function numberMatches(num, ref, epsilon)
 {
     return (Math.abs(num - ref) <= epsilon);
