@@ -1053,7 +1053,7 @@ class Mirror extends Object {
         this.closedShape = true;
     }
 
-    // set the vertices of the polygon mirror to match the shape of a concave mirror
+    // set the vertices of the polygon to match the shape of a concave mirror
     // xLength and yLength are the width and height of the concave mirror (respectively)
     makeConcaveMirror(focalLength, yLength, xLength, vertexCount) {
         this.vertices = [];
@@ -1069,7 +1069,7 @@ class Mirror extends Object {
         this.closedShape = true;
     }
 
-    // set the vertices of the polygon mirror to match the shape of a convex mirror
+    // set the vertices of the polygon to match the shape of a convex mirror
     // yLength is the height of the convex mirror
     makeConvexMirror(focalLength, yLength, vertexCount) {
         this.makeConcaveMirror(focalLength, yLength, 0, vertexCount);
@@ -1085,6 +1085,8 @@ class Mirror extends Object {
         this.closedShape = true;
     }
 
+    // set the vertices of the polygon to match the shape of a concave lens
+    // xLength and yLength are the width and height of the concave lens (respectively)
     // need help with creating correct geometry of lenses
     makeConcaveLens(focalLength, yLength, xLength, vertexCount) {
         this.makeConvexMirror(focalLength, yLength, vertexCount);
@@ -1103,6 +1105,8 @@ class Mirror extends Object {
         this.closedShape = true;
     }
 
+    // set the vertices of the polygon to match the shape of convex lens
+    // yLength is the height of the convex lens
     // need help with creating correct geometry of lenses
     makeConvexLens(focalLength, yLength, vertexCount) {
         this.makeConvexMirror(focalLength, yLength, vertexCount);
@@ -1115,6 +1119,10 @@ class Mirror extends Object {
         this.closedShape = true;
     }
 
+    // set the vertices of the polygon to match the shape of a randomized blob
+    // averageRadius is the average distance from center to the vertices
+    // maxRadiusDeviation is the percent deviation of the radius from 0 to 1
+    // maxAngleDeviation is the percent deviation towards the neighboring vertices from 0 to 1
     makeBlob(averageRadius, maxRadiusDeviation, maxAngleDeviation, vertexCount) {
         // 0 > maxAngleDeviation < 1
         this.vertices = [];
@@ -1130,6 +1138,9 @@ class Mirror extends Object {
 }
 
 class Guide extends Object {
+    // create a guide tool object from a position vector point, rotation angle
+    // and guidance number representing whether the object is a ruler or
+    // protractor (0 or 1 respectively) in floating point
     constructor(position, rotation, guidance = 0.25) {
         super(position, rotation);
         this.guidance = guidance;
@@ -1138,40 +1149,52 @@ class Guide extends Object {
 }
 
 class MouseAction {
+    // get the constant for mouse drag action
     static get drag() {
         return 0;
     }
 
+    // get the constant for mouse horizontal drag action
     static get dragX() {
         return 1;
     }
 
+    // get the constant for mouse vertical drag action
     static get dragY() {
         return 2;
     }
 
+    // get the constant for mouse rotation action
     static get rotate() {
         return 3;
     }
 
+    // get the constant for mouse object change action
     static get change() {
         return 4;
     }
 
+    // get the constant for mouse laser creation action
     static get laser() {
         return 5;
     }
 
+    // get the constant for mouse interferer (mirror object) creation action
     static get interferer() {
         return 6;
     }
 
+    // get the constant for mouse guide tool creation action
     static get guide() {
         return 7;
     }
 }
 
 class Animation {
+    // create an animation object which works on numbers as well as vectors
+    // from an array of keyframe objects as well as
+    // from a global number interpolation function, duration of animation and
+    // from a looping boolean parameter
     constructor(keyframes, interpolationFunction, duration, isLooping = true) {
         this.time = 0;
         this.keyframes = keyframes;
@@ -1181,7 +1204,10 @@ class Animation {
         return this;
     }
 
+    // get the value of the animation from the current time in the object
+    // as well as from the rest of the parameters
     getValues() {
+        // find the nearest left keyframe to the animation time
         let lowKeyframe = undefined;
 
         for (let n = 0; n < this.keyframes.length; n++) {
@@ -1191,6 +1217,7 @@ class Animation {
             }
         }
 
+        // find the nearest right keyframe to the current time
         let highKeyframe = undefined;
 
         for (let n = 0; n < this.keyframes.length; n++) {
@@ -1212,8 +1239,10 @@ class Animation {
             return lowKeyframe.values;
         }
 
+        // map the animation time from animation time space to keyframe time space
         let mapped = map(this.time, lowKeyframe.time, highKeyframe.time, 0, 1);
 
+        // interpolate the numbers or vectors using the left and right nearest keyframe
         if (Array.isArray(this.keyframes[0].values)) {
             let values = [];
 
@@ -1227,6 +1256,7 @@ class Animation {
         }
     }
 
+    // step forward the animation time by one and loop to start if is looping
     animate() {
         this.time += timeScale;
 
@@ -1239,6 +1269,8 @@ class Animation {
 }
 
 class Keyframe {
+    // create a animation keyframe object meant to be used for animation objects
+    // from the keyframe time number and keyframe values (number or vector) to be interpolated
     constructor(time, values) {
         this.time = time;
         this.values = values;
@@ -1246,6 +1278,7 @@ class Keyframe {
     }
 }
 
+// declare global variables and constants
 let request = undefined;
 let windowWidth = window.innerWidth;
 let windowHeight = window.innerHeight;
@@ -1299,41 +1332,58 @@ let deltaTime = 1000 / framerate;
 let timeScale = 1;
 loadExample(1);
 
+// render a step of the simulation based on the time variable
 function render() {
+    // finding the delta time from the previous and current frame times
     let currentTime = Date.now();
     deltaTime = currentTime - previousTime;
     previousTime = currentTime;
 
+    // find the framerate of the simulation
     if (numberMatches(deltaTime, 0, 1e-9) === true) {
         framerate = targetFramerate;
     } else {
         framerate = 1000 / deltaTime;
     }
 
+    // set the time scale of the simulation using the clamped framerate
     timeScale = targetFramerate / clampMin(framerate, 20);
 
+    // calculating properties of the object dragged by the mouse currently
     if (scene.draggedObject !== false) {
         if (mouseAction === MouseAction.drag) {
+            // drag the object horizontally and vertically to match the position of the mouse
             scene.draggedObject.position.setTo(mousePosition).addTo(cameraPosition).subtractTo(scene.draggedObject.dragOffset);
         } else if (mouseAction === MouseAction.dragX) {
+            // drag the object horizontally to match the horizontal position of the mouse
             scene.draggedObject.position.x = mousePosition.x + cameraPosition.x - scene.draggedObject.dragOffset.x;
         } else if (mouseAction === MouseAction.dragY) {
+            // drag the object vertically to match the vertical position of the mouse
             scene.draggedObject.position.y = mousePosition.y + cameraPosition.y - scene.draggedObject.dragOffset.y;
         } else if (mouseAction === MouseAction.rotate) {
+            // rotate the object to point away from mouse position at the object position
+            // creating a line from the object to the mouse and finding the angle
             let line = new Line(scene.draggedObject.position.clone().subtractTo(cameraPosition), mousePosition);
             scene.draggedObject.rotation = modulus(line.getAngle(), 2 * Math.PI);
         } else if (mouseAction === MouseAction.change) {
             if (scene.draggedObject instanceof Mirror) {
+                // change the lens' index of refraction based on the vertical displacement of the mouse
                 scene.draggedMirror.indexOfRefraction = clampMin(scene.draggedMirror.dragIndexOfRefraction + (scene.draggedMirror.mousePositionOnDrag.y - mousePosition.y) / 100, -2);
             } else if (scene.draggedObject instanceof Laser) {
+                // change the laser's brightness either to 0 or to 1 based on the vertical displacement of the mouse
                 scene.draggedLaser.brightness = clamp(map(Math.round(modulus(scene.draggedLaser.dragBrightness + (scene.draggedLaser.mousePositionOnDrag.y - mousePosition.y) / 300, 1)), 0, 1, 0.25, 0.75), 0, 1);
             } else if (scene.draggedObject instanceof Guide) {
+                // change the guide tool's guidance property to 0 or to 1 based on the vertical displacement of the mouse
+                // determining whether to show a ruler or protractor
                 scene.draggedGuide.guidance = clamp(map(Math.round(modulus(scene.draggedGuide.dragGuidance + (scene.draggedGuide.mousePositionOnDrag.y - mousePosition.y) / 300, 1)), 0, 1, 0.25, 0.75), 0, 1);
             }
         }
     }
 
+    // progress forward the property animations of each object in the scene by one step
     scene.animate();
+
+    // move the camera left, right, up, or down based on the pressed and held key
 
     if (keysPressed.includes("ArrowLeft") || keysPressed.includes("a") || keysPressed.includes("A")) {
         cameraPosition.x -= 10 * timeScale;
@@ -1351,8 +1401,10 @@ function render() {
         cameraPosition.y += 10 * timeScale;
     }
 
+    // find the paths of collisions of the lasers in the scene as an array of arrays of point objects
     let lasersCollisions = scene.getLaserCollisions();
 
+    // if the user is dragging a protractor, snap the position of the protractor to the position of the closest laser collision with mirror
     if (scene.draggedGuide !== false && mouseAction === MouseAction.drag && scene.draggedObject instanceof Guide && Math.round(scene.draggedObject.guidance) === 1) {
         let objects = [];
         for (let n = 0; n < lasersCollisions.length; n++) {
@@ -1367,29 +1419,37 @@ function render() {
 
         let closest = Scene.getClosestObjectToPoint(scene.draggedObject.position, objects);
 
+        // do the position snap if the distance to the object is less than 50 pixels
         if (closest !== false && closest.distanceToObject <= 50) {
             scene.draggedObject.position.setTo(closest.object.position);
         }
     }
 
+    // reset the canvas color to black
     ctx.fillStyle = "#000000";
     ctx.fillRect(0, 0, 1920, 1080);
+    // go from canvas space to world space with just a translation
     ctx.translate(960 - cameraPosition.x, 540 - cameraPosition.y);
+    // render the tiled background
     ctx.fillStyle = ctx.createPattern(tileImage, "repeat");
     ctx.shadowBlur = 0;
     ctx.fillRect(cameraPosition.x - 960, cameraPosition.y - 540, 1920, 1080);
 
+    // render each guide tool in the scene appropriately
     for (let n = 0; n < scene.guides.length; n++) {
         let guide = scene.guides[n];
 
+        // set to half opacity if guide tool not being dragged
         if (scene.draggedObject === false || !scene.draggedObject instanceof Guide || scene.draggedObject !== guide) {
             ctx.globalAlpha = 0.5;
         }
 
+        // go from world space to object space
         ctx.save();
         ctx.translate(guide.position.x, guide.position.y);
         ctx.rotate(guide.rotation);
 
+        // render either the ruler or protractor overlay depending on the guidance
         if (Math.round(guide.guidance) === 0) {
             ctx.rotate(Math.PI / 2)
             ctx.drawImage(rulerImage, -400, -57.5, 800, 115);
@@ -1397,6 +1457,7 @@ function render() {
             ctx.drawImage(protractorImage, -300, -300, 600, 600);
         }
 
+        // go from object space to world space
         ctx.restore();
         ctx.globalAlpha = 1;
     }
@@ -1406,9 +1467,13 @@ function render() {
 
     let mirrors = scene.mirrors;
 
+    // render the absorbing, reflective and refractive interferers
     for (let n = 0; n < 3; n++) {
         let selectedMirrors = undefined;
 
+        // group the interferers based on whether they are absorbing (white)
+        // and whether they are not absorbing and not selected (red)
+        // and whether they are not absorbing and selected (blue)
         if (n === 0) {
             selectedMirrors = mirrors.filter(function (mirror) {
                 return !mirror.isNotAbsorbing;
@@ -1446,12 +1511,15 @@ function render() {
             ctx.fillStyle = ctx.strokeStyle;
         }
 
+        // render the group of white, red or blue interferers
         for (let m = 0; m < selectedMirrors.length; m++) {
             let mirror = selectedMirrors[m];
             let vertices = mirror.vertices;
+            // go from world space to object space
             ctx.save();
             ctx.translate(mirror.position.x, mirror.position.y);
             ctx.rotate(mirror.rotation);
+            // draw a path of lines connecting the vertices
             ctx.beginPath();
             ctx.moveTo(vertices[0].x, vertices[0].y);
 
@@ -1466,6 +1534,8 @@ function render() {
 
             ctx.stroke();
 
+            // render with fill if the interferer is refracting
+            // and opacity of fill based on a modified sigmoid function
             if (mirror.isRefracting) {
                 ctx.globalAlpha = clamp(1 - 1 / Math.pow(Math.E, 0.1 * (mirror.indexOfRefraction - 1)), 0, 1);
                 ctx.shadowBlur = 0;
@@ -1477,10 +1547,12 @@ function render() {
 
     ctx.lineWidth = 3;
 
+    // render all the laser paths in the scene
     for (let n = 0; n < lasersCollisions.length; n++) {
         let laser = scene.lasers[n];
         let laserCollisions = lasersCollisions[n];
 
+        // check and render laser path if laser is turned on
         if (Math.round(laser.brightness) !== 0) {
             ctx.strokeStyle = "hsl(120, 100%, 50%)";
             ctx.shadowColor = ctx.strokeStyle;
@@ -1498,6 +1570,7 @@ function render() {
         }
     }
 
+    // render each actual laser object in the scene
     for (let l = 0; l < scene.lasers.length; l++) {
         let laser = scene.lasers[l];
         ctx.globalAlpha = 1;
@@ -1509,10 +1582,13 @@ function render() {
             ctx.shadowBlur = 0;
         }
 
+        // go from world space to object space
         ctx.save();
         ctx.translate(laser.position.x, laser.position.y);
         ctx.rotate(laser.rotation);
+        // draw the laser tool overlay
         ctx.drawImage(laserImage, -204.3, -18.7, 204.3, 37.3);
+        // go from object space to world space
         ctx.restore();
     }
 
