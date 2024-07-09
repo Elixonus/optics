@@ -19,15 +19,25 @@ This option has two additional subtools to limit the movement in a certain axis.
 
 * **Rotation tool** indicated by the spinning arrow symbol, is used to set the rotation of the objects in the scene.
 
-* **Object tool** indicated by the cube symbol, is used to interact with the properties specific to the object you are selecting.
+* **Change tool** indicated by the list symbol, is used to interact with the properties specific to the object you are selecting.
 For lasers, this is used to toggle the emission ON and OFF. 
-For mirrors, this is used to cycle the type of interference from refractive, reflective, absorbtive.
-If the mirror is in refractive mode, the index of refraction can be dialed up and down an extended amount with the mouse.
+For interferers, this is used to cycle the type from refractive, reflective, and absorptive.
+If the interferer is in refractive mode, the index of refraction can be dialed up and down an extended amount with the mouse.
 For guide tools, this is used to toggle between a ruler and a protractor.
+
+* **Laser tool** indicated by the laser symbol, is used to create a laser at the current mouse position.
+Once laser is created, rotation tool is automatically selected to specify the angle of the laser.
+
+* **Interferer tool** indicated by the polygon symbol, is used to create an interferer at the current mouse position.
+Once interferer is created, change tool is automatically selected to specify the type of object.
+
+* **Guide tool** indicated by the ruler or protractor symbol, is used to create a ruler or protractor at the current mouse location based on the context of the scene.
+Once guide is created, rotational tool is automatically selected to specify the angle of the guide.
+The guide has no influence on the scene and if it is a protractor and translation tool is selected, the position will snap to the scene laser collisions.
 
 ### Output
 
-Three types of objects are displayed differently.
+Three types of interferer objects are displayed differently.
 
 * **Absorbing** objects have white contour.
 
@@ -41,9 +51,9 @@ Three types of objects are displayed differently.
 
 ```T``` - Switch to translation tool.
 
-```X``` - Switch to horizontal translation subtool *(only works when using translation tool or subtool)*.
+```X``` - Switch to horizontal translation subtool *(only works when translation tool or subtool is selected)*.
 
-```Y``` - Switch to vertical translation subtool *(only works when using translation tool or subtool)*.
+```Y``` - Switch to vertical translation subtool *(only works when translation tool or subtool is selected)*.
 
 ```R``` - Switch to rotation tool.
 
@@ -51,26 +61,26 @@ Three types of objects are displayed differently.
 
 ### Creation
 
-```L``` - Instantiate a laser from where the mouse is located.
+```L``` - Instantiate a laser device from where the mouse is located.
 
-```I``` - Instantiate a random polygonal mirror from where the mouse is located.
+```I``` - Instantiate a random polygonal interferer from where the mouse is located.
 
 ```G``` - Instantiate a ruler guide tool from where the mouse is located.
 
 ### Camera
 
-```(ARROW)``` or ```(WASD)``` - Pan the camera incrementally and continuously.
+```(ARROW)``` or ```(WASD)``` - Pan the camera horizontally and vertically.
 
 ### Scene
 
-```(DELETE)``` or ```(BACKSPACE)``` - Remove all the lasers and mirrors from the scene.
+```(DELETE)``` or ```(BACKSPACE)``` or ```0``` - Remove all the objects from the scene.
 
 ```(NUMBER)``` - Load a predefined scene in the program.
 
 ### Extra
 
-```Z``` - Toggle between quality and performance.
+```Z``` - Toggle between quality and performance (toggles shadow blur effect off or on).
 
 ## Limitations 🔒
 
-To avoid performance losses, the maximum collisions per each laser path is set to 50.
+To avoid performance losses, the maximum collisions per each laser path is set to 50 in the code.

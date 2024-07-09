@@ -2196,7 +2196,7 @@ function keydown(event) {
             mouseAction = MouseAction.interferer
         } else if (eventKey.toUpperCase() === "G") {
             mouseAction = MouseAction.guide;
-        } else if (eventKey === "Backspace" || eventKey === "Delete") {
+        } else if (eventKey === "Backspace" || eventKey === "Delete" || eventKey === "0") {
             scene.reset();
         } else if (eventKey.toUpperCase() === "Z") {
             glow = !glow;
