@@ -1,6 +1,7 @@
 body
 {
     background-color: #151515;
+    overflow: hidden;
 }
 
 #canvas
@@ -12,6 +13,7 @@ body
     border-radius: 5vmin;
     outline: 3vmin solid #000000;
     cursor: none;
+    user-select: none;
 }
 
 .hidden

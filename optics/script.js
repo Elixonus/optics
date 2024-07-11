@@ -1321,7 +1321,8 @@ const mouseButtons = [false, false, false];
 let mouseAction = MouseAction.drag;
 const keysPressed = [];
 let keysFired = false;
-let keysHelp = 0
+let keysHelp = 0;
+let touch = false;
 const LASER_MAX_COLLISIONS = 50;
 const LASER_RANGE = 10000;
 const scene = new Scene();
@@ -1386,19 +1387,19 @@ function render() {
 
     // move the camera left, right, up, or down based on the pressed and held key
 
-    if (keysPressed.includes("ArrowLeft") || keysPressed.includes("a") || keysPressed.includes("A")) {
+    if (keysPressed.includes("ArrowLeft") || keysPressed.includes("a") || keysPressed.includes("A") || (mousePosition.x < -760 && mouseButtons[0] === true && touch === true)) {
         cameraPosition.x -= 10 * timeScale;
     }
 
-    if (keysPressed.includes("ArrowRight") || keysPressed.includes("d") || keysPressed.includes("D")) {
+    if (keysPressed.includes("ArrowRight") || keysPressed.includes("d") || keysPressed.includes("D") || (mousePosition.x > 760 && mouseButtons[0] === true && touch === true)) {
         cameraPosition.x += 10 * timeScale;
     }
 
-    if (keysPressed.includes("ArrowUp") || keysPressed.includes("w") || keysPressed.includes("W")) {
+    if (keysPressed.includes("ArrowUp") || keysPressed.includes("w") || keysPressed.includes("W") || (mousePosition.y < -340 && mouseButtons[0] === true && touch === true)) {
         cameraPosition.y -= 10 * timeScale;
     }
 
-    if (keysPressed.includes("ArrowDown") || keysPressed.includes("s") || keysPressed.includes("S")) {
+    if (keysPressed.includes("ArrowDown") || keysPressed.includes("s") || keysPressed.includes("S") || (mousePosition.y > 340 && mouseButtons[0] === true && touch === true)) {
         cameraPosition.y += 10 * timeScale;
     }
 
@@ -1452,7 +1453,7 @@ function render() {
 
         // render either the ruler or protractor overlay depending on the guidance
         if (Math.round(guide.guidance) === 0) {
-            ctx.rotate(Math.PI / 2)
+            ctx.rotate(Math.PI / 2);
             ctx.drawImage(rulerImage, -400, -57.5, 800, 115);
         } else {
             ctx.drawImage(protractorImage, -300, -300, 600, 600);
@@ -1746,7 +1747,7 @@ function render() {
     ctx.fillRect(1780, 0, 140, 140);
 
     // check and set whether it's best to show the icon symbols or letters
-    if ((distance(new Point(mousePosition.x + 960, mousePosition.y), new Point(0, 0)) < 500 || distance(new Point(mousePosition.x + 960, mousePosition.y), new Point(1920, 0)) < 500) && scene.draggedObject === false) {
+    if (((distance(new Point(mousePosition.x + 960, mousePosition.y), new Point(0, 0)) < 500 || distance(new Point(mousePosition.x + 960, mousePosition.y), new Point(1920, 0)) < 500) && scene.draggedObject === false) || touch === true) {
         keysHelp = clampMin(keysHelp - 0.05 * timeScale, 0);
     } else {
         keysHelp = clampMax(keysHelp + 0.05 * timeScale, 1);
@@ -1968,6 +1969,9 @@ window.onresize = resize;
 window.onmousemove = mousemove;
 window.onkeydown = keydown;
 window.onkeyup = keyup;
+window.ontouchstart = touchstart;
+window.ontouchend = touchend;
+window.ontouchmove = touchmove;
 // render once all the images in the HTML have loaded
 window.onload = function () {
     request = window.requestAnimationFrame(render);
@@ -2023,7 +2027,10 @@ function mousedown(event) {
             mouseAction = MouseAction.change;
         }
 
-        switchSound.play();
+        if (touch === false) {
+            switchSound.play();
+        }
+
         return;
     }
 
@@ -2037,7 +2044,10 @@ function mousedown(event) {
             mouseAction = MouseAction.guide;
         }
 
-        switchSound.play();
+        if (touch === false) {
+            switchSound.play();
+        }
+
         return;
     }
 
@@ -2139,9 +2149,13 @@ function mousedown(event) {
             object.dragGuidance = object.guidance;
         }
 
-        clickSound.play();
+        if (touch === false) {
+            clickSound.play();
+        }
     } else {
-        misclickSound.play();
+        if (touch === false) {
+            misclickSound.play();
+        }
     }
 }
 
@@ -2150,7 +2164,7 @@ function mousedown(event) {
 function mouseup(event) {
     mouseButtons[event.button] = false;
 
-    if (scene.draggedObject !== false) {
+    if (scene.draggedObject !== false && touch === false) {
         clickSound.play();
     }
 
@@ -2226,6 +2240,27 @@ function keyup(event) {
 
     keysPressed.splice(keysPressed.indexOf(eventKey), 1);
     keysFired = false;
+}
+
+// function to register a mobile touchstart event, calls mousedown
+function touchstart(event) {
+    touch = true;
+    touchmove(event);
+    mousedown({button: 0});
+}
+
+// function to register a mobile touchend event, calls mouseup
+function touchend(event) {
+    touch = true;
+    mouseup({button: 0});
+}
+
+// function to register a mobile touchmove event, calls mousemove
+function touchmove(event) {
+    touch = true;
+    for (let n = 0; n < event.touches.length; n++) {
+        mousemove({clientX: event.touches[n].clientX, clientY: event.touches[n].clientY});
+    }
 }
 
 // function to get the amount of shadowBlur to be used for a glow effect
