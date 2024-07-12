@@ -698,7 +698,7 @@ class Scene {
 
         if (closestMirror === undefined) {
             // if no collisions are found, add a final laser light point into the void
-            newIntersections.push(laser.position.clone().addToPolar(LASER_RANGE, laser.rotation));
+            newIntersections.push(laser.position.clone().addToPolar(DRAW_RANGE, laser.rotation));
             return newIntersections;
         }
 
@@ -1324,7 +1324,7 @@ let keysFired = false;
 let keysHelp = 0;
 let touch = false;
 const LASER_MAX_COLLISIONS = 50;
-const LASER_RANGE = 10000;
+const DRAW_RANGE = 10000;
 const scene = new Scene();
 let time = 0;
 let previousTime = Date.now();
@@ -1402,6 +1402,9 @@ function render() {
     if (keysPressed.includes("ArrowDown") || keysPressed.includes("s") || keysPressed.includes("S") || (mousePosition.y > 340 && mouseButtons[0] === true && touch === true)) {
         cameraPosition.y += 10 * timeScale;
     }
+
+    cameraPosition.x = clamp(cameraPosition.x, -0.5 * DRAW_RANGE, 0.5 * DRAW_RANGE);
+    cameraPosition.y = clamp(cameraPosition.y, -0.5 * DRAW_RANGE, 0.5 * DRAW_RANGE);
 
     // find the paths of collisions of the lasers in the scene as an array of arrays of point objects
     let lasersCollisions = scene.getLaserCollisions();
@@ -1963,23 +1966,23 @@ function loadExample(n) {
 }
 
 // register window mouse and key events as well as loading and window resize event
-window.onmousedown = mousedown;
-window.onmouseup = mouseup;
-window.onresize = resize;
-window.onmousemove = mousemove;
-window.onkeydown = keydown;
-window.onkeyup = keyup;
-window.ontouchstart = touchstart;
-window.ontouchend = touchend;
-window.ontouchmove = touchmove;
+window.addEventListener("resize", resize);
+window.addEventListener("mousedown", mousedown);
+window.addEventListener("mouseup", mouseup);
+window.addEventListener("mousemove", mousemove);
+window.addEventListener("keydown", keydown);
+window.addEventListener("keyup", keyup);
+window.addEventListener("touchstart", touchstart);
+window.addEventListener("touchend", touchend);
+window.addEventListener("touchmove", touchmove);
 // render once all the images in the HTML have loaded
-window.onload = function () {
+window.addEventListener("load", function () {
     request = window.requestAnimationFrame(render);
-};
+});
 // prevent right click registration
-window.oncontextmenu = function (event) {
+window.addEventListener("contextmenu", function (event) {
     event.preventDefault();
-};
+});
 // resize the canvas on start
 resize();
 
@@ -2175,6 +2178,8 @@ function mouseup(event) {
 function mousemove(event) {
     let rect = canvas.getBoundingClientRect();
     let point = new Point(((event.clientX - rect.left) / (rect.right - rect.left) - 0.5), ((event.clientY - rect.top) / (rect.bottom - rect.top) - 0.5)).scaleXY(1920, 1080);
+    point.x = clamp(point.x, -0.5 * DRAW_RANGE, 0.5 * DRAW_RANGE);
+    point.y = clamp(point.y, -0.5 * DRAW_RANGE, 0.5 * DRAW_RANGE);
     mousePosition.setTo(point);
 }
 
@@ -2237,7 +2242,6 @@ function keydown(event) {
 // function to register a keyup event, removed the event key from the array
 function keyup(event) {
     const eventKey = event.key;
-
     keysPressed.splice(keysPressed.indexOf(eventKey), 1);
     keysFired = false;
 }
