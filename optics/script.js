@@ -151,8 +151,7 @@ class Point {
     }
 
     // check whether each component of the current point match the reference parameter point within a threshold
-    matchesWith(ref, epsilon)
-    {
+    matchesWith(ref, epsilon) {
         return (numberMatches(this.x, ref.x, epsilon) && numberMatches(this.y, ref.y, epsilon));
     }
 }
@@ -252,8 +251,7 @@ class Line {
         return 2 * this.getAngle() - angleOfIncidence;
     }
 
-    matchesWith(ref, epsilon)
-    {
+    matchesWith(ref, epsilon) {
         return (this.p1.matchesWith(ref.p1, epsilon) && this.p2.matchesWith(ref.p2, epsilon));
     }
 }
@@ -592,15 +590,22 @@ class Scene {
     }
 
     // get the closest object from a parameter array of objects to a parameter point
-    static getClosestObjectToPoint(p = pointOrigin, objects = []) {
+    static getClosestObjectToPoint(p = pointOrigin, objects = [], distanceModifier = undefined) {
         let closestObject = undefined;
         let distanceToClosestObject = undefined;
 
         for (let n = 0; n < objects.length; n++) {
             let object = objects[n];
             let distanceToObject = distance(p, object.position);
+            let comparedDistance;
 
-            if (closestObject === undefined || distanceToObject < distanceToClosestObject) {
+            if (distanceModifier !== undefined) {
+                comparedDistance = distanceModifier(distanceToObject);
+            } else {
+                comparedDistance = distanceToObject;
+            }
+
+            if (closestObject === undefined || comparedDistance < distanceToClosestObject) {
                 closestObject = object;
                 distanceToClosestObject = distanceToObject;
             }
@@ -617,8 +622,8 @@ class Scene {
     }
 
     // get the closest mirror to a parameter point in the scene
-    getClosestMirrorToPoint(p = pointOrigin) {
-        let closest = Scene.getClosestObjectToPoint(p, this.mirrors);
+    getClosestMirrorToPoint(p = pointOrigin, distanceModifier = undefined) {
+        let closest = Scene.getClosestObjectToPoint(p, this.mirrors, distanceModifier);
         return closest;
     }
 
@@ -754,7 +759,7 @@ class Scene {
             let incidentAngle = Math.asin(incidentAngleSine);
 
             // check whether refraction or total internal reflection should occur
-            if(incidentAngleSine >= criticalAngleSine) {
+            if (incidentAngleSine >= criticalAngleSine) {
                 // reflect (total internal) light and proceed recursively
                 return this.laser(new Laser(closestIntersection, closestSide.getAngleReflected(laser.rotation)), insideMirrors, newIntersections, closestSide);
             } else {
@@ -1143,8 +1148,8 @@ class Mirror extends Object {
         this.vertices = [];
 
         for (let n = 0; n < vertexCount; n++) {
-            let radius = clampMin(averageRadius + maxRadiusDeviation * averageRadius * 2 * (Math.random() - 0.5), -1);
-            let angle = (n + maxAngleDeviation * 2 * (Math.random() - 0.5)) / vertexCount * 2 * Math.PI;
+            let radius = clampMin(averageRadius + maxRadiusDeviation * averageRadius * randomFloat(-1, 1), -1);
+            let angle = (n + maxAngleDeviation * randomFloat(-1, 1)) / vertexCount * 2 * Math.PI;
             this.vertices.push(new Point(radius * Math.cos(angle), radius * Math.sin(angle)));
         }
 
@@ -1900,7 +1905,7 @@ function loadExample(n) {
             for (let x = -2; x <= 2; x++) {
                 for (let y = -1; y <= 1; y++) {
                     let position = new Point(300 * x, 300 * y);
-                    let square = new Mirror(3, new Animation([new Keyframe(0, [position.x, position.y]), new Keyframe(90 + 20 * Math.random(), [position.x + 40 + 20 * Math.random(), position.y + 40 + 20 * Math.random()]), new Keyframe(200, [position.x, position.y])], 200, 0, interpolateElastic), new Animation([new Keyframe(0, 0), new Keyframe(20, Math.PI / 100), new Keyframe(40, 0)], 40, 0, interpolateLinear));
+                    let square = new Mirror(3, new Animation([new Keyframe(0, [position.x, position.y]), new Keyframe(randomFloat(90, 110), [position.x + randomFloat(40, 60), position.y + randomFloat(40, 60)]), new Keyframe(200, [position.x, position.y])], 200, 0, interpolateElastic), new Animation([new Keyframe(0, 0), new Keyframe(20, Math.PI / 100), new Keyframe(40, 0)], 40, 0, interpolateLinear));
                     square.makeRectangle(150, 150);
                     scene.addMirror(square);
                 }
@@ -2129,10 +2134,14 @@ function mousedown(event) {
     }
 
     // some hacky shit
+    let distanceRandomizer = function (distance) {
+        return (distance + randomFloat(-20, 20));
+    };
+
     let point = mousePosition.clone().addTo(cameraPosition);
     let closestLaser = Scene.getClosestObjectToPoint(point, scene.lasers.filter(function (z) {
         return z.interactive;
-    }));
+    }), distanceRandomizer);
     let laser = undefined;
 
     if (closestLaser !== false && closestLaser.distanceToObject <= 200) {
@@ -2143,7 +2152,7 @@ function mousedown(event) {
 
     let closestGuide = Scene.getClosestObjectToPoint(point, scene.guides.filter(function (z) {
         return z.interactive;
-    }));
+    }), distanceRandomizer);
     let guide = undefined;
 
     if (closestGuide !== false && closestGuide.distanceToObject <= 300) {
@@ -2154,7 +2163,7 @@ function mousedown(event) {
 
     let closest = Scene.getClosestObjectToPoint(point, scene.getMirrorsWithPointInside(point).filter(function (z) {
         return z.interactive;
-    }).concat(laser, guide));
+    }).concat(laser, guide), distanceRandomizer);
 
     if (closest !== false) {
         let object = closest.object;
@@ -2496,7 +2505,6 @@ function modulus(dividend, divisor) {
 }
 
 // function to check whether a number matches a reference within a certain threshold
-function numberMatches(num, ref, epsilon)
-{
+function numberMatches(num, ref, epsilon) {
     return (Math.abs(num - ref) <= epsilon);
 }
