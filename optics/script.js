@@ -1308,6 +1308,18 @@ let windowWidth = window.innerWidth;
 let windowHeight = window.innerHeight;
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d", {alpha: false});
+const clearButton = document.getElementById("button-scene-clear");
+const saveButton = document.getElementById("button-scene-save");
+const restoreButton = document.getElementById("button-scene-restore");
+const loadButton1 = document.getElementById("button-scene-load-1");
+const loadButton2 = document.getElementById("button-scene-load-2");
+const loadButton3 = document.getElementById("button-scene-load-3");
+const loadButton4 = document.getElementById("button-scene-load-4");
+const loadButton5 = document.getElementById("button-scene-load-5");
+const loadButton6 = document.getElementById("button-scene-load-6");
+const loadButton7 = document.getElementById("button-scene-load-7");
+const loadButton8 = document.getElementById("button-scene-load-8");
+const loadButton9 = document.getElementById("button-scene-load-9");
 const wallpaperImage = document.getElementById("image-wallpaper");
 const tileImage = document.getElementById("image-tile");
 const laserImage = document.getElementById("image-laser");
@@ -1346,6 +1358,7 @@ const keysPressed = [];
 let keysFired = false;
 let keysHelp = 0;
 let touch = false;
+let mobilePanning = true;
 const LASER_MAX_COLLISIONS = 50;
 const DRAW_RANGE = 10000;
 const scene = new Scene();
@@ -1355,6 +1368,18 @@ const targetFramerate = 60;
 let framerate = targetFramerate;
 let deltaTime = 1000 / framerate;
 let timeScale = 1;
+
+clearButton.addEventListener("click", function(event) {loadExample(0)});
+loadButton1.addEventListener("click", function(event) {loadExample(1)});
+loadButton2.addEventListener("click", function(event) {loadExample(2)});
+loadButton3.addEventListener("click", function(event) {loadExample(3)});
+loadButton4.addEventListener("click", function(event) {loadExample(4)});
+loadButton5.addEventListener("click", function(event) {loadExample(5)});
+loadButton6.addEventListener("click", function(event) {loadExample(6)});
+loadButton7.addEventListener("click", function(event) {loadExample(7)});
+loadButton8.addEventListener("click", function(event) {loadExample(8)});
+loadButton9.addEventListener("click", function(event) {loadExample(9)});
+
 loadExample(1);
 
 // render a step of the simulation based on the time variable
@@ -1410,19 +1435,19 @@ function render() {
 
     // move the camera left, right, up, or down based on the pressed and held key
 
-    if (keysPressed.includes("ArrowLeft") || keysPressed.includes("a") || keysPressed.includes("A") || (mousePosition.x < -760 && mouseButtons[0] === true && touch === true)) {
+    if (keysPressed.includes("ArrowLeft") || keysPressed.includes("a") || keysPressed.includes("A") || (mousePosition.x < -760 && mouseButtons[0] === true && touch === true && mobilePanning === true)) {
         cameraPosition.x -= 10 * timeScale;
     }
 
-    if (keysPressed.includes("ArrowRight") || keysPressed.includes("d") || keysPressed.includes("D") || (mousePosition.x > 760 && mouseButtons[0] === true && touch === true)) {
+    if (keysPressed.includes("ArrowRight") || keysPressed.includes("d") || keysPressed.includes("D") || (mousePosition.x > 760 && mouseButtons[0] === true && touch === true && mobilePanning === true)) {
         cameraPosition.x += 10 * timeScale;
     }
 
-    if (keysPressed.includes("ArrowUp") || keysPressed.includes("w") || keysPressed.includes("W") || (mousePosition.y < -340 && mouseButtons[0] === true && touch === true)) {
+    if (keysPressed.includes("ArrowUp") || keysPressed.includes("w") || keysPressed.includes("W") || (mousePosition.y < -340 && mouseButtons[0] === true && touch === true && mobilePanning === true)) {
         cameraPosition.y -= 10 * timeScale;
     }
 
-    if (keysPressed.includes("ArrowDown") || keysPressed.includes("s") || keysPressed.includes("S") || (mousePosition.y > 340 && mouseButtons[0] === true && touch === true)) {
+    if (keysPressed.includes("ArrowDown") || keysPressed.includes("s") || keysPressed.includes("S") || (mousePosition.y > 340 && mouseButtons[0] === true && touch === true && mobilePanning === true)) {
         cameraPosition.y += 10 * timeScale;
     }
 
@@ -1882,6 +1907,8 @@ function loadExample(n) {
     cameraPosition.setTo(pointOrigin);
 
     switch (n) {
+        case 0:
+            break;
         case 1:
             scene.addLaser(new Laser(new Point(100, -250), Math.PI / 4));
             let triangle = new Mirror(Mirror.absorbing, new Point(-300, 375), 0)
@@ -2058,7 +2085,8 @@ function mousedown(event) {
         if (touch === false) {
             switchSound.play();
         }
-
+        
+        mobilePanning = false;
         return;
     }
 
@@ -2076,9 +2104,16 @@ function mousedown(event) {
             switchSound.play();
         }
 
+        mobilePanning = false;
         return;
     }
 
+    if (mousePosition.x + 960 >= 0 && mousePosition.y + 540 >= 0 && mousePosition.x + 960 <= 1920 && mousePosition.y + 540 <= 1080) {
+        mobilePanning = true;
+    } else {
+        mobilePanning = false;
+    }
+    
     // check whether to add a laser, interferer or guide tool to the scene
     if (mouseAction === MouseAction.laser) {
         let laser = new Laser(mousePosition.clone().addTo(cameraPosition), randomFloat(0, 2 * Math.PI));
@@ -2245,7 +2280,7 @@ function keydown(event) {
         } else if (eventKey.toUpperCase() === "G") {
             mouseAction = MouseAction.guide;
         } else if (eventKey === "Backspace" || eventKey === "Delete" || eventKey === "0") {
-            scene.reset();
+            loadExample(0);
         } else if (eventKey.toUpperCase() === "Z") {
             glow = !glow;
         } else if (eventKey === "1") {
