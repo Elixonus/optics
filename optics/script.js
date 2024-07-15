@@ -1310,16 +1310,16 @@ let windowWidth = window.innerWidth;
 let windowHeight = window.innerHeight;
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d", {alpha: false});
-const clearButton = document.getElementById("button-scene-clear");
-const loadButton1 = document.getElementById("button-scene-load-1");
-const loadButton2 = document.getElementById("button-scene-load-2");
-const loadButton3 = document.getElementById("button-scene-load-3");
-const loadButton4 = document.getElementById("button-scene-load-4");
-const loadButton5 = document.getElementById("button-scene-load-5");
-const loadButton6 = document.getElementById("button-scene-load-6");
-const loadButton7 = document.getElementById("button-scene-load-7");
-const loadButton8 = document.getElementById("button-scene-load-8");
-const loadButton9 = document.getElementById("button-scene-load-9");
+const clearButton = document.getElementById("button-clear-scene");
+const loadButton1 = document.getElementById("button-load-scene-1");
+const loadButton2 = document.getElementById("button-load-scene-2");
+const loadButton3 = document.getElementById("button-load-scene-3");
+const loadButton4 = document.getElementById("button-load-scene-4");
+const loadButton5 = document.getElementById("button-load-scene-5");
+const loadButton6 = document.getElementById("button-load-scene-6");
+const loadButton7 = document.getElementById("button-load-scene-7");
+const loadButton8 = document.getElementById("button-load-scene-8");
+const loadButton9 = document.getElementById("button-load-scene-9");
 const wallpaperImage = document.getElementById("image-wallpaper");
 const tileImage = document.getElementById("image-tile");
 const laserImage = document.getElementById("image-laser");
@@ -1911,7 +1911,7 @@ function render() {
 function loadExample(n) {
     scene.reset();
     // recenter the camera position
-    cameraPosition.setTo(pointOrigin);
+    targetPosition.setTo(pointOrigin);
 
     switch (n) {
         case 0:
