@@ -363,13 +363,13 @@ class Object {
 
     // update the position and rotation of the object using the animation function properties
     animate() {
-        if (this.hasOwnProperty("positionAnimation")) {
+        if (this.hasOwnProperty("positionAnimation") && this.positionAnimation !== undefined) {
             let values = this.positionAnimation.getValues();
             this.position = new Point(values[0], values[1]);
             this.positionAnimation.animate();
         }
 
-        if (this.hasOwnProperty("rotationAnimation")) {
+        if (this.hasOwnProperty("rotationAnimation") && this.rotationAnimation !== undefined) {
             this.rotation = this.rotationAnimation.getValues();
             this.rotationAnimation.animate();
         }
@@ -1371,19 +1371,43 @@ let deltaTime = 1000 / framerate;
 let timeScale = 1;
 
 // prevent scroll behavior
-canvas.addEventListener("scroll", function(event) {event.preventDefault()});
+canvas.addEventListener("scroll", function (event) {
+    event.preventDefault()
+});
 // prevent right click registration
-canvas.addEventListener("contextmenu", function (event) {event.preventDefault()});
-clearButton.addEventListener("click", function(event) {loadExample(0)});
-loadButton1.addEventListener("click", function(event) {loadExample(1)});
-loadButton2.addEventListener("click", function(event) {loadExample(2)});
-loadButton3.addEventListener("click", function(event) {loadExample(3)});
-loadButton4.addEventListener("click", function(event) {loadExample(4)});
-loadButton5.addEventListener("click", function(event) {loadExample(5)});
-loadButton6.addEventListener("click", function(event) {loadExample(6)});
-loadButton7.addEventListener("click", function(event) {loadExample(7)});
-loadButton8.addEventListener("click", function(event) {loadExample(8)});
-loadButton9.addEventListener("click", function(event) {loadExample(9)});
+canvas.addEventListener("contextmenu", function (event) {
+    event.preventDefault()
+});
+clearButton.addEventListener("click", function (event) {
+    loadExample(0)
+});
+loadButton1.addEventListener("click", function (event) {
+    loadExample(1)
+});
+loadButton2.addEventListener("click", function (event) {
+    loadExample(2)
+});
+loadButton3.addEventListener("click", function (event) {
+    loadExample(3)
+});
+loadButton4.addEventListener("click", function (event) {
+    loadExample(4)
+});
+loadButton5.addEventListener("click", function (event) {
+    loadExample(5)
+});
+loadButton6.addEventListener("click", function (event) {
+    loadExample(6)
+});
+loadButton7.addEventListener("click", function (event) {
+    loadExample(7)
+});
+loadButton8.addEventListener("click", function (event) {
+    loadExample(8)
+});
+loadButton9.addEventListener("click", function (event) {
+    loadExample(9)
+});
 loadExample(1);
 
 // render a step of the simulation based on the time variable
@@ -2035,7 +2059,9 @@ window.addEventListener("touchstart", touchstart);
 window.addEventListener("touchend", touchend);
 window.addEventListener("touchmove", touchmove);
 // render once all the images in the HTML have loaded
-window.addEventListener("load", function () {request = window.requestAnimationFrame(render)});
+window.addEventListener("load", function () {
+    request = window.requestAnimationFrame(render)
+});
 // resize the canvas on start
 resize();
 
@@ -2086,7 +2112,7 @@ function mousedown(event) {
         if (touch === false) {
             switchSound.play();
         }
-        
+
         mobilePanning = false;
         return;
     }
@@ -2114,7 +2140,7 @@ function mousedown(event) {
     } else {
         mobilePanning = false;
     }
-    
+
     // check whether to add a laser, interferer or guide tool to the scene
     if (mouseAction === MouseAction.laser) {
         let laser = new Laser(mousePosition.clone().addTo(cameraPosition), randomFloat(0, 2 * Math.PI));
@@ -2388,7 +2414,7 @@ function maximum(values) {
 function summation(values) {
     let sum = 0;
 
-    for(let n = 0; n < values.length; n++) {
+    for (let n = 0; n < values.length; n++) {
         sum += values[n];
     }
 
