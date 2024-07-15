@@ -732,14 +732,16 @@ class Scene {
             let incidentIndex = 1;
             let refractedIndex = 1;
 
+            // refraction index of intersecting regions depending on which function (summation or average) is used
+
             if (insideMirrors.length > 0) {
                 // average the indices of refraction of the mirrors which enclose the start of the laser light interaction
-                incidentIndex = average(getPropertiesOfObjects(insideMirrors, "indexOfRefraction"));
+                incidentIndex = summation(getPropertiesOfObjects(insideMirrors, "indexOfRefraction"));
             }
 
             if (newInsideMirrors.length > 0) {
                 // average the indices of refraction of the mirrors which enclose the end of the laser light interaction
-                refractedIndex = average(getPropertiesOfObjects(newInsideMirrors, "indexOfRefraction"));
+                refractedIndex = summation(getPropertiesOfObjects(newInsideMirrors, "indexOfRefraction"));
             }
 
             let criticalAngle = undefined;
@@ -1309,8 +1311,6 @@ let windowHeight = window.innerHeight;
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d", {alpha: false});
 const clearButton = document.getElementById("button-scene-clear");
-const saveButton = document.getElementById("button-scene-save");
-const restoreButton = document.getElementById("button-scene-restore");
 const loadButton1 = document.getElementById("button-scene-load-1");
 const loadButton2 = document.getElementById("button-scene-load-2");
 const loadButton3 = document.getElementById("button-scene-load-3");
@@ -1351,6 +1351,7 @@ const switchSound = document.getElementById("sound-switch");
 let glow = true;
 const pointOrigin = new Point(0, 0);
 const cameraPosition = pointOrigin.clone();
+const targetPosition = cameraPosition.clone();
 const mousePosition = pointOrigin.clone();
 const mouseButtons = [false, false, false];
 let mouseAction = MouseAction.drag;
@@ -1369,6 +1370,10 @@ let framerate = targetFramerate;
 let deltaTime = 1000 / framerate;
 let timeScale = 1;
 
+// prevent scroll behavior
+canvas.addEventListener("scroll", function(event) {event.preventDefault()});
+// prevent right click registration
+canvas.addEventListener("contextmenu", function (event) {event.preventDefault()});
 clearButton.addEventListener("click", function(event) {loadExample(0)});
 loadButton1.addEventListener("click", function(event) {loadExample(1)});
 loadButton2.addEventListener("click", function(event) {loadExample(2)});
@@ -1379,7 +1384,6 @@ loadButton6.addEventListener("click", function(event) {loadExample(6)});
 loadButton7.addEventListener("click", function(event) {loadExample(7)});
 loadButton8.addEventListener("click", function(event) {loadExample(8)});
 loadButton9.addEventListener("click", function(event) {loadExample(9)});
-
 loadExample(1);
 
 // render a step of the simulation based on the time variable
@@ -1435,24 +1439,27 @@ function render() {
 
     // move the camera left, right, up, or down based on the pressed and held key
 
-    if (keysPressed.includes("ArrowLeft") || keysPressed.includes("a") || keysPressed.includes("A") || (mousePosition.x < -760 && mouseButtons[0] === true && touch === true && mobilePanning === true)) {
-        cameraPosition.x -= 10 * timeScale;
+    if (keysPressed.includes("ArrowLeft") || keysPressed.includes("a") || keysPressed.includes("A") || (mousePosition.x < -760 && (mouseButtons[0] === true || mouseButtons[1] === true || mouseButtons[2] === true) && touch === true && mobilePanning === true)) {
+        targetPosition.x -= 10 * timeScale;
     }
 
-    if (keysPressed.includes("ArrowRight") || keysPressed.includes("d") || keysPressed.includes("D") || (mousePosition.x > 760 && mouseButtons[0] === true && touch === true && mobilePanning === true)) {
-        cameraPosition.x += 10 * timeScale;
+    if (keysPressed.includes("ArrowRight") || keysPressed.includes("d") || keysPressed.includes("D") || (mousePosition.x > 760 && (mouseButtons[0] === true || mouseButtons[1] === true || mouseButtons[2] === true) && touch === true && mobilePanning === true)) {
+        targetPosition.x += 10 * timeScale;
     }
 
-    if (keysPressed.includes("ArrowUp") || keysPressed.includes("w") || keysPressed.includes("W") || (mousePosition.y < -340 && mouseButtons[0] === true && touch === true && mobilePanning === true)) {
-        cameraPosition.y -= 10 * timeScale;
+    if (keysPressed.includes("ArrowUp") || keysPressed.includes("w") || keysPressed.includes("W") || (mousePosition.y < -340 && (mouseButtons[0] === true || mouseButtons[1] === true || mouseButtons[2] === true) && touch === true && mobilePanning === true)) {
+        targetPosition.y -= 10 * timeScale;
     }
 
-    if (keysPressed.includes("ArrowDown") || keysPressed.includes("s") || keysPressed.includes("S") || (mousePosition.y > 340 && mouseButtons[0] === true && touch === true && mobilePanning === true)) {
-        cameraPosition.y += 10 * timeScale;
+    if (keysPressed.includes("ArrowDown") || keysPressed.includes("s") || keysPressed.includes("S") || (mousePosition.y > 340 && (mouseButtons[0] === true || mouseButtons[1] === true || mouseButtons[2] === true) && touch === true && mobilePanning === true)) {
+        targetPosition.y += 10 * timeScale;
     }
 
-    cameraPosition.x = clamp(cameraPosition.x, -0.5 * DRAW_RANGE, 0.5 * DRAW_RANGE);
-    cameraPosition.y = clamp(cameraPosition.y, -0.5 * DRAW_RANGE, 0.5 * DRAW_RANGE);
+    targetPosition.x = clamp(targetPosition.x, -0.5 * DRAW_RANGE, 0.5 * DRAW_RANGE);
+    targetPosition.y = clamp(targetPosition.y, -0.5 * DRAW_RANGE, 0.5 * DRAW_RANGE);
+
+    // linearly interpolate the camera position from the target position
+    cameraPosition.interpolateToPointLinear(targetPosition, 1 - Math.pow(0.9, timeScale));
 
     // find the paths of collisions of the lasers in the scene as an array of arrays of point objects
     let lasersCollisions = scene.getLaserCollisions();
@@ -2028,13 +2035,7 @@ window.addEventListener("touchstart", touchstart);
 window.addEventListener("touchend", touchend);
 window.addEventListener("touchmove", touchmove);
 // render once all the images in the HTML have loaded
-window.addEventListener("load", function () {
-    request = window.requestAnimationFrame(render);
-});
-// prevent right click registration
-window.addEventListener("contextmenu", function (event) {
-    event.preventDefault();
-});
+window.addEventListener("load", function () {request = window.requestAnimationFrame(render)});
 // resize the canvas on start
 resize();
 
@@ -2170,7 +2171,7 @@ function mousedown(event) {
 
     // some hacky shit
     let distanceRandomizer = function (distance) {
-        return (distance + randomFloat(-20, 20));
+        return (distance + randomFloat(-50, 50));
     };
 
     let point = mousePosition.clone().addTo(cameraPosition);
@@ -2383,15 +2384,21 @@ function maximum(values) {
     return max;
 }
 
-// function to get the average of an array of numbers
-function average(values) {
+// function to get the summation of an array of numbers
+function summation(values) {
     let sum = 0;
 
-    for (let n = 0; n < values.length; n++) {
+    for(let n = 0; n < values.length; n++) {
         sum += values[n];
     }
 
-    return sum / values.length;
+    return sum;
+}
+
+// function to get the average of an array of numbers
+function average(values) {
+    let avg = summation(values) / values.length;
+    return avg;
 }
 
 // function to get a random integer from a minimum to a maximum value
