@@ -1,113 +1,113 @@
 class Point {
-    // create a new point from x and y components
+    /** create a new point from x and y components */
     constructor(x = 0, y = 0) {
         this.x = x;
         this.y = y;
         return this;
     }
 
-    // copy x and y components of existing point
+    /** copy x and y components of existing point */
     clone() {
         return new Point(this.x, this.y);
     }
 
-    // check if all components of points match
+    /** check if all components of points match */
     isEqual(p) {
         return (this.x === p.x && this.y === p.y);
     }
 
-    // copy components of parameter point to current point
+    /** copy components of parameter point to current point */
     setTo(p) {
         this.x = p.x;
         this.y = p.y;
         return this;
     }
 
-    // add components of parameter point to current point
+    /** add components of parameter point to current point */
     addTo(p) {
         this.x += p.x;
         this.y += p.y;
         return this;
     }
 
-    // add x component to current point
+    /** add x component to current point */
     addToX(x) {
         this.x += x;
         return this;
     }
 
-    // add y component to current point
+    /** add y component to current point */
     addToY(y) {
         this.y += y;
         return this;
     }
 
-    // add each individual x and y component to current point
+    /** add each individual x and y component to current point */
     addToXY(x, y) {
         return this.addToX(x).addToY(y);
     }
 
-    // add components of polar vector with radius and angle to current point
+    /** add components of polar vector with radius and angle to current point */
     addToPolar(r, a) {
         this.x += r * Math.cos(a);
         this.y += r * Math.sin(a);
         return this;
     }
 
-    // subtract components of parameter point from current point
+    /**  subtract components of parameter point from current point */
     subtractTo(p) {
         return this.addToXY(-p.x, -p.y);
     }
 
-    // subtract x component from current x
+    /** subtract x component from current x */
     subtractToX(x) {
         return this.addToX(-x);
     }
 
-    // subtract y component from current y
+    /** subtract y component from current y */
     subtractToY(y) {
         return this.addToY(-y);
     }
 
-    // subtract x and y components from current point
+    /** subtract x and y components from current point */
     subtractToXY(x, y) {
         return this.subtractToX(x).subtractToY(y);
     }
 
-    // multiply current point components by factor
+    /** multiply current point components by factor */
     multiplyBy(x) {
         return this.scaleXY(x);
     }
 
-    // divide current point components by division factor
+    /** divide current point components by division factor */
     divideBy(x) {
         return this.scaleXY(1 / x);
     }
 
-    // multiply current point components by parameter point components
+    /** multiply current point components by parameter point components */
     scale(p) {
         return this.scaleXY(p.x, p.y);
     }
 
-    // multiply current x component by x factor
+    /** multiply current x component by x factor */
     scaleX(x) {
         this.x *= x;
         return this;
     }
 
-    // multiply current y component by y factor
+    /** multiply current y component by y factor */
     scaleY(y) {
         this.y *= y;
         return this;
     }
 
-    // multiply current point components by x and y factor
+    /** multiply current point components by x and y factor */
     scaleXY(x, y = x) {
         return this.scaleX(x).scaleY(y);
     }
 
-    // rotate current point around parameter point by angle in radians
-    // if angle is positive, rotate from x axis towards y axis otherwise from y axis towards x axis
+    /** rotate current point around parameter point by angle in radians
+        if angle is positive, rotate from x axis towards y axis otherwise from y axis towards x axis */
     rotateAroundPoint(p, rotation) {
         let cosine = Math.cos(rotation);
         let sine = Math.sin(rotation);
@@ -118,105 +118,105 @@ class Point {
         return this;
     }
 
-    // move current point to a point on the line between the current and parameter points
-    // if interpolation factor is 0, use current point, if interpolation factor is 1, use parameter point
+    /** move current point to a point on the line between the current and parameter points
+        if interpolation factor is 0, use current point, if interpolation factor is 1, use parameter point */
     interpolateToPointLinear(p, t) {
         this.x = interpolateLinear(this.x, p.x, t);
         this.y = interpolateLinear(this.y, p.y, t);
         return this;
     }
 
-    // if interpolation factor is 0, use current point, if interpolation factor is 1, use parameter point
+    /** if interpolation factor is 0, use current point, if interpolation factor is 1, use parameter point */
     interpolateToPointQuadratic(p, t) {
         this.x = interpolateQuadratic(this.x, p.x, t);
         this.y = interpolateQuadratic(this.y, p.y, t);
         return this;
     }
 
-    // move current point to a point halfway between current and parameter points
+    /** move current point to a point halfway between current and parameter points */
     midPointTo(p) {
         this.x = (this.x + p.x) / 2;
         this.y = (this.y + p.y) / 2;
         return this;
     }
 
-    // find how far current point is from the origin
+    /** find how far current point is from the origin */
     getMagnitude() {
         return this.getDistanceTo();
     }
 
-    // find the distance from the current point to the parameter point
+    /** find the distance from the current point to the parameter point */
     getDistanceTo(p = pointOrigin) {
         return Math.hypot(this.x - p.x, this.y - p.y);
     }
 
-    // check whether each component of the current point match the reference parameter point within a threshold
+    /** check whether each component of the current point match the reference parameter point within a threshold */
     matchesWith(ref, epsilon) {
         return (numberMatches(this.x, ref.x, epsilon) && numberMatches(this.y, ref.y, epsilon));
     }
 }
 
 class Line {
-    // create a line from two point objects
+    /** create a line from two point objects */
     constructor(p1, p2) {
         this.p1 = p1;
         this.p2 = p2;
         return this;
     }
 
-    // create a line from a point object and angle towards next point on the line
+    /** create a line from a point object and angle towards next point on the line */
     static fromRay(center, angle) {
         return new Line(center, center.clone().addToPolar(1, angle));
     }
 
-    // create a line from a point object and slope towards next point on the line
+    /** create a line from a point object and slope towards next point on the line */
     static fromPointSlope(point, slope) {
         return new Line(point, point.addTo(new Point(1, slope)));
     }
 
-    // copy components of the two points on the line
+    /** copy components of the two points on the line */
     clone() {
         return new Line(this.p1.clone(), this.p2.clone());
     }
 
-    // check if components of points of parameter line match components of points of current line
+    /** check if components of points of parameter line match components of points of current line */
     isEqual(l) {
         return (this.p1.isEqual(l.p1) && this.p2.isEqual(l.p2))
     }
 
-    // translate line by components of parameter point
+    /** translate line by components of parameter point */
     addTo(p) {
         this.p1.addTo(p);
         this.p2.addTo(p);
         return this;
     }
 
-    // translate line by components of parameter point in the opposite direction
+    /** translate line by components of parameter point in the opposite direction */
     subtractTo(p) {
         this.p1.subtractTo(p);
         this.p2.subtractTo(p);
         return this;
     }
 
-    // rotate points on the line around parameter point by angle in radians
+    /** rotate points on the line around parameter point by angle in radians */
     rotateAroundPoint(p, rotation) {
         this.p1.rotateAroundPoint(p, rotation);
         this.p2.rotateAroundPoint(p, rotation);
         return this;
     }
 
-    // find distance between points on the line
+    /** find distance between points on the line */
     getLength() {
         return distance(this.p1, this.p2);
     }
 
-    // find angle from first point to second point on the line in radians
+    /** find angle from first point to second point on the line in radians */
     getAngle() {
         let differencePoint = this.p1.clone().subtractTo(this.p2);
         return Math.atan2(differencePoint.y, differencePoint.x);
     }
 
-    // find the dot product of current and parameter lines as vectors
+    /** find the dot product of current and parameter lines as vectors */
     getDotProductBetweenLine(l) {
         let vector1 = this.p1.clone().subtractTo(this.p2);
         let vector2 = l.p1.clone().subtractTo(l.p2);
@@ -224,45 +224,46 @@ class Line {
         return scalarProduct;
     }
 
-    // find the magnitude of cross product of current and parameter lines as vectors
+    /** find the magnitude of cross product of current and parameter lines as vectors */
     getProjectionOfCrossProductBetweenLine(l) {
         let vector1 = this.p1.clone().subtractTo(this.p2);
         let vector2 = l.p1.clone().subtractTo(l.p2);
         return vector1.x * vector2.y - vector1.y * vector2.x;
     }
 
-    // find the angle formed by the current and parameter lines if put next to each other
+    /** find the angle formed by the current and parameter lines if put next to each other */
     getAngleBetweenLine(l) {
         return Math.acos(this.getDotProductBetweenLine(l) / (this.getLength() * l.getLength()));
     }
 
-    // find the angle formed by the perpendiculars of the current and parameter lines if put next to each other
+    /** find the angle formed by the perpendiculars of the current and parameter lines if put next to each other */
     getAngleBetweenLinePerpendicular(l) {
         return Math.asin(this.getSineOfAngleBetweenLinePerpendicular(l));
     }
 
-    // find the sine of the angle formed by the perpendiculars of the current and parameter lines if put next to each other
+    /** find the sine of the angle formed by the perpendiculars of the current and parameter lines if put next to each other */
     getSineOfAngleBetweenLinePerpendicular(l) {
         return Math.abs(this.getDotProductBetweenLine(l)) / (this.getLength() * l.getLength());
     }
 
-    // find the angle of reflection given an incident ray with an angle of incidence hitting current reflecive line
+    /** find the angle of reflection given an incident ray with an angle of incidence hitting current reflecive line */
     getAbsoluteAngleReflected(angleOfIncidence) {
         return 2 * this.getAngle() - angleOfIncidence;
     }
 
+    /** check whether each component of each point of current line matches parameter line within a threshold */
     matchesWith(ref, epsilon) {
         return (this.p1.matchesWith(ref.p1, epsilon) && this.p2.matchesWith(ref.p2, epsilon));
     }
 }
 
 class Polygon {
-    // create a polygon containing a finite array of points
+    /** create a polygon containing a finite array of points */
     constructor(vertices) {
         this.vertices = vertices;
     }
 
-    // set the vertices of the polygon using an array of points and update the polygon bounds and sides
+    /** set the vertices of the polygon using an array of points and update the polygon bounds and sides */
     set vertices(value) {
         delete this._leftVertex;
         delete this._rightVertex;
@@ -295,39 +296,39 @@ class Polygon {
         }
     }
 
-    // get the vertices of the polygon as an array of points
+    /** get the vertices of the polygon as an array of points */
     get vertices() {
         return this._vertices;
     }
 
-    // get the sides of the polygon as an array of lines connecting each pair of adjacent vertices
+    /** get the sides of the polygon as an array of lines connecting each pair of adjacent vertices */
     get sides() {
         return this._sides;
     }
 
-    // get the left-most bounding vertex of the polygon as a point
+    /** get the left-most bounding vertex of the polygon as a point */
     get leftVertex() {
         return this._leftVertex;
     }
 
-    // get the right-most bounding vertex of the polygon as a point
+    /** get the right-most bounding vertex of the polygon as a point */
     get rightVertex() {
         return this._rightVertex;
     }
 
-    // get the top-most bounding vertex of the polygon as a point
+    /** get the top-most bounding vertex of the polygon as a point */
     get topVertex() {
         return this._topVertex;
     }
 
-    // get the bottom-most bounding vertex of the polygon as a point
+    /** get the bottom-most bounding vertex of the polygon as a point */
     get bottomVertex() {
         return this._bottomVertex;
     }
 }
 
-class Object {
-    // create a generic draggable? object from a position vector point and rotation angle
+class DraggableObject {
+    /** create a generic draggable? object from a position vector point and rotation angle */
     constructor(position, rotation) {
         this.setPositionTo(position);
         this.setRotationTo(rotation);
@@ -339,20 +340,20 @@ class Object {
         this.animate();
     }
 
-    // set the center position of the object to parameter point
+    /** set the center position of the object to parameter point */
     setPositionTo(position) {
         if (position instanceof Point) {
             this.position = position;
-        } else if (position instanceof Animation) {
+        } else if (position instanceof NumberAnimation) {
             this.positionAnimation = position;
         }
 
         return this;
     }
 
-    // set the angle of the object to the parameter angle
+    /** set the angle of the object to the parameter angle */
     setRotationTo(rotation) {
-        if (rotation instanceof Animation) {
+        if (rotation instanceof NumberAnimation) {
             this.rotationAnimation = rotation;
         } else {
             this.rotation = rotation;
@@ -361,7 +362,7 @@ class Object {
         return this;
     }
 
-    // update the position and rotation of the object using the animation function properties
+    /** update the position and rotation of the object using the animation function properties */
     animate() {
         if (this.hasOwnProperty("positionAnimation") && this.positionAnimation !== undefined) {
             let values = this.positionAnimation.getValues();
@@ -377,7 +378,7 @@ class Object {
 }
 
 class Scene {
-    // create a scene consisting of lasers, mirrors, and guides from an array of generic objects
+    /** create a scene consisting of lasers, mirrors, and guides from an array of generic objects */
     constructor(objects = []) {
         this._lasers = [];
         this._mirrors = [];
@@ -820,7 +821,7 @@ class Scene {
     }
 }
 
-class Laser extends Object {
+class Laser extends DraggableObject {
     // create a laser object from a position vector point, rotation angle, and laser brightness from 0 to 1
     constructor(position, rotation, brightness = 0.75) {
         super(position, rotation);
@@ -829,7 +830,7 @@ class Laser extends Object {
     }
 }
 
-class Mirror extends Object {
+class Mirror extends DraggableObject {
     // create a mirror object from a position vector point, rotation angle, and index of refraction number
     // as well as from an array of points representing the vertices of the polygon and a parameter determining
     // whether the shape of the polygon is closed from start to end
@@ -1178,7 +1179,7 @@ class Mirror extends Object {
     }
 }
 
-class Guide extends Object {
+class Guide extends DraggableObject {
     // create a guide tool object from a position vector point, rotation angle
     // and guidance number representing whether the object is a ruler or
     // protractor (0 or 1 respectively) in floating point
@@ -1231,7 +1232,7 @@ class MouseAction {
     }
 }
 
-class Animation {
+class NumberAnimation {
     // create an animation object which works on numbers as well as vectors
     // from an array of keyframe objects as well as
     // from a global number interpolation function, duration of animation and
@@ -1338,6 +1339,7 @@ const loadButton6 = document.getElementById("button-load-scene-6");
 const loadButton7 = document.getElementById("button-load-scene-7");
 const loadButton8 = document.getElementById("button-load-scene-8");
 const loadButton9 = document.getElementById("button-load-scene-9");
+const collisionTable = document.getElementById("table-collision")
 const wallpaperImage = document.getElementById("image-wallpaper");
 const tileImage = document.getElementById("image-tile");
 const laserImage = document.getElementById("image-laser");
@@ -1981,7 +1983,7 @@ function loadExample(n) {
             for (let x = -2; x <= 2; x++) {
                 for (let y = -1; y <= 1; y++) {
                     let position = new Point(300 * x, 300 * y);
-                    let square = new Mirror(3, new Animation([new Keyframe(0, [position.x, position.y]), new Keyframe(randomFloat(90, 110), [position.x + randomFloat(40, 60), position.y + randomFloat(40, 60)]), new Keyframe(200, [position.x, position.y])], 200, 0, interpolateElastic), new Animation([new Keyframe(0, 0), new Keyframe(20, Math.PI / 100), new Keyframe(40, 0)], 40, 0, interpolateLinear));
+                    let square = new Mirror(3, new NumberAnimation([new Keyframe(0, [position.x, position.y]), new Keyframe(randomFloat(90, 110), [position.x + randomFloat(40, 60), position.y + randomFloat(40, 60)]), new Keyframe(200, [position.x, position.y])], 200, 0, interpolateElastic), new NumberAnimation([new Keyframe(0, 0), new Keyframe(20, Math.PI / 100), new Keyframe(40, 0)], 40, 0, interpolateLinear));
                     square.makeRectangle(150, 150);
                     scene.addMirror(square);
                 }
@@ -1989,7 +1991,7 @@ function loadExample(n) {
             break;
         case 3:
             scene.addLaser(new Laser(new Point(-700, -300), Math.PI / 10));
-            let blob = new Mirror(Mirror.reflecting, new Point(0, 0), new Animation([new Keyframe(0, 0), new Keyframe(5000, 6 * Math.PI)], 5000, 0, interpolateLinear));
+            let blob = new Mirror(Mirror.reflecting, new Point(0, 0), new NumberAnimation([new Keyframe(0, 0), new Keyframe(5000, 6 * Math.PI)], 5000, 0, interpolateLinear));
             blob.makeBlob(300, 0.9, 0.9, 100);
             blob.smoothVertices(0.5, 10);
             scene.addMirror(blob);
@@ -2055,15 +2057,20 @@ function loadExample(n) {
             scene.addMirror(parabola4);
             break;
         case 9:
-            scene.addLaser(new Laser(new Point(0, 0), new Animation([new Keyframe(0, 0), new Keyframe(1000, 2 * Math.PI)], 1000, 0, interpolateLinear)));
+            scene.addLaser(new Laser(new Point(0, 0), new NumberAnimation([new Keyframe(0, 0), new Keyframe(1000, 2 * Math.PI)], 1000, 0, interpolateLinear)));
             scene.addMirrors([
                 new Mirror(2, new Point(-250, 0), 0).makeConcaveLens(200, 500, 200, 200),
                 new Mirror(2, new Point(250, 0), 0).makeConcaveLens(200, 500, 200, 200),
-                new Mirror(Mirror.reflecting, new Animation([new Keyframe(0, [-700, -400]), new Keyframe(125, [700, -400]), new Keyframe(200, [700, 400]), new Keyframe(325, [-700, 400]), new Keyframe(400, [-700, -400])], 400, 0, interpolateQuadratic), 0).makeRectangle(200, 200),
-                new Mirror(Mirror.reflecting, new Animation([new Keyframe(0, [-700, -400]), new Keyframe(125, [700, -400]), new Keyframe(200, [700, 400]), new Keyframe(325, [-700, 400]), new Keyframe(400, [-700, -400])], 400, 200, interpolateQuadratic), 0).makeRectangle(200, 200),
+                new Mirror(Mirror.reflecting, new NumberAnimation([new Keyframe(0, [-700, -400]), new Keyframe(125, [700, -400]), new Keyframe(200, [700, 400]), new Keyframe(325, [-700, 400]), new Keyframe(400, [-700, -400])], 400, 0, interpolateQuadratic), 0).makeRectangle(200, 200),
+                new Mirror(Mirror.reflecting, new NumberAnimation([new Keyframe(0, [-700, -400]), new Keyframe(125, [700, -400]), new Keyframe(200, [700, 400]), new Keyframe(325, [-700, 400]), new Keyframe(400, [-700, -400])], 400, 200, interpolateQuadratic), 0).makeRectangle(200, 200),
             ]);
             break;
     }
+}
+
+function showCollisions() {
+    let lasersCollisions = scene.getLasersCollisions();
+    console.log(lasersCollisions);
 }
 
 // register window mouse and key events as well as loading and window resize event
