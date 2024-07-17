@@ -247,7 +247,7 @@ class Line {
     }
 
     // find the angle of reflection given an incident ray with an angle of incidence hitting current reflecive line
-    getAngleReflected(angleOfIncidence) {
+    getAbsoluteAngleReflected(angleOfIncidence) {
         return 2 * this.getAngle() - angleOfIncidence;
     }
 
@@ -642,11 +642,11 @@ class Scene {
         return mirrors;
     }
 
-    // shine a virtual ray in the scene given a parameter laser and record the intersections with objects as an array of points
-    laser(laser, insideMirrors = [], intersections = [], sideIgnore = null) {
+    // shine a virtual ray in the scene given a parameter laser and record the collisions with objects as an array of points
+    laser(laser, insideMirrors = [], collisions = [], sideIgnore = null) {
         // stop path tracing if the laser light collides a certain number of times
-        if (intersections.length === LASER_MAX_COLLISIONS) {
-            return intersections;
+        if (collisions.length === LASER_MAX_COLLISIONS) {
+            return collisions;
         }
 
         let laserLine = Line.fromRay(laser.position, laser.rotation);
@@ -694,25 +694,31 @@ class Scene {
             }
         }
 
-        // form a new array of intersections copy with an additional new closest interaction
-        let newIntersections = [];
-
-        for (let n = 0; n < intersections.length; n++) {
-            newIntersections[n] = intersections[n].clone();
-        }
+        // form a new array of collisions copy with an additional new closest interaction
+        let newCollisions = structuredClone(collisions);
 
         if (closestMirror === undefined) {
             // if no collisions are found, add a final laser light point into the void
-            newIntersections.push(laser.position.clone().addToPolar(DRAW_RANGE, laser.rotation));
-            return newIntersections;
+            newCollisions.push({
+                type: "void",
+                position: laser.position.clone().addToPolar(DRAW_RANGE, laser.rotation),
+            });
+            return newCollisions;
         }
 
-        newIntersections.push(closestIntersection);
+        newCollisions.push({
+            position: closestIntersection,
+        });
 
         // recursively find the path of the laser light after interaction
         if (closestMirror.isReflecting) {
+            newCollisions[newCollisions.length - 1].type = "reflection";
+            let incidentAngle = Math.asin(laserLine.getSineOfAngleBetweenLinePerpendicular(closestSide));
+            let reflectedAngle = incidentAngle;
+            newCollisions[newCollisions.length - 1].incidentAngle = incidentAngle;
+            newCollisions[newCollisions.length - 1].reflectedAngle = reflectedAngle;
             // reflect light and proceed recursively
-            return this.laser(new Laser(closestIntersection, closestSide.getAngleReflected(laser.rotation)), insideMirrors, newIntersections, closestSide);
+            return this.laser(new Laser(closestIntersection, closestSide.getAbsoluteAngleReflected(laser.rotation)), insideMirrors, newCollisions, closestSide);
         } else if (closestMirror.isRefracting) {
             // conditionally refract light
             // find an array of mirrors which currently encloes the laser light interaction
@@ -760,24 +766,36 @@ class Scene {
             let incidentAngleSine = laserLine.getSineOfAngleBetweenLinePerpendicular(closestSide);
             let incidentAngle = Math.asin(incidentAngleSine);
 
+            newCollisions[newCollisions.length - 1].incidentAngle = incidentAngle;
+            
             // check whether refraction or total internal reflection should occur
             if (incidentAngleSine >= criticalAngleSine) {
+                newCollisions[newCollisions.length - 1].type = "reflection";
+                let reflectedAngle = incidentAngle;
+                newCollisions[newCollisions.length - 1].reflectedAngle = reflectedAngle;
                 // reflect (total internal) light and proceed recursively
-                return this.laser(new Laser(closestIntersection, closestSide.getAngleReflected(laser.rotation)), insideMirrors, newIntersections, closestSide);
+                return this.laser(new Laser(closestIntersection, closestSide.getAbsoluteAngleReflected(laser.rotation)), insideMirrors, newCollisions, closestSide);
             } else {
+                newCollisions[newCollisions.length - 1].type = "refraction";
+                newCollisions[newCollisions.length - 1].incidentCount = insideMirrors.length;
+                newCollisions[newCollisions.length - 1].refractedCount = newInsideMirrors.length;
+                newCollisions[newCollisions.length - 1].incidentIndex = incidentIndex;
+                newCollisions[newCollisions.length - 1].refractedIndex = refractedIndex;
                 let refractedAngleSine = incidentAngleSine * incidentIndex / refractedIndex;
                 let refractedAngle = Math.asin(refractedAngleSine);
+                newCollisions[newCollisions.length - 1].refractedAngle = refractedAngle;
                 // find angle of refraction in world space and proceed recursively
-                return this.laser(new Laser(closestIntersection, laser.rotation - Math.sign(laserLine.getDotProductBetweenLine(closestSide)) * Math.sign(laserLine.getProjectionOfCrossProductBetweenLine(closestSide)) * (incidentAngle - refractedAngle)), newInsideMirrors, newIntersections, closestSide);
+                return this.laser(new Laser(closestIntersection, laser.rotation - Math.sign(laserLine.getDotProductBetweenLine(closestSide)) * Math.sign(laserLine.getProjectionOfCrossProductBetweenLine(closestSide)) * (incidentAngle - refractedAngle)), newInsideMirrors, newCollisions, closestSide);
             }
         } else if (closestMirror.isAbsorbing) {
+            newCollisions[newCollisions.length - 1].type = "absorption";
             // absorb light and stop recursion
-            return newIntersections;
+            return newCollisions;
         }
     }
 
     // get all the laser paths in the scene as an array of arrays of points
-    getLaserCollisions() {
+    getLasersCollisions() {
         let lasersData = [];
 
         for (let n = 0; n < this.lasers.length; n++) {
@@ -1486,7 +1504,7 @@ function render() {
     cameraPosition.interpolateToPointLinear(targetPosition, 1 - Math.pow(0.9, timeScale));
 
     // find the paths of collisions of the lasers in the scene as an array of arrays of point objects
-    let lasersCollisions = scene.getLaserCollisions();
+    let lasersCollisions = scene.getLasersCollisions();
 
     // if the user is dragging a protractor, snap the position of the protractor to the position of the closest laser collision with mirror
     if (scene.draggedGuide !== false && mouseAction === MouseAction.drag && scene.draggedObject instanceof Guide && Math.round(scene.draggedObject.guidance) === 1) {
@@ -1497,7 +1515,7 @@ function render() {
 
             for (let m = 0; m < laserCollisions.length; m++) {
                 let laserCollision = laserCollisions[m];
-                objects.push({position: laserCollision});
+                objects.push({position: laserCollision.position});
             }
         }
 
@@ -1647,7 +1665,7 @@ function render() {
 
             for (let m = 0; m < laserCollisions.length; m++) {
                 let laserCollision = laserCollisions[m];
-                ctx.lineTo(laserCollision.x, laserCollision.y);
+                ctx.lineTo(laserCollision.position.x, laserCollision.position.y);
             }
 
             ctx.stroke();
