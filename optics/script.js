@@ -106,8 +106,10 @@ class Point {
         return this.scaleX(x).scaleY(y);
     }
 
-    /** rotate current point around parameter point by angle in radians
-        if angle is positive, rotate from x axis towards y axis otherwise from y axis towards x axis */
+    /**
+     * rotate current point around parameter point by angle in radians
+     * if angle is positive, rotate from x axis towards y axis otherwise from y axis towards x axis
+     */
     rotateAroundPoint(p, rotation) {
         let cosine = Math.cos(rotation);
         let sine = Math.sin(rotation);
@@ -118,8 +120,10 @@ class Point {
         return this;
     }
 
-    /** move current point to a point on the line between the current and parameter points
-        if interpolation factor is 0, use current point, if interpolation factor is 1, use parameter point */
+    /**
+     * move current point to a point on the line between the current and parameter points
+     * if interpolation factor is 0, use current point, if interpolation factor is 1, use parameter point
+     */
     interpolateToPointLinear(p, t) {
         this.x = interpolateLinear(this.x, p.x, t);
         this.y = interpolateLinear(this.y, p.y, t);
@@ -683,7 +687,7 @@ class Scene {
             let incidentAngle = Math.asin(incidentAngleSine);
 
             newCollisions[newCollisions.length - 1].incidentAngle = incidentAngle;
-            
+
             // check whether refraction or total internal reflection should occur
             if (incidentAngleSine >= criticalAngleSine) {
                 newCollisions[newCollisions.length - 1].type = "reflection";
@@ -977,7 +981,7 @@ class Mirror extends DraggableObject {
         return this;
     }
 
-    /* set the vertices of the mirror to corners of a rectangle */
+    /** set the vertices of the mirror to corners of a rectangle */
     makeRectangle(width, height) {
         let halfWidth = width / 2;
         let halfHeight = height / 2;
@@ -990,7 +994,7 @@ class Mirror extends DraggableObject {
         return this;
     }
 
-    /* set the vertices of the polygon mirror to points on the edge of a circle (uniformly) */
+    /** set the vertices of the polygon mirror to points on the edge of a circle (uniformly) */
     makeCircle(radius, vertexCount) {
         this.vertices = [];
 
@@ -1004,7 +1008,7 @@ class Mirror extends DraggableObject {
         return this;
     }
 
-    /* set the vertices of the polygon mirror to vertices of a regular polygon with a number of sides */
+    /** set the vertices of the polygon mirror to vertices of a regular polygon with a number of sides */
     makeRegularPolygon(radius, sideCount) {
         this.vertices = [];
 
@@ -1318,7 +1322,7 @@ const pointOrigin = new Point(0, 0);
 const cameraPosition = pointOrigin.clone();
 const targetPosition = cameraPosition.clone();
 const mousePosition = pointOrigin.clone();
-const mouseButtons = [false, false, false];
+let mousePressed = false;
 let mouseAction = MouseAction.drag;
 const keysPressed = [];
 let keysFired = false;
@@ -1401,19 +1405,19 @@ function render() {
 
     // move the camera left, right, up, or down based on the pressed and held key
 
-    if (keysPressed.includes("ArrowLeft") || keysPressed.includes("a") || keysPressed.includes("A") || (mousePosition.x < -760 && (mouseButtons[0] === true || mouseButtons[1] === true || mouseButtons[2] === true) && touch === true && mobilePanning === true)) {
+    if (keysPressed.includes("ArrowLeft") || keysPressed.includes("a") || keysPressed.includes("A") || (mousePosition.x < -760 && mousePressed === true && touch === true && mobilePanning === true)) {
         targetPosition.x -= 10 * timeScale;
     }
 
-    if (keysPressed.includes("ArrowRight") || keysPressed.includes("d") || keysPressed.includes("D") || (mousePosition.x > 760 && (mouseButtons[0] === true || mouseButtons[1] === true || mouseButtons[2] === true) && touch === true && mobilePanning === true)) {
+    if (keysPressed.includes("ArrowRight") || keysPressed.includes("d") || keysPressed.includes("D") || (mousePosition.x > 760 && mousePressed === true && touch === true && mobilePanning === true)) {
         targetPosition.x += 10 * timeScale;
     }
 
-    if (keysPressed.includes("ArrowUp") || keysPressed.includes("w") || keysPressed.includes("W") || (mousePosition.y < -340 && (mouseButtons[0] === true || mouseButtons[1] === true || mouseButtons[2] === true) && touch === true && mobilePanning === true)) {
+    if (keysPressed.includes("ArrowUp") || keysPressed.includes("w") || keysPressed.includes("W") || (mousePosition.y < -340 && mousePressed === true && touch === true && mobilePanning === true)) {
         targetPosition.y -= 10 * timeScale;
     }
 
-    if (keysPressed.includes("ArrowDown") || keysPressed.includes("s") || keysPressed.includes("S") || (mousePosition.y > 340 && (mouseButtons[0] === true || mouseButtons[1] === true || mouseButtons[2] === true) && touch === true && mobilePanning === true)) {
+    if (keysPressed.includes("ArrowDown") || keysPressed.includes("s") || keysPressed.includes("S") || (mousePosition.y > 340 && mousePressed === true && touch === true && mobilePanning === true)) {
         targetPosition.y += 10 * timeScale;
     }
 
@@ -2031,14 +2035,12 @@ function resize(event = undefined) {
  * the properties of the dragged object
  */
 function mousedown(event) {
-    // prevent registering mouse before wallpaper shown
+    // prevent registering mouse during wallpaper showing
     if (time < 90) {
         return;
     }
 
-    // set index 0, 1 or 2 of mouse buttons to active
-    mouseButtons[event.button] = true;
-
+    mousePressed = true;
     // check the left side of the canvas buttons to see where mouse was
     // clicked and set mouse action accordingly
     if (mousePosition.x + 960 > -10 && mousePosition.y > -310 && mousePosition.x + 960 < 150 && mousePosition.y < 230) {
@@ -2205,7 +2207,7 @@ function mousedown(event) {
  * and plays a sound and fixes the scene
  */
 function mouseup(event) {
-    mouseButtons[event.button] = false;
+    mousePressed = false;
 
     if (scene.draggedObject !== false && touch === false) {
         clickSound.play();
