@@ -257,76 +257,6 @@ class Line {
     }
 }
 
-class Polygon {
-    /** create a polygon containing a finite array of points */
-    constructor(vertices) {
-        this.vertices = vertices;
-    }
-
-    /** set the vertices of the polygon using an array of points and update the polygon bounds and sides */
-    set vertices(value) {
-        delete this._leftVertex;
-        delete this._rightVertex;
-        delete this._topVertex;
-        delete this._bottomVertex;
-        this._vertices = value;
-        this._sides = [];
-
-        for (let n = 0; n < this.vertices.length; n++) {
-            let vertex = this.vertices[n];
-
-            if (this.leftVertex === undefined || vertex.x < this.leftVertex.x) {
-                this._leftVertex = vertex;
-            }
-
-            if (this.rightVertex === undefined || vertex.x > this.rightVertex.x) {
-                this._rightVertex = vertex;
-            }
-
-            if (this.topVertex === undefined || vertex.y < this.topVertex.y) {
-                this._topVertex = vertex;
-            }
-
-            if (this.bottomVertex === undefined || vertex.y > this.bottomVertex.y) {
-                this._bottomVertex = vertex;
-            }
-
-            let nextVertex = this.vertices[(n + 1) % this.vertices.length];
-            this._sides.push(new Line(vertex, nextVertex));
-        }
-    }
-
-    /** get the vertices of the polygon as an array of points */
-    get vertices() {
-        return this._vertices;
-    }
-
-    /** get the sides of the polygon as an array of lines connecting each pair of adjacent vertices */
-    get sides() {
-        return this._sides;
-    }
-
-    /** get the left-most bounding vertex of the polygon as a point */
-    get leftVertex() {
-        return this._leftVertex;
-    }
-
-    /** get the right-most bounding vertex of the polygon as a point */
-    get rightVertex() {
-        return this._rightVertex;
-    }
-
-    /** get the top-most bounding vertex of the polygon as a point */
-    get topVertex() {
-        return this._topVertex;
-    }
-
-    /** get the bottom-most bounding vertex of the polygon as a point */
-    get bottomVertex() {
-        return this._bottomVertex;
-    }
-}
-
 class DraggableObject {
     /** create a generic draggable? object from a position vector point and rotation angle */
     constructor(position, rotation) {
@@ -395,61 +325,43 @@ class Scene {
         return this.addObject(objects);
     }
 
-    /** set the laser objects of the scene using parameter array of lasers */
-    set lasers(value) {
-        this._lasers = value;
-
+    /** fix the dragged laser properties of the scene */
+    fixDraggedLaser() {
         if (this.draggedObject instanceof Laser) {
-            let index = this._lasers.indexOf(this.draggedLaser);
+            let index = this.lasers.indexOf(this.draggedLaser);
 
             if (index === -1) {
-                this.draggedLaser = false;
-                this.draggedObject = false;
+                this.setDraggedObjectTo(false);
             }
         }
+
+        return this;
     }
 
-    /** get the laser objects of the scene as an array of lasers */
-    get lasers() {
-        return this._lasers;
-    }
-
-    /** set the mirror objects of the scene using parameter array of mirrors */
-    set mirrors(value) {
-        this._mirrors = value;
-
+    /** fix the dragged mirror properties of the scene */
+    fixDraggedMirror() {
         if (this.draggedObject instanceof Mirror) {
-            let index = this._mirrors.indexOf(this.draggedMirror);
+            let index = this.mirrors.indexOf(this.draggedMirror);
 
             if (index === -1) {
-                this.draggedMirror = false;
-                this.draggedObject = false;
+                this.setDraggedObjectTo(false);
             }
         }
-    }
 
-    /** get the mirror objects of the scene as an array of mirrors */
-    get mirrors() {
-        return this._mirrors;
+        return this;
     }
 
     /** set the guide objects of the scene using parameter array of guides */
-    set guides(value) {
-        this._guides = value;
-
+    fixDraggedGuide() {
         if (this.draggedObject instanceof Guide) {
-            let index = this._guides.indexOf(this.draggedGuide);
+            let index = this.guides.indexOf(this.draggedGuide);
 
             if (index === -1) {
-                this.draggedGuide = false;
-                this.draggedObject = false;
+                this.setDraggedObjectTo(false);
             }
         }
-    }
 
-    /** get the guide objects of the scene as an array of guides */
-    get guides() {
-        return this._guides;
+        return this;
     }
 
     /** delete all the lasers, mirrors, and guides */
@@ -493,6 +405,7 @@ class Scene {
     /** remove a laser object from the scene given a reference to parameter laser */
     removeLaser(laser) {
         this.lasers.splice(this.lasers.indexOf(laser), 1);
+        this.fixDraggedLaser();
         return this;
     }
 
@@ -511,6 +424,7 @@ class Scene {
     /** remove a mirror object from the scene given a reference to parameter mirror */
     removeMirror(mirror) {
         this.mirrors.splice(this.mirrors.indexOf(mirror), 1);
+        this.fixDraggedMirror();
         return this;
     }
 
@@ -529,6 +443,7 @@ class Scene {
     /** remove a guide object from the scene given a reference to parameter guide */
     removeGuide(guide) {
         this.guides.splice(this.guides.indexOf(guide), 1);
+        this.fixDraggedGuide();
         return this;
     }
 
@@ -635,7 +550,7 @@ class Scene {
         for (let n = 0; n < this.mirrors.length; n++) {
             let mirror = this.mirrors[n];
 
-            if (mirror.isReflecting) {
+            if (mirror.isReflecting()) {
                 mirrors.push(mirror);
             }
         }
@@ -662,7 +577,7 @@ class Scene {
             let mirror = this.mirrors[n];
             let lastVertex = undefined;
 
-            if (mirror.closedShape || mirror.isRefracting) {
+            if (mirror.closedShape || mirror.isRefracting()) {
                 lastVertex = mirror.vertices.length;
             } else {
                 lastVertex = mirror.vertices.length - 1;
@@ -712,7 +627,7 @@ class Scene {
         });
 
         // recursively find the path of the laser light after interaction
-        if (closestMirror.isReflecting) {
+        if (closestMirror.isReflecting()) {
             newCollisions[newCollisions.length - 1].type = "reflection";
             let incidentAngle = Math.asin(laserLine.getSineOfAngleBetweenLinePerpendicular(closestSide));
             let reflectedAngle = incidentAngle;
@@ -720,7 +635,7 @@ class Scene {
             newCollisions[newCollisions.length - 1].reflectedAngle = reflectedAngle;
             // reflect light and proceed recursively
             return this.laser(new Laser(closestIntersection, closestSide.getAbsoluteAngleReflected(laser.rotation)), insideMirrors, newCollisions, closestSide);
-        } else if (closestMirror.isRefracting) {
+        } else if (closestMirror.isRefracting()) {
             // conditionally refract light
             // find an array of mirrors which currently encloes the laser light interaction
             let newInsideMirrors = [];
@@ -788,7 +703,7 @@ class Scene {
                 // find angle of refraction in world space and proceed recursively
                 return this.laser(new Laser(closestIntersection, laser.rotation - Math.sign(laserLine.getDotProductBetweenLine(closestSide)) * Math.sign(laserLine.getProjectionOfCrossProductBetweenLine(closestSide)) * (incidentAngle - refractedAngle)), newInsideMirrors, newCollisions, closestSide);
             }
-        } else if (closestMirror.isAbsorbing) {
+        } else if (closestMirror.isAbsorbing()) {
             newCollisions[newCollisions.length - 1].type = "absorption";
             // absorb light and stop recursion
             return newCollisions;
@@ -802,7 +717,7 @@ class Scene {
         for (let n = 0; n < this.lasers.length; n++) {
             let laser = this.lasers[n];
             lasersData.push(this.laser(laser, this.getMirrorsWithPointInside(laser.position).filter(function (mirror) {
-                return mirror.isRefracting;
+                return mirror.isRefracting();
             })));
         }
 
@@ -845,38 +760,38 @@ class Mirror extends DraggableObject {
     }
 
     /** get a fake index of refraction for a refracting mirror */
-    static get refracting() {
+    static refracting() {
         return 1.5;
     }
 
     /** get a fake index of refraction for a reflecting mirror */
-    static get reflecting() {
+    static reflecting() {
         return 0.5;
     }
 
     /** get a fake index of refraction for an absorbing mirror */
-    static get absorbing() {
+    static absorbing() {
         return -0.5;
     }
 
     /** find if the mirror has a refracting property */
-    get isRefracting() {
+    isRefracting() {
         return this.indexOfRefraction >= 1;
     }
 
     /** find if the mirror has a reflecting property */
-    get isReflecting() {
+    isReflecting() {
         return this.indexOfRefraction < 1 && this.indexOfRefraction >= 0;
     }
 
     /** find if the mirror has an absorbing property */
-    get isAbsorbing() {
+    isAbsorbing() {
         return this.indexOfRefraction < 0;
     }
 
     /** find if the mirror has not an absorbing property */
-    get isNotAbsorbing() {
-        return !this.isAbsorbing;
+    isNotAbsorbing() {
+        return !this.isAbsorbing();
     }
 
     /**
@@ -1341,7 +1256,7 @@ class NumberAnimation {
     }
 }
 
-class Keyframe {
+class AnimationKeyframe {
     /**
      * create a animation keyframe object meant to be used for animation objects
      * from the keyframe time number and keyframe values (number or vector) to be interpolated
@@ -1583,14 +1498,14 @@ function render() {
         // and whether they are not absorbing and selected (blue)
         if (n === 0) {
             selectedMirrors = mirrors.filter(function (mirror) {
-                return !mirror.isNotAbsorbing;
+                return mirror.isAbsorbing();
             });
 
             ctx.strokeStyle = "#ffffff";
         } else {
             if (n === 1) {
                 selectedMirrors = mirrors.filter(function (mirror) {
-                    return mirror.isNotAbsorbing;
+                    return mirror.isNotAbsorbing();
                 });
 
                 if (scene.draggedMirror !== false) {
@@ -1635,7 +1550,7 @@ function render() {
                 ctx.lineTo(vertex.x, vertex.y);
             }
 
-            if (mirror.closedShape || mirror.isRefracting) {
+            if (mirror.closedShape || mirror.isRefracting()) {
                 ctx.closePath();
             }
 
@@ -1643,7 +1558,7 @@ function render() {
 
             // render with fill if the interferer is refracting
             // and opacity of fill based on a modified sigmoid function
-            if (mirror.isRefracting) {
+            if (mirror.isRefracting()) {
                 ctx.globalAlpha = clamp(1 - 1 / Math.pow(Math.E, 0.1 * (mirror.indexOfRefraction - 1)), 0, 1);
                 ctx.shadowBlur = 0;
                 ctx.fill();
@@ -1734,17 +1649,17 @@ function render() {
                     text = "Laser: OFF";
                 }
             } else if (scene.draggedObject instanceof Mirror) {
-                if (scene.draggedMirror.isRefracting) {
+                if (scene.draggedMirror.isRefracting()) {
                     // set the text to indicate the index of refraction of the lens
                     text = "Refractive, IOR: " + Math.round(100 * scene.draggedObject.indexOfRefraction) / 100;
                 }
 
-                if (scene.draggedMirror.isReflecting) {
+                if (scene.draggedMirror.isReflecting()) {
                     // set the text to indicate that the interferer is reflective
                     text = "Reflective";
                 }
 
-                if (scene.draggedMirror.isAbsorbing) {
+                if (scene.draggedMirror.isAbsorbing()) {
                     // set the text to indicate that the interferer is absorptive
                     text = "Absorptive";
                 }
@@ -1965,16 +1880,16 @@ function loadExample(n) {
             break;
         case 1:
             scene.addLaser(new Laser(new Point(100, -250), Math.PI / 4));
-            let triangle = new Mirror(Mirror.absorbing, new Point(-300, 375), 0)
+            let triangle = new Mirror(Mirror.absorbing(), new Point(-300, 375), 0)
             triangle.makeRegularPolygon(150, 3);
             triangle.setRotationTo(Math.PI / 10);
-            let square = new Mirror(Mirror.absorbing, new Point(595, -275), Math.PI / 4)
+            let square = new Mirror(Mirror.absorbing(), new Point(595, -275), Math.PI / 4)
             square.makeRectangle(400, 400);
             square.setRotationTo(Math.PI / 4);
-            let rectangle = new Mirror(Mirror.reflecting, new Point(-600, -100), Math.PI / 10)
+            let rectangle = new Mirror(Mirror.reflecting(), new Point(-600, -100), Math.PI / 10)
             rectangle.makeRectangle(40, 400);
             rectangle.setRotationTo(Math.PI / 10);
-            let polygon = new Mirror(Mirror.absorbing, new Point(600, 400), 0);
+            let polygon = new Mirror(Mirror.absorbing(), new Point(600, 400), 0);
             polygon.makeRegularPolygon(150, 5);
             let circle = new Mirror(3, new Point(100, 50), 0);
             circle.makeCircle(150, 500);
@@ -1986,7 +1901,7 @@ function loadExample(n) {
             for (let x = -2; x <= 2; x++) {
                 for (let y = -1; y <= 1; y++) {
                     let position = new Point(300 * x, 300 * y);
-                    let square = new Mirror(3, new NumberAnimation([new Keyframe(0, [position.x, position.y]), new Keyframe(randomFloat(90, 110), [position.x + randomFloat(40, 60), position.y + randomFloat(40, 60)]), new Keyframe(200, [position.x, position.y])], 200, 0, interpolateElastic), new NumberAnimation([new Keyframe(0, 0), new Keyframe(20, Math.PI / 100), new Keyframe(40, 0)], 40, 0, interpolateLinear));
+                    let square = new Mirror(3, new NumberAnimation([new AnimationKeyframe(0, [position.x, position.y]), new AnimationKeyframe(randomFloat(90, 110), [position.x + randomFloat(40, 60), position.y + randomFloat(40, 60)]), new AnimationKeyframe(200, [position.x, position.y])], 200, 0, interpolateElastic), new NumberAnimation([new AnimationKeyframe(0, 0), new AnimationKeyframe(20, Math.PI / 100), new AnimationKeyframe(40, 0)], 40, 0, interpolateLinear));
                     square.makeRectangle(150, 150);
                     scene.addMirror(square);
                 }
@@ -1994,7 +1909,7 @@ function loadExample(n) {
             break;
         case 3:
             scene.addLaser(new Laser(new Point(-700, -300), Math.PI / 10));
-            let blob = new Mirror(Mirror.reflecting, new Point(0, 0), new NumberAnimation([new Keyframe(0, 0), new Keyframe(5000, 6 * Math.PI)], 5000, 0, interpolateLinear));
+            let blob = new Mirror(Mirror.reflecting(), new Point(0, 0), new NumberAnimation([new AnimationKeyframe(0, 0), new AnimationKeyframe(5000, 6 * Math.PI)], 5000, 0, interpolateLinear));
             blob.makeBlob(300, 0.9, 0.9, 100);
             blob.smoothVertices(0.5, 10);
             scene.addMirror(blob);
@@ -2002,12 +1917,12 @@ function loadExample(n) {
         case 4:
             scene.addLaser(new Laser(new Point(700, 0), Math.PI, 1));
             scene.addMirrors([
-                new Mirror(Mirror.absorbing, new Point(0, 0), 0).makeRectangle(1500, 1000),
-                new Mirror(Mirror.reflecting, new Point(350, 300), 1.2 * Math.PI).makeRectangle(300, 50),
-                new Mirror(Mirror.reflecting, new Point(-300, -400), 1.9 * Math.PI).makeRectangle(300, 50),
-                new Mirror(Mirror.reflecting, new Point(400, -300), 1.1 * Math.PI).makeRectangle(300, 50),
-                new Mirror(Mirror.reflecting, new Point(0, 0), 0.7 * Math.PI).makeRectangle(300, 50),
-                new Mirror(Mirror.reflecting, new Point(-500, 300), 0.3 * Math.PI).makeRectangle(300, 50),
+                new Mirror(Mirror.absorbing(), new Point(0, 0), 0).makeRectangle(1500, 1000),
+                new Mirror(Mirror.reflecting(), new Point(350, 300), 1.2 * Math.PI).makeRectangle(300, 50),
+                new Mirror(Mirror.reflecting(), new Point(-300, -400), 1.9 * Math.PI).makeRectangle(300, 50),
+                new Mirror(Mirror.reflecting(), new Point(400, -300), 1.1 * Math.PI).makeRectangle(300, 50),
+                new Mirror(Mirror.reflecting(), new Point(0, 0), 0.7 * Math.PI).makeRectangle(300, 50),
+                new Mirror(Mirror.reflecting(), new Point(-500, 300), 0.3 * Math.PI).makeRectangle(300, 50),
             ]);
             scene.mirrors[0].interactive = false;
             break;
@@ -2019,7 +1934,7 @@ function loadExample(n) {
                 new Laser(new Point(-100, 100), 0),
                 new Laser(new Point(-100, 200), 0),
             ]);
-            let parabola = new Mirror(Mirror.reflecting, new Point(300, 0), Math.PI);
+            let parabola = new Mirror(Mirror.reflecting(), new Point(300, 0), Math.PI);
             parabola.makeConcaveMirror(200, 600, 175, 200);
             scene.addMirror(parabola);
             break;
@@ -2031,7 +1946,7 @@ function loadExample(n) {
                 new Laser(new Point(-100, 100), 0),
                 new Laser(new Point(-100, 200), 0),
             ]);
-            let parabola2 = new Mirror(Mirror.reflecting, new Point(300, 0), Math.PI);
+            let parabola2 = new Mirror(Mirror.reflecting(), new Point(300, 0), Math.PI);
             parabola2.makeConvexMirror(200, 600, 200);
             scene.addMirror(parabola2);
             break;
@@ -2043,7 +1958,7 @@ function loadExample(n) {
                 new Laser(new Point(-100, 100), 0),
                 new Laser(new Point(-100, 200), 0),
             ]);
-            let parabola3 = new Mirror(Mirror.refracting, new Point(300, 0), 0);
+            let parabola3 = new Mirror(Mirror.refracting(), new Point(300, 0), 0);
             parabola3.makeConvexLens(200, 600, 200);
             scene.addMirror(parabola3);
             break;
@@ -2055,17 +1970,17 @@ function loadExample(n) {
                 new Laser(new Point(-100, 100), 0),
                 new Laser(new Point(-100, 200), 0),
             ]);
-            let parabola4 = new Mirror(Mirror.refracting, new Point(300, 0), 0);
+            let parabola4 = new Mirror(Mirror.refracting(), new Point(300, 0), 0);
             parabola4.makeConcaveLens(200, 600, 300, 200);
             scene.addMirror(parabola4);
             break;
         case 9:
-            scene.addLaser(new Laser(new Point(0, 0), new NumberAnimation([new Keyframe(0, 0), new Keyframe(1000, 2 * Math.PI)], 1000, 0, interpolateLinear)));
+            scene.addLaser(new Laser(new Point(0, 0), new NumberAnimation([new AnimationKeyframe(0, 0), new AnimationKeyframe(1000, 2 * Math.PI)], 1000, 0, interpolateLinear)));
             scene.addMirrors([
                 new Mirror(2, new Point(-250, 0), 0).makeConcaveLens(200, 500, 200, 200),
                 new Mirror(2, new Point(250, 0), 0).makeConcaveLens(200, 500, 200, 200),
-                new Mirror(Mirror.reflecting, new NumberAnimation([new Keyframe(0, [-700, -400]), new Keyframe(125, [700, -400]), new Keyframe(200, [700, 400]), new Keyframe(325, [-700, 400]), new Keyframe(400, [-700, -400])], 400, 0, interpolateQuadratic), 0).makeRectangle(200, 200),
-                new Mirror(Mirror.reflecting, new NumberAnimation([new Keyframe(0, [-700, -400]), new Keyframe(125, [700, -400]), new Keyframe(200, [700, 400]), new Keyframe(325, [-700, 400]), new Keyframe(400, [-700, -400])], 400, 200, interpolateQuadratic), 0).makeRectangle(200, 200),
+                new Mirror(Mirror.reflecting(), new NumberAnimation([new AnimationKeyframe(0, [-700, -400]), new AnimationKeyframe(125, [700, -400]), new AnimationKeyframe(200, [700, 400]), new AnimationKeyframe(325, [-700, 400]), new AnimationKeyframe(400, [-700, -400])], 400, 0, interpolateQuadratic), 0).makeRectangle(200, 200),
+                new Mirror(Mirror.reflecting(), new NumberAnimation([new AnimationKeyframe(0, [-700, -400]), new AnimationKeyframe(125, [700, -400]), new AnimationKeyframe(200, [700, 400]), new AnimationKeyframe(325, [-700, 400]), new AnimationKeyframe(400, [-700, -400])], 400, 200, interpolateQuadratic), 0).makeRectangle(200, 200),
             ]);
             break;
     }
@@ -2187,7 +2102,7 @@ function mousedown(event) {
         mouseAction = MouseAction.rotate;
         return;
     } else if (mouseAction === MouseAction.interferer) {
-        let mirror = new Mirror(Mirror.reflecting, mousePosition.clone().addTo(cameraPosition), randomFloat(0, 2 * Math.PI));
+        let mirror = new Mirror(Mirror.reflecting(), mousePosition.clone().addTo(cameraPosition), randomFloat(0, 2 * Math.PI));
         mirror.makeRegularPolygon(randomFloat(150, 200), randomInteger(3, 6));
         scene.addMirror(mirror);
         mirror.dragValue = mirror.indexOfRefraction;
