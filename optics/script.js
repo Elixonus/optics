@@ -1,113 +1,115 @@
 class Point {
-    // create a new point from x and y components
+    /** create a new point from x and y components */
     constructor(x = 0, y = 0) {
         this.x = x;
         this.y = y;
         return this;
     }
 
-    // copy x and y components of existing point
+    /** copy x and y components of existing point */
     clone() {
         return new Point(this.x, this.y);
     }
 
-    // check if all components of points match
+    /** check if all components of points match */
     isEqual(p) {
         return (this.x === p.x && this.y === p.y);
     }
 
-    // copy components of parameter point to current point
+    /** copy components of parameter point to current point */
     setTo(p) {
         this.x = p.x;
         this.y = p.y;
         return this;
     }
 
-    // add components of parameter point to current point
+    /** add components of parameter point to current point */
     addTo(p) {
         this.x += p.x;
         this.y += p.y;
         return this;
     }
 
-    // add x component to current point
+    /** add x component to current point */
     addToX(x) {
         this.x += x;
         return this;
     }
 
-    // add y component to current point
+    /** add y component to current point */
     addToY(y) {
         this.y += y;
         return this;
     }
 
-    // add each individual x and y component to current point
+    /** add each individual x and y component to current point */
     addToXY(x, y) {
         return this.addToX(x).addToY(y);
     }
 
-    // add components of polar vector with radius and angle to current point
+    /** add components of polar vector with radius and angle to current point */
     addToPolar(r, a) {
         this.x += r * Math.cos(a);
         this.y += r * Math.sin(a);
         return this;
     }
 
-    // subtract components of parameter point from current point
+    /**  subtract components of parameter point from current point */
     subtractTo(p) {
         return this.addToXY(-p.x, -p.y);
     }
 
-    // subtract x component from current x
+    /** subtract x component from current x */
     subtractToX(x) {
         return this.addToX(-x);
     }
 
-    // subtract y component from current y
+    /** subtract y component from current y */
     subtractToY(y) {
         return this.addToY(-y);
     }
 
-    // subtract x and y components from current point
+    /** subtract x and y components from current point */
     subtractToXY(x, y) {
         return this.subtractToX(x).subtractToY(y);
     }
 
-    // multiply current point components by factor
+    /** multiply current point components by factor */
     multiplyBy(x) {
         return this.scaleXY(x);
     }
 
-    // divide current point components by division factor
+    /** divide current point components by division factor */
     divideBy(x) {
         return this.scaleXY(1 / x);
     }
 
-    // multiply current point components by parameter point components
+    /** multiply current point components by parameter point components */
     scale(p) {
         return this.scaleXY(p.x, p.y);
     }
 
-    // multiply current x component by x factor
+    /** multiply current x component by x factor */
     scaleX(x) {
         this.x *= x;
         return this;
     }
 
-    // multiply current y component by y factor
+    /** multiply current y component by y factor */
     scaleY(y) {
         this.y *= y;
         return this;
     }
 
-    // multiply current point components by x and y factor
+    /** multiply current point components by x and y factor */
     scaleXY(x, y = x) {
         return this.scaleX(x).scaleY(y);
     }
 
-    // rotate current point around parameter point by angle in radians
-    // if angle is positive, rotate from x axis towards y axis otherwise from y axis towards x axis
+    /**
+     * rotate current point around parameter point by angle in radians
+     * if angle is positive, rotate from x axis towards y axis otherwise from y axis towards x axis
+     */
     rotateAroundPoint(p, rotation) {
         let cosine = Math.cos(rotation);
         let sine = Math.sin(rotation);
@@ -118,105 +120,107 @@ class Point {
         return this;
     }
 
-    // move current point to a point on the line between the current and parameter points
-    // if interpolation factor is 0, use current point, if interpolation factor is 1, use parameter point
+    /**
+     * move current point to a point on the line between the current and parameter points
+     * if interpolation factor is 0, use current point, if interpolation factor is 1, use parameter point
+     */
     interpolateToPointLinear(p, t) {
         this.x = interpolateLinear(this.x, p.x, t);
         this.y = interpolateLinear(this.y, p.y, t);
         return this;
     }
 
-    // if interpolation factor is 0, use current point, if interpolation factor is 1, use parameter point
+    /** if interpolation factor is 0, use current point, if interpolation factor is 1, use parameter point */
     interpolateToPointQuadratic(p, t) {
         this.x = interpolateQuadratic(this.x, p.x, t);
         this.y = interpolateQuadratic(this.y, p.y, t);
         return this;
     }
 
-    // move current point to a point halfway between current and parameter points
+    /** move current point to a point halfway between current and parameter points */
     midPointTo(p) {
         this.x = (this.x + p.x) / 2;
         this.y = (this.y + p.y) / 2;
         return this;
     }
 
-    // find how far current point is from the origin
+    /** find how far current point is from the origin */
     getMagnitude() {
         return this.getDistanceTo();
     }
 
-    // find the distance from the current point to the parameter point
+    /** find the distance from the current point to the parameter point */
     getDistanceTo(p = pointOrigin) {
         return Math.hypot(this.x - p.x, this.y - p.y);
     }
 
-    // check whether each component of the current point match the reference parameter point within a threshold
+    /** check whether each component of the current point match the reference parameter point within a threshold */
     matchesWith(ref, epsilon) {
         return (numberMatches(this.x, ref.x, epsilon) && numberMatches(this.y, ref.y, epsilon));
     }
 }
 
 class Line {
-    // create a line from two point objects
+    /** create a line from two point objects */
     constructor(p1, p2) {
         this.p1 = p1;
         this.p2 = p2;
         return this;
     }
 
-    // create a line from a point object and angle towards next point on the line
+    /** create a line from a point object and angle towards next point on the line */
     static fromRay(center, angle) {
         return new Line(center, center.clone().addToPolar(1, angle));
     }
 
-    // create a line from a point object and slope towards next point on the line
+    /** create a line from a point object and slope towards next point on the line */
     static fromPointSlope(point, slope) {
         return new Line(point, point.addTo(new Point(1, slope)));
     }
 
-    // copy components of the two points on the line
+    /** copy components of the two points on the line */
     clone() {
         return new Line(this.p1.clone(), this.p2.clone());
     }
 
-    // check if components of points of parameter line match components of points of current line
+    /** check if components of points of parameter line match components of points of current line */
     isEqual(l) {
         return (this.p1.isEqual(l.p1) && this.p2.isEqual(l.p2))
     }
 
-    // translate line by components of parameter point
+    /** translate line by components of parameter point */
     addTo(p) {
         this.p1.addTo(p);
         this.p2.addTo(p);
         return this;
     }
 
-    // translate line by components of parameter point in the opposite direction
+    /** translate line by components of parameter point in the opposite direction */
     subtractTo(p) {
         this.p1.subtractTo(p);
         this.p2.subtractTo(p);
         return this;
     }
 
-    // rotate points on the line around parameter point by angle in radians
+    /** rotate points on the line around parameter point by angle in radians */
     rotateAroundPoint(p, rotation) {
         this.p1.rotateAroundPoint(p, rotation);
         this.p2.rotateAroundPoint(p, rotation);
         return this;
     }
 
-    // find distance between points on the line
+    /** find distance between points on the line */
     getLength() {
         return distance(this.p1, this.p2);
     }
 
-    // find angle from first point to second point on the line in radians
+    /** find angle from first point to second point on the line in radians */
     getAngle() {
         let differencePoint = this.p1.clone().subtractTo(this.p2);
         return Math.atan2(differencePoint.y, differencePoint.x);
     }
 
-    // find the dot product of current and parameter lines as vectors
+    /** find the dot product of current and parameter lines as vectors */
     getDotProductBetweenLine(l) {
         let vector1 = this.p1.clone().subtractTo(this.p2);
         let vector2 = l.p1.clone().subtractTo(l.p2);
@@ -224,110 +228,41 @@ class Line {
         return scalarProduct;
     }
 
-    // find the magnitude of cross product of current and parameter lines as vectors
+    /** find the magnitude of cross product of current and parameter lines as vectors */
     getProjectionOfCrossProductBetweenLine(l) {
         let vector1 = this.p1.clone().subtractTo(this.p2);
         let vector2 = l.p1.clone().subtractTo(l.p2);
         return vector1.x * vector2.y - vector1.y * vector2.x;
     }
 
-    // find the angle formed by the current and parameter lines if put next to each other
+    /** find the angle formed by the current and parameter lines if put next to each other */
     getAngleBetweenLine(l) {
         return Math.acos(this.getDotProductBetweenLine(l) / (this.getLength() * l.getLength()));
     }
 
-    // find the angle formed by the perpendiculars of the current and parameter lines if put next to each other
+    /** find the angle formed by the perpendiculars of the current and parameter lines if put next to each other */
     getAngleBetweenLinePerpendicular(l) {
         return Math.asin(this.getSineOfAngleBetweenLinePerpendicular(l));
     }
 
-    // find the sine of the angle formed by the perpendiculars of the current and parameter lines if put next to each other
+    /** find the sine of the angle formed by the perpendiculars of the current and parameter lines if put next to each other */
     getSineOfAngleBetweenLinePerpendicular(l) {
         return Math.abs(this.getDotProductBetweenLine(l)) / (this.getLength() * l.getLength());
     }
 
-    // find the angle of reflection given an incident ray with an angle of incidence hitting current reflecive line
-    getAngleReflected(angleOfIncidence) {
+    /** find the angle of reflection given an incident ray with an angle of incidence hitting current reflecive line */
+    getAbsoluteAngleReflected(angleOfIncidence) {
         return 2 * this.getAngle() - angleOfIncidence;
     }
 
+    /** check whether each component of each point of current line matches parameter line within a threshold */
     matchesWith(ref, epsilon) {
         return (this.p1.matchesWith(ref.p1, epsilon) && this.p2.matchesWith(ref.p2, epsilon));
     }
 }
 
-class Polygon {
-    // create a polygon containing a finite array of points
-    constructor(vertices) {
-        this.vertices = vertices;
-    }
-
-    // set the vertices of the polygon using an array of points and update the polygon bounds and sides
-    set vertices(value) {
-        delete this._leftVertex;
-        delete this._rightVertex;
-        delete this._topVertex;
-        delete this._bottomVertex;
-        this._vertices = value;
-        this._sides = [];
-
-        for (let n = 0; n < this.vertices.length; n++) {
-            let vertex = this.vertices[n];
-
-            if (this.leftVertex === undefined || vertex.x < this.leftVertex.x) {
-                this._leftVertex = vertex;
-            }
-
-            if (this.rightVertex === undefined || vertex.x > this.rightVertex.x) {
-                this._rightVertex = vertex;
-            }
-
-            if (this.topVertex === undefined || vertex.y < this.topVertex.y) {
-                this._topVertex = vertex;
-            }
-
-            if (this.bottomVertex === undefined || vertex.y > this.bottomVertex.y) {
-                this._bottomVertex = vertex;
-            }
-
-            let nextVertex = this.vertices[(n + 1) % this.vertices.length];
-            this._sides.push(new Line(vertex, nextVertex));
-        }
-    }
-
-    // get the vertices of the polygon as an array of points
-    get vertices() {
-        return this._vertices;
-    }
-
-    // get the sides of the polygon as an array of lines connecting each pair of adjacent vertices
-    get sides() {
-        return this._sides;
-    }
-
-    // get the left-most bounding vertex of the polygon as a point
-    get leftVertex() {
-        return this._leftVertex;
-    }
-
-    // get the right-most bounding vertex of the polygon as a point
-    get rightVertex() {
-        return this._rightVertex;
-    }
-
-    // get the top-most bounding vertex of the polygon as a point
-    get topVertex() {
-        return this._topVertex;
-    }
-
-    // get the bottom-most bounding vertex of the polygon as a point
-    get bottomVertex() {
-        return this._bottomVertex;
-    }
-}
-
-class Object {
-    // create a generic draggable? object from a position vector point and rotation angle
+class DraggableObject {
+    /** create a generic draggable? object from a position vector point and rotation angle */
     constructor(position, rotation) {
         this.setPositionTo(position);
         this.setRotationTo(rotation);
@@ -339,20 +274,20 @@ class Object {
         this.animate();
     }
 
-    // set the center position of the object to parameter point
+    /** set the center position of the object to parameter point */
     setPositionTo(position) {
         if (position instanceof Point) {
             this.position = position;
-        } else if (position instanceof Animation) {
+        } else if (position instanceof NumberAnimation) {
             this.positionAnimation = position;
         }
 
         return this;
     }
 
-    // set the angle of the object to the parameter angle
+    /** set the angle of the object to the parameter angle */
     setRotationTo(rotation) {
-        if (rotation instanceof Animation) {
+        if (rotation instanceof NumberAnimation) {
             this.rotationAnimation = rotation;
         } else {
             this.rotation = rotation;
@@ -361,7 +296,7 @@ class Object {
         return this;
     }
 
-    // update the position and rotation of the object using the animation function properties
+    /** update the position and rotation of the object using the animation function properties */
     animate() {
         if (this.hasOwnProperty("positionAnimation") && this.positionAnimation !== undefined) {
             let values = this.positionAnimation.getValues();
@@ -377,7 +312,7 @@ class Object {
 }
 
 class Scene {
-    // create a scene consisting of lasers, mirrors, and guides from an array of generic objects
+    /** create a scene consisting of lasers, mirrors, and guides from an array of generic objects */
     constructor(objects = []) {
         this._lasers = [];
         this._mirrors = [];
@@ -394,64 +329,46 @@ class Scene {
         return this.addObject(objects);
     }
 
-    // set the laser objects of the scene using parameter array of lasers
-    set lasers(value) {
-        this._lasers = value;
-
+    /** fix the dragged laser properties of the scene */
+    fixDraggedLaser() {
         if (this.draggedObject instanceof Laser) {
-            let index = this._lasers.indexOf(this.draggedLaser);
+            let index = this.lasers.indexOf(this.draggedLaser);
 
             if (index === -1) {
-                this.draggedLaser = false;
-                this.draggedObject = false;
+                this.setDraggedObjectTo(false);
             }
         }
+
+        return this;
     }
 
-    // get the laser objects of the scene as an array of lasers
-    get lasers() {
-        return this._lasers;
-    }
-
-    // set the mirror objects of the scene using parameter array of mirrors
-    set mirrors(value) {
-        this._mirrors = value;
-
+    /** fix the dragged mirror properties of the scene */
+    fixDraggedMirror() {
         if (this.draggedObject instanceof Mirror) {
-            let index = this._mirrors.indexOf(this.draggedMirror);
+            let index = this.mirrors.indexOf(this.draggedMirror);
 
             if (index === -1) {
-                this.draggedMirror = false;
-                this.draggedObject = false;
+                this.setDraggedObjectTo(false);
             }
         }
+
+        return this;
     }
 
-    // get the mirror objects of the scene as an array of mirrors
-    get mirrors() {
-        return this._mirrors;
-    }
-
-    // set the guide objects of the scene using parameter array of guides
-    set guides(value) {
-        this._guides = value;
-
+    /** set the guide objects of the scene using parameter array of guides */
+    fixDraggedGuide() {
         if (this.draggedObject instanceof Guide) {
-            let index = this._guides.indexOf(this.draggedGuide);
+            let index = this.guides.indexOf(this.draggedGuide);
 
             if (index === -1) {
-                this.draggedGuide = false;
-                this.draggedObject = false;
+                this.setDraggedObjectTo(false);
             }
         }
+
+        return this;
     }
 
-    // get the guide objects of the scene as an array of guides
-    get guides() {
-        return this._guides;
-    }
-
-    // delete all the lasers, mirrors, and guides
+    /** delete all the lasers, mirrors, and guides */
     reset() {
         this.lasers = [];
         this.mirrors = [];
@@ -462,7 +379,7 @@ class Scene {
         this.draggedObject = false;
     }
 
-    // mark an object of the scene as currently dragged
+    /** mark an object of the scene as currently dragged */
     setDraggedObjectTo(object) {
         if (object === false) {
             this.draggedLaser = false;
@@ -483,61 +400,64 @@ class Scene {
         this.draggedObject = object;
     }
 
-    // add a laser object to the scene using a parameter laser
+    /** add a laser object to the scene using a parameter laser */
     addLaser(laser) {
         this.lasers.push(laser);
         return this;
     }
 
-    // remove a laser object from the scene given a reference to parameter laser
+    /** remove a laser object from the scene given a reference to parameter laser */
     removeLaser(laser) {
         this.lasers.splice(this.lasers.indexOf(laser), 1);
+        this.fixDraggedLaser();
         return this;
     }
 
-    // add an array of laser objects to the scene using a parameter array of lasers
+    /** add an array of laser objects to the scene using a parameter array of lasers */
     addLasers(lasers) {
         this.lasers = this.lasers.concat(lasers);
         return this;
     }
 
-    // add a mirror object to the scene using a parameter mirror
+    /** add a mirror object to the scene using a parameter mirror */
     addMirror(mirror) {
         this.mirrors.push(mirror);
         return this;
     }
 
-    // remove a mirror object from the scene given a reference to parameter mirror
+    /** remove a mirror object from the scene given a reference to parameter mirror */
     removeMirror(mirror) {
         this.mirrors.splice(this.mirrors.indexOf(mirror), 1);
+        this.fixDraggedMirror();
         return this;
     }
 
-    // add an array of mirror objects to the scene using a parameter array of mirrors
+    /** add an array of mirror objects to the scene using a parameter array of mirrors */
     addMirrors(mirrors) {
         this.mirrors = this.mirrors.concat(mirrors);
         return this;
     }
 
-    // add a guide object to the scene using a parameter guide
+    /** add a guide object to the scene using a parameter guide */
     addGuide(guide) {
         this.guides.push(guide);
         return this;
     }
 
-    // remove a guide object from the scene given a reference to parameter guide
+    /** remove a guide object from the scene given a reference to parameter guide */
     removeGuide(guide) {
         this.guides.splice(this.guides.indexOf(guide), 1);
+        this.fixDraggedGuide();
         return this;
     }
 
-    // add an array of guide objects to the scene using a parameter array of guides
+    /** add an array of guide objects to the scene using a parameter array of guides */
     addGuides(guides) {
         this.guides = this.guides.concat(guides);
         return this;
     }
 
-    // add a laser, mirror, or guide to the scene using a parameter object
+    /** add a laser, mirror, or guide to the scene using a parameter object */
     addObject(object) {
         if (object instanceof Laser) {
             this.addLaser(object);
@@ -550,7 +470,7 @@ class Scene {
         return this;
     }
 
-    // remove a laser, mirror, or guide from the scene given a reference to parameter object
+    /** remove a laser, mirror, or guide from the scene given a reference to parameter object */
     removeObject(object) {
         if (object instanceof Laser) {
             this.removeLaser(object);
@@ -565,7 +485,7 @@ class Scene {
         }
     }
 
-    // add an array of lasers, mirrors, and guides to the scene using a parameter array of objects
+    /** add an array of lasers, mirrors, and guides to the scene using a parameter array of objects */
     addObjects(objects) {
         for (let n = 0; n < objects.length; n++) {
             this.addObject(objects[n]);
@@ -574,7 +494,7 @@ class Scene {
         return this;
     }
 
-    // get an array of mirrors in the scene whose contour currently enclose a parameter point
+    /** get an array of mirrors in the scene whose contour currently enclose a parameter point */
     getMirrorsWithPointInside(p = pointOrigin) {
         let mirrors = [];
 
@@ -589,7 +509,7 @@ class Scene {
         return mirrors;
     }
 
-    // get the closest object from a parameter array of objects to a parameter point
+    /** get the closest object from a parameter array of objects to a parameter point */
     static getClosestObjectToPoint(p = pointOrigin, objects = [], distanceModifier = undefined) {
         let closestObject = undefined;
         let distanceToClosestObject = undefined;
@@ -621,20 +541,20 @@ class Scene {
         };
     }
 
-    // get the closest mirror to a parameter point in the scene
+    /** get the closest mirror to a parameter point in the scene */
     getClosestMirrorToPoint(p = pointOrigin, distanceModifier = undefined) {
         let closest = Scene.getClosestObjectToPoint(p, this.mirrors, distanceModifier);
         return closest;
     }
 
-    // get an array of mirrors which are currently reflecting in the scene
+    /** get an array of mirrors which are currently reflecting in the scene */
     getReflectingMirrors() {
         let mirrors = [];
 
         for (let n = 0; n < this.mirrors.length; n++) {
             let mirror = this.mirrors[n];
 
-            if (mirror.isReflecting) {
+            if (mirror.isReflecting()) {
                 mirrors.push(mirror);
             }
         }
@@ -642,11 +562,11 @@ class Scene {
         return mirrors;
     }
 
-    // shine a virtual ray in the scene given a parameter laser and record the intersections with objects as an array of points
-    laser(laser, insideMirrors = [], intersections = [], sideIgnore = null) {
+    /** shine a virtual ray in the scene given a parameter laser and record the collisions with objects as an array of points */
+    laser(laser, insideMirrors = [], collisions = [], sideIgnore = null) {
         // stop path tracing if the laser light collides a certain number of times
-        if (intersections.length === LASER_MAX_COLLISIONS) {
-            return intersections;
+        if (collisions.length === LASER_MAX_COLLISIONS) {
+            return collisions;
         }
 
         let laserLine = Line.fromRay(laser.position, laser.rotation);
@@ -661,7 +581,7 @@ class Scene {
             let mirror = this.mirrors[n];
             let lastVertex = undefined;
 
-            if (mirror.closedShape || mirror.isRefracting) {
+            if (mirror.closedShape || mirror.isRefracting()) {
                 lastVertex = mirror.vertices.length;
             } else {
                 lastVertex = mirror.vertices.length - 1;
@@ -694,26 +614,32 @@ class Scene {
             }
         }
 
-        // form a new array of intersections copy with an additional new closest interaction
-        let newIntersections = [];
-
-        for (let n = 0; n < intersections.length; n++) {
-            newIntersections[n] = intersections[n].clone();
-        }
+        // form a new array of collisions copy with an additional new closest interaction
+        let newCollisions = structuredClone(collisions);
 
         if (closestMirror === undefined) {
             // if no collisions are found, add a final laser light point into the void
-            newIntersections.push(laser.position.clone().addToPolar(DRAW_RANGE, laser.rotation));
-            return newIntersections;
+            newCollisions.push({
+                type: "void",
+                position: laser.position.clone().addToPolar(DRAW_RANGE, laser.rotation),
+            });
+            return newCollisions;
         }
 
-        newIntersections.push(closestIntersection);
+        newCollisions.push({
+            position: closestIntersection,
+        });
 
         // recursively find the path of the laser light after interaction
-        if (closestMirror.isReflecting) {
+        if (closestMirror.isReflecting()) {
+            newCollisions[newCollisions.length - 1].type = "reflection";
+            let incidentAngle = Math.asin(laserLine.getSineOfAngleBetweenLinePerpendicular(closestSide));
+            let reflectedAngle = incidentAngle;
+            newCollisions[newCollisions.length - 1].incidentAngle = incidentAngle;
+            newCollisions[newCollisions.length - 1].reflectedAngle = reflectedAngle;
             // reflect light and proceed recursively
-            return this.laser(new Laser(closestIntersection, closestSide.getAngleReflected(laser.rotation)), insideMirrors, newIntersections, closestSide);
-        } else if (closestMirror.isRefracting) {
+            return this.laser(new Laser(closestIntersection, closestSide.getAbsoluteAngleReflected(laser.rotation)), insideMirrors, newCollisions, closestSide);
+        } else if (closestMirror.isRefracting()) {
             // conditionally refract light
             // find an array of mirrors which currently encloes the laser light interaction
             let newInsideMirrors = [];
@@ -760,37 +686,49 @@ class Scene {
             let incidentAngleSine = laserLine.getSineOfAngleBetweenLinePerpendicular(closestSide);
             let incidentAngle = Math.asin(incidentAngleSine);
 
+            newCollisions[newCollisions.length - 1].incidentAngle = incidentAngle;
+
             // check whether refraction or total internal reflection should occur
             if (incidentAngleSine >= criticalAngleSine) {
+                newCollisions[newCollisions.length - 1].type = "reflection";
+                let reflectedAngle = incidentAngle;
+                newCollisions[newCollisions.length - 1].reflectedAngle = reflectedAngle;
                 // reflect (total internal) light and proceed recursively
-                return this.laser(new Laser(closestIntersection, closestSide.getAngleReflected(laser.rotation)), insideMirrors, newIntersections, closestSide);
+                return this.laser(new Laser(closestIntersection, closestSide.getAbsoluteAngleReflected(laser.rotation)), insideMirrors, newCollisions, closestSide);
             } else {
+                newCollisions[newCollisions.length - 1].type = "refraction";
+                newCollisions[newCollisions.length - 1].incidentCount = insideMirrors.length;
+                newCollisions[newCollisions.length - 1].refractedCount = newInsideMirrors.length;
+                newCollisions[newCollisions.length - 1].incidentIndex = incidentIndex;
+                newCollisions[newCollisions.length - 1].refractedIndex = refractedIndex;
                 let refractedAngleSine = incidentAngleSine * incidentIndex / refractedIndex;
                 let refractedAngle = Math.asin(refractedAngleSine);
+                newCollisions[newCollisions.length - 1].refractedAngle = refractedAngle;
                 // find angle of refraction in world space and proceed recursively
-                return this.laser(new Laser(closestIntersection, laser.rotation - Math.sign(laserLine.getDotProductBetweenLine(closestSide)) * Math.sign(laserLine.getProjectionOfCrossProductBetweenLine(closestSide)) * (incidentAngle - refractedAngle)), newInsideMirrors, newIntersections, closestSide);
+                return this.laser(new Laser(closestIntersection, laser.rotation - Math.sign(laserLine.getDotProductBetweenLine(closestSide)) * Math.sign(laserLine.getProjectionOfCrossProductBetweenLine(closestSide)) * (incidentAngle - refractedAngle)), newInsideMirrors, newCollisions, closestSide);
             }
-        } else if (closestMirror.isAbsorbing) {
+        } else if (closestMirror.isAbsorbing()) {
+            newCollisions[newCollisions.length - 1].type = "absorption";
             // absorb light and stop recursion
-            return newIntersections;
+            return newCollisions;
         }
     }
 
-    // get all the laser paths in the scene as an array of arrays of points
-    getLaserCollisions() {
+    /** get all the laser paths in the scene as an array of arrays of points */
+    getLasersCollisions() {
         let lasersData = [];
 
         for (let n = 0; n < this.lasers.length; n++) {
             let laser = this.lasers[n];
             lasersData.push(this.laser(laser, this.getMirrorsWithPointInside(laser.position).filter(function (mirror) {
-                return mirror.isRefracting;
+                return mirror.isRefracting();
             })));
         }
 
         return lasersData;
     }
 
-    // animate all the lasers and mirrors by updating their positions and rotations in time
+    /** animate all the lasers and mirrors by updating their positions and rotations in time */
     animate() {
         for (let n = 0; n < this.lasers.length; n++) {
             this.lasers[n].animate();
@@ -802,8 +740,8 @@ class Scene {
     }
 }
 
-class Laser extends Object {
-    // create a laser object from a position vector point, rotation angle, and laser brightness from 0 to 1
+class Laser extends DraggableObject {
+    /** create a laser object from a position vector point, rotation angle, and laser brightness from 0 to 1 */
     constructor(position, rotation, brightness = 0.75) {
         super(position, rotation);
         this.brightness = brightness;
@@ -811,10 +749,12 @@ class Laser extends Object {
     }
 }
 
-class Mirror extends Object {
-    // create a mirror object from a position vector point, rotation angle, and index of refraction number
-    // as well as from an array of points representing the vertices of the polygon and a parameter determining
-    // whether the shape of the polygon is closed from start to end
+class Mirror extends DraggableObject {
+    /**
+     * create a mirror object from a position vector point, rotation angle, and index of refraction number
+     * as well as from an array of points representing the vertices of the polygon and a parameter determining
+     * whether the shape of the polygon is closed from start to end
+     */
     constructor(indexOfRefraction, position, rotation, vertices = [], closedShape = true) {
         super(position, rotation);
         this.indexOfRefraction = indexOfRefraction;
@@ -823,44 +763,46 @@ class Mirror extends Object {
         return this;
     }
 
-    // get a fake index of refraction for a refracting mirror
-    static get refracting() {
+    /** get a fake index of refraction for a refracting mirror */
+    static refracting() {
         return 1.5;
     }
 
-    // get a fake index of refraction for a reflecting mirror
-    static get reflecting() {
+    /** get a fake index of refraction for a reflecting mirror */
+    static reflecting() {
         return 0.5;
     }
 
-    // get a fake index of refraction for an absorbing mirror
-    static get absorbing() {
+    /** get a fake index of refraction for an absorbing mirror */
+    static absorbing() {
         return -0.5;
     }
 
-    // find if the mirror has a refracting property
-    get isRefracting() {
+    /** find if the mirror has a refracting property */
+    isRefracting() {
         return this.indexOfRefraction >= 1;
     }
 
-    // find if the mirror has a reflecting property
-    get isReflecting() {
+    /** find if the mirror has a reflecting property */
+    isReflecting() {
         return this.indexOfRefraction < 1 && this.indexOfRefraction >= 0;
     }
 
-    // find if the mirror has an absorbing property
-    get isAbsorbing() {
+    /** find if the mirror has an absorbing property */
+    isAbsorbing() {
         return this.indexOfRefraction < 0;
     }
 
-    // find if the mirror has not an absorbing property
-    get isNotAbsorbing() {
-        return !this.isAbsorbing;
+    /** find if the mirror has not an absorbing property */
+    isNotAbsorbing() {
+        return !this.isAbsorbing();
     }
 
-    // get a vertex from the polygon mirror as a point
-    // if not absolute, return an existing wrapping vertex in the object space
-    // otherwise if absolute, return a new transformed point in the world space
+    /**
+     * get a vertex from the polygon mirror as a point
+     * if not absolute, return an existing wrapping vertex in the object space
+     * otherwise if absolute, return a new transformed point in the world space
+     */
     getVertex(vertexNumber, absolute = false) {
         let vertex = this.vertices[modulus(vertexNumber, this.vertices.length)];
 
@@ -871,14 +813,16 @@ class Mirror extends Object {
         return vertex;
     }
 
-    // get a new side from the polygon mirror as a line
-    // if not absolute, return a line with two existing wrapping vertices in the object space
-    // otherwise if absolute, return a line with two new transformed points in the world space
+    /**
+     * get a new side from the polygon mirror as a line
+     * if not absolute, return a line with two existing wrapping vertices in the object space
+     * otherwise if absolute, return a line with two new transformed points in the world space
+     */
     getSide(sideNumber, absolute = false) {
         return new Line(this.getVertex(sideNumber, absolute), this.getVertex(sideNumber + 1, absolute));
     }
 
-    // get an anonymous object containing 4 rectangularly bounding vertices
+    /** get an anonymous object containing 4 rectangularly bounding vertices */
     getExtremes(absolute = false) {
         if (this.vertices.length === 0) {
             return false;
@@ -917,9 +861,11 @@ class Mirror extends Object {
         };
     }
 
-    // find if the polygon mirror encloses point
-    // if absolute parameter is false, the point parameter is considered in object space
-    // otherwise, if absolute parameter is true, the point parameter is considered in world space
+    /**
+     * find if the polygon mirror encloses point
+     * if absolute parameter is false, the point parameter is considered in object space
+     * otherwise, if absolute parameter is true, the point parameter is considered in world space
+     */
     pointInside(p, absolute = false) {
         let pointOutside = this.getExtremes(absolute).leftMost.clone().subtractTo(new Point(1, 0));
         let lineFromInsideToOutside = new Line(p, pointOutside);
@@ -939,7 +885,7 @@ class Mirror extends Object {
         return sum % 2 !== 0;
     }
 
-    // find the area of the polygon mirror as a number
+    /** find the area of the polygon mirror as a number */
     findArea() {
         if (this.vertices.length < 3) {
             return 0;
@@ -956,7 +902,7 @@ class Mirror extends Object {
         return Math.abs(sum);
     }
 
-    // find the center of the polygon mirror as a point in world space
+    /** find the center of the polygon mirror as a point in world space */
     findCenter(absolute = false) {
         let average = pointOrigin.clone();
 
@@ -970,7 +916,7 @@ class Mirror extends Object {
         return average;
     }
 
-    // translate the vertices of the polygon mirror by a vector point in object space
+    /** translate the vertices of the polygon mirror by a vector point in object space */
     translateVerticesLocally(p) {
         for (let n = 0; n < this.vertices.length; n++) {
             let vertex = this.vertices[n];
@@ -980,7 +926,7 @@ class Mirror extends Object {
         return this;
     }
 
-    // scale the vertices of the polygon mirror by an x and y factor from the center in object space
+    /** scale the vertices of the polygon mirror by an x and y factor from the center in object space */
     scaleVerticesLocally(xs, ys = xs) {
         for (let n = 0; n < this.vertices.length; n++) {
             let vertex = this.vertices[n];
@@ -990,8 +936,10 @@ class Mirror extends Object {
         return this;
     }
 
-    // add a number of vertices between existing vertices equal to a number
-    // number of new vertices equal to vertices multiplier * number of existing vertices
+    /**
+     * add a number of vertices between existing vertices equal to a number
+     * number of new vertices equal to vertices multiplier * number of existing vertices
+     */
     subdivideVertices(verticesMultiplier = 2) {
         for (let n = 0; n < this.vertices.length; n++) {
             let side = this.getSide(n);
@@ -1005,8 +953,10 @@ class Mirror extends Object {
         return this;
     }
 
-    // smooth the contour of the polygon mirror with a smoothing factor from 0 to 1
-    // as well as an iteration multiplier representing number of smoothing passes
+    /**
+     * smooth the contour of the polygon mirror with a smoothing factor from 0 to 1
+     * as well as an iteration multiplier representing number of smoothing passes
+     */
     smoothVertices(factor = 0.5, iterationsMultiplier = 1) {
         if (this.vertices.length === 0) {
             return;
@@ -1031,7 +981,7 @@ class Mirror extends Object {
         return this;
     }
 
-    // set the vertices of the mirror to corners of a rectangle
+    /** set the vertices of the mirror to corners of a rectangle */
     makeRectangle(width, height) {
         let halfWidth = width / 2;
         let halfHeight = height / 2;
@@ -1044,7 +994,7 @@ class Mirror extends Object {
         return this;
     }
 
-    // set the vertices of the polygon mirror to points on the edge of a circle (uniformly)
+    /** set the vertices of the polygon mirror to points on the edge of a circle (uniformly) */
     makeCircle(radius, vertexCount) {
         this.vertices = [];
 
@@ -1058,7 +1008,7 @@ class Mirror extends Object {
         return this;
     }
 
-    // set the vertices of the polygon mirror to vertices of a regular polygon with a number of sides
+    /** set the vertices of the polygon mirror to vertices of a regular polygon with a number of sides */
     makeRegularPolygon(radius, sideCount) {
         this.vertices = [];
 
@@ -1071,8 +1021,10 @@ class Mirror extends Object {
         return this;
     }
 
-    // set the vertices of the polygon to match the shape of a concave mirror
-    // xLength and yLength are the width and height of the concave mirror (respectively)
+    /**
+     * set the vertices of the polygon to match the shape of a concave mirror
+     * xLength and yLength are the width and height of the concave mirror (respectively)
+     */
     makeConcaveMirror(focalLength, yLength, xLength, vertexCount) {
         this.vertices = [];
 
@@ -1088,8 +1040,10 @@ class Mirror extends Object {
         return this;
     }
 
-    // set the vertices of the polygon to match the shape of a convex mirror
-    // yLength is the height of the convex mirror
+    /**
+     * set the vertices of the polygon to match the shape of a convex mirror
+     * yLength is the height of the convex mirror
+     */
     makeConvexMirror(focalLength, yLength, vertexCount) {
         this.makeConcaveMirror(focalLength, yLength, 0, vertexCount);
         this.vertices.pop();
@@ -1105,9 +1059,11 @@ class Mirror extends Object {
         return this;
     }
 
-    // set the vertices of the polygon to match the shape of a concave lens
-    // xLength and yLength are the width and height of the concave lens (respectively)
-    // need help with creating correct geometry of lenses
+    /**
+     * set the vertices of the polygon to match the shape of a concave lens
+     * xLength and yLength are the width and height of the concave lens (respectively)
+     * need help with creating correct geometry of lenses
+     */
     makeConcaveLens(focalLength, yLength, xLength, vertexCount) {
         this.makeConvexMirror(focalLength, yLength, vertexCount);
         let rightMost = this.getExtremes().leftMost.clone();
@@ -1126,9 +1082,11 @@ class Mirror extends Object {
         return this;
     }
 
-    // set the vertices of the polygon to match the shape of convex lens
-    // yLength is the height of the convex lens
-    // need help with creating correct geometry of lenses
+    /**
+     * set the vertices of the polygon to match the shape of convex lens
+     * yLength is the height of the convex lens
+     * need help with creating correct geometry of lenses
+     */
     makeConvexLens(focalLength, yLength, vertexCount) {
         this.makeConvexMirror(focalLength, yLength, vertexCount);
 
@@ -1141,10 +1099,12 @@ class Mirror extends Object {
         return this;
     }
 
-    // set the vertices of the polygon to match the shape of a randomized blob
-    // averageRadius is the average distance from center to the vertices
-    // maxRadiusDeviation is the percent deviation of the radius from 0 to 1
-    // maxAngleDeviation is the percent deviation towards the neighboring vertices from 0 to 1
+    /**
+     * set the vertices of the polygon to match the shape of a randomized blob
+     * averageRadius is the average distance from center to the vertices
+     * maxRadiusDeviation is the percent deviation of the radius from 0 to 1
+     * maxAngleDeviation is the percent deviation towards the neighboring vertices from 0 to 1
+     */
     makeBlob(averageRadius, maxRadiusDeviation, maxAngleDeviation, vertexCount) {
         // 0 > maxAngleDeviation < 1
         this.vertices = [];
@@ -1160,10 +1120,12 @@ class Mirror extends Object {
     }
 }
 
-class Guide extends Object {
-    // create a guide tool object from a position vector point, rotation angle
-    // and guidance number representing whether the object is a ruler or
-    // protractor (0 or 1 respectively) in floating point
+class Guide extends DraggableObject {
+    /**
+     * create a guide tool object from a position vector point, rotation angle
+     * and guidance number representing whether the object is a ruler or
+     * protractor (0 or 1 respectively) in floating point
+     */
     constructor(position, rotation, guidance = 0.25) {
         super(position, rotation);
         this.guidance = guidance;
@@ -1172,52 +1134,54 @@ class Guide extends Object {
 }
 
 class MouseAction {
-    // get the constant for mouse drag action
+    /** get the constant for mouse drag action */
     static get drag() {
         return 0;
     }
 
-    // get the constant for mouse horizontal drag action
+    /** get the constant for mouse horizontal drag action */
     static get dragX() {
         return 1;
     }
 
-    // get the constant for mouse vertical drag action
+    /** get the constant for mouse vertical drag action */
     static get dragY() {
         return 2;
     }
 
-    // get the constant for mouse rotation action
+    /** get the constant for mouse rotation action */
     static get rotate() {
         return 3;
     }
 
-    // get the constant for mouse object change action
+    /** get the constant for mouse object change action */
     static get change() {
         return 4;
     }
 
-    // get the constant for mouse laser creation action
+    /** get the constant for mouse laser creation action */
     static get laser() {
         return 5;
     }
 
-    // get the constant for mouse interferer (mirror object) creation action
+    /** get the constant for mouse interferer (mirror object) creation action */
     static get interferer() {
         return 6;
     }
 
-    // get the constant for mouse guide tool creation action
+    /** get the constant for mouse guide tool creation action */
     static get guide() {
         return 7;
     }
 }
 
-class Animation {
-    // create an animation object which works on numbers as well as vectors
-    // from an array of keyframe objects as well as
-    // from a global number interpolation function, duration of animation and
-    // from a looping boolean parameter
+class NumberAnimation {
+    /**
+     * create an animation object which works on numbers as well as vectors
+     * from an array of keyframe objects as well as
+     * from a global number interpolation function, duration of animation and
+     * from a looping boolean parameter
+     */
     constructor(keyframes, duration, offset = 0, interpolationFunction = interpolateLinear, isLooping = true) {
         this.time = 0;
         this.keyframes = keyframes;
@@ -1228,8 +1192,10 @@ class Animation {
         return this;
     }
 
-    // get the value of the animation from the current time in the object
-    // as well as from the rest of the parameters
+    /**
+     * get the value of the animation from the current time in the object
+     * as well as from the rest of the parameters
+     */
     getValues() {
         // find the nearest left keyframe to the animation time
         let lowKeyframe = undefined;
@@ -1280,7 +1246,7 @@ class Animation {
         }
     }
 
-    // step forward the animation time by one and loop to start if is looping
+    /** step forward the animation time by one and loop to start if is looping */
     animate() {
         this.time += timeScale;
 
@@ -1294,9 +1260,11 @@ class Animation {
     }
 }
 
-class Keyframe {
-    // create a animation keyframe object meant to be used for animation objects
-    // from the keyframe time number and keyframe values (number or vector) to be interpolated
+class AnimationKeyframe {
+    /**
+     * create a animation keyframe object meant to be used for animation objects
+     * from the keyframe time number and keyframe values (number or vector) to be interpolated
+     */
     constructor(time, values) {
         this.time = time;
         this.values = values;
@@ -1320,6 +1288,7 @@ const loadButton6 = document.getElementById("button-load-scene-6");
 const loadButton7 = document.getElementById("button-load-scene-7");
 const loadButton8 = document.getElementById("button-load-scene-8");
 const loadButton9 = document.getElementById("button-load-scene-9");
+const collisionTable = document.getElementById("table-collision")
 const wallpaperImage = document.getElementById("image-wallpaper");
 const tileImage = document.getElementById("image-tile");
 const laserImage = document.getElementById("image-laser");
@@ -1353,7 +1322,7 @@ const pointOrigin = new Point(0, 0);
 const cameraPosition = pointOrigin.clone();
 const targetPosition = cameraPosition.clone();
 const mousePosition = pointOrigin.clone();
-const mouseButtons = [false, false, false];
+let mousePressed = false;
 let mouseAction = MouseAction.drag;
 const keysPressed = [];
 let keysFired = false;
@@ -1370,47 +1339,20 @@ let framerate = targetFramerate;
 let deltaTime = 1000 / framerate;
 let timeScale = 1;
 
-// prevent scroll behavior
-canvas.addEventListener("scroll", function (event) {
-    event.preventDefault()
-});
 // prevent right click registration
-canvas.addEventListener("contextmenu", function (event) {
-    event.preventDefault()
-});
-clearButton.addEventListener("click", function (event) {
-    loadExample(0)
-});
-loadButton1.addEventListener("click", function (event) {
-    loadExample(1)
-});
-loadButton2.addEventListener("click", function (event) {
-    loadExample(2)
-});
-loadButton3.addEventListener("click", function (event) {
-    loadExample(3)
-});
-loadButton4.addEventListener("click", function (event) {
-    loadExample(4)
-});
-loadButton5.addEventListener("click", function (event) {
-    loadExample(5)
-});
-loadButton6.addEventListener("click", function (event) {
-    loadExample(6)
-});
-loadButton7.addEventListener("click", function (event) {
-    loadExample(7)
-});
-loadButton8.addEventListener("click", function (event) {
-    loadExample(8)
-});
-loadButton9.addEventListener("click", function (event) {
-    loadExample(9)
-});
-loadExample(1);
+canvas.addEventListener("contextmenu", (event) => event.preventDefault());
+clearButton.addEventListener("click", (event) => loadExample(0));
+loadButton1.addEventListener("click", (event) => loadExample(1));
+loadButton2.addEventListener("click", (event) => loadExample(2));
+loadButton3.addEventListener("click", (event) => loadExample(3));
+loadButton4.addEventListener("click", (event) => loadExample(4));
+loadButton5.addEventListener("click", (event) => loadExample(5));
+loadButton6.addEventListener("click", (event) => loadExample(6));
+loadButton7.addEventListener("click", (event) => loadExample(7));
+loadButton8.addEventListener("click", (event) => loadExample(8));
+loadButton9.addEventListener("click", (event) => loadExample(9));
 
-// render a step of the simulation based on the time variable
+/** render a step of the simulation based on the time variable */
 function render() {
     // finding the delta time from the previous and current frame times
     let currentTime = Date.now();
@@ -1463,19 +1405,19 @@ function render() {
 
     // move the camera left, right, up, or down based on the pressed and held key
 
-    if (keysPressed.includes("ArrowLeft") || keysPressed.includes("a") || keysPressed.includes("A") || (mousePosition.x < -760 && (mouseButtons[0] === true || mouseButtons[1] === true || mouseButtons[2] === true) && touch === true && mobilePanning === true)) {
+    if (keysPressed.includes("ArrowLeft") || keysPressed.includes("a") || keysPressed.includes("A") || (mousePosition.x < -760 && mousePressed === true && touch === true && mobilePanning === true)) {
         targetPosition.x -= 10 * timeScale;
     }
 
-    if (keysPressed.includes("ArrowRight") || keysPressed.includes("d") || keysPressed.includes("D") || (mousePosition.x > 760 && (mouseButtons[0] === true || mouseButtons[1] === true || mouseButtons[2] === true) && touch === true && mobilePanning === true)) {
+    if (keysPressed.includes("ArrowRight") || keysPressed.includes("d") || keysPressed.includes("D") || (mousePosition.x > 760 && mousePressed === true && touch === true && mobilePanning === true)) {
         targetPosition.x += 10 * timeScale;
     }
 
-    if (keysPressed.includes("ArrowUp") || keysPressed.includes("w") || keysPressed.includes("W") || (mousePosition.y < -340 && (mouseButtons[0] === true || mouseButtons[1] === true || mouseButtons[2] === true) && touch === true && mobilePanning === true)) {
+    if (keysPressed.includes("ArrowUp") || keysPressed.includes("w") || keysPressed.includes("W") || (mousePosition.y < -340 && mousePressed === true && touch === true && mobilePanning === true)) {
         targetPosition.y -= 10 * timeScale;
     }
 
-    if (keysPressed.includes("ArrowDown") || keysPressed.includes("s") || keysPressed.includes("S") || (mousePosition.y > 340 && (mouseButtons[0] === true || mouseButtons[1] === true || mouseButtons[2] === true) && touch === true && mobilePanning === true)) {
+    if (keysPressed.includes("ArrowDown") || keysPressed.includes("s") || keysPressed.includes("S") || (mousePosition.y > 340 && mousePressed === true && touch === true && mobilePanning === true)) {
         targetPosition.y += 10 * timeScale;
     }
 
@@ -1486,7 +1428,7 @@ function render() {
     cameraPosition.interpolateToPointLinear(targetPosition, 1 - Math.pow(0.9, timeScale));
 
     // find the paths of collisions of the lasers in the scene as an array of arrays of point objects
-    let lasersCollisions = scene.getLaserCollisions();
+    let lasersCollisions = scene.getLasersCollisions();
 
     // if the user is dragging a protractor, snap the position of the protractor to the position of the closest laser collision with mirror
     if (scene.draggedGuide !== false && mouseAction === MouseAction.drag && scene.draggedObject instanceof Guide && Math.round(scene.draggedObject.guidance) === 1) {
@@ -1497,7 +1439,7 @@ function render() {
 
             for (let m = 0; m < laserCollisions.length; m++) {
                 let laserCollision = laserCollisions[m];
-                objects.push({position: laserCollision});
+                objects.push({position: laserCollision.position});
             }
         }
 
@@ -1560,14 +1502,14 @@ function render() {
         // and whether they are not absorbing and selected (blue)
         if (n === 0) {
             selectedMirrors = mirrors.filter(function (mirror) {
-                return !mirror.isNotAbsorbing;
+                return mirror.isAbsorbing();
             });
 
             ctx.strokeStyle = "#ffffff";
         } else {
             if (n === 1) {
                 selectedMirrors = mirrors.filter(function (mirror) {
-                    return mirror.isNotAbsorbing;
+                    return mirror.isNotAbsorbing();
                 });
 
                 if (scene.draggedMirror !== false) {
@@ -1612,7 +1554,7 @@ function render() {
                 ctx.lineTo(vertex.x, vertex.y);
             }
 
-            if (mirror.closedShape || mirror.isRefracting) {
+            if (mirror.closedShape || mirror.isRefracting()) {
                 ctx.closePath();
             }
 
@@ -1620,7 +1562,7 @@ function render() {
 
             // render with fill if the interferer is refracting
             // and opacity of fill based on a modified sigmoid function
-            if (mirror.isRefracting) {
+            if (mirror.isRefracting()) {
                 ctx.globalAlpha = clamp(1 - 1 / Math.pow(Math.E, 0.1 * (mirror.indexOfRefraction - 1)), 0, 1);
                 ctx.shadowBlur = 0;
                 ctx.fill();
@@ -1647,7 +1589,7 @@ function render() {
 
             for (let m = 0; m < laserCollisions.length; m++) {
                 let laserCollision = laserCollisions[m];
-                ctx.lineTo(laserCollision.x, laserCollision.y);
+                ctx.lineTo(laserCollision.position.x, laserCollision.position.y);
             }
 
             ctx.stroke();
@@ -1711,17 +1653,17 @@ function render() {
                     text = "Laser: OFF";
                 }
             } else if (scene.draggedObject instanceof Mirror) {
-                if (scene.draggedMirror.isRefracting) {
+                if (scene.draggedMirror.isRefracting()) {
                     // set the text to indicate the index of refraction of the lens
                     text = "Refractive, IOR: " + Math.round(100 * scene.draggedObject.indexOfRefraction) / 100;
                 }
 
-                if (scene.draggedMirror.isReflecting) {
+                if (scene.draggedMirror.isReflecting()) {
                     // set the text to indicate that the interferer is reflective
                     text = "Reflective";
                 }
 
-                if (scene.draggedMirror.isAbsorbing) {
+                if (scene.draggedMirror.isAbsorbing()) {
                     // set the text to indicate that the interferer is absorptive
                     text = "Absorptive";
                 }
@@ -1931,7 +1873,7 @@ function render() {
     request = window.requestAnimationFrame(render);
 }
 
-// function to reset the scene and set the objects to match a hardcoded value
+/** function to reset the scene and set the objects to match a hardcoded value */
 function loadExample(n) {
     scene.reset();
     // recenter the camera position
@@ -1942,16 +1884,16 @@ function loadExample(n) {
             break;
         case 1:
             scene.addLaser(new Laser(new Point(100, -250), Math.PI / 4));
-            let triangle = new Mirror(Mirror.absorbing, new Point(-300, 375), 0)
+            let triangle = new Mirror(Mirror.absorbing(), new Point(-300, 375), 0)
             triangle.makeRegularPolygon(150, 3);
             triangle.setRotationTo(Math.PI / 10);
-            let square = new Mirror(Mirror.absorbing, new Point(595, -275), Math.PI / 4)
+            let square = new Mirror(Mirror.absorbing(), new Point(595, -275), Math.PI / 4)
             square.makeRectangle(400, 400);
             square.setRotationTo(Math.PI / 4);
-            let rectangle = new Mirror(Mirror.reflecting, new Point(-600, -100), Math.PI / 10)
+            let rectangle = new Mirror(Mirror.reflecting(), new Point(-600, -100), Math.PI / 10)
             rectangle.makeRectangle(40, 400);
             rectangle.setRotationTo(Math.PI / 10);
-            let polygon = new Mirror(Mirror.absorbing, new Point(600, 400), 0);
+            let polygon = new Mirror(Mirror.absorbing(), new Point(600, 400), 0);
             polygon.makeRegularPolygon(150, 5);
             let circle = new Mirror(3, new Point(100, 50), 0);
             circle.makeCircle(150, 500);
@@ -1963,7 +1905,7 @@ function loadExample(n) {
             for (let x = -2; x <= 2; x++) {
                 for (let y = -1; y <= 1; y++) {
                     let position = new Point(300 * x, 300 * y);
-                    let square = new Mirror(3, new Animation([new Keyframe(0, [position.x, position.y]), new Keyframe(randomFloat(90, 110), [position.x + randomFloat(40, 60), position.y + randomFloat(40, 60)]), new Keyframe(200, [position.x, position.y])], 200, 0, interpolateElastic), new Animation([new Keyframe(0, 0), new Keyframe(20, Math.PI / 100), new Keyframe(40, 0)], 40, 0, interpolateLinear));
+                    let square = new Mirror(3, new NumberAnimation([new AnimationKeyframe(0, [position.x, position.y]), new AnimationKeyframe(randomFloat(90, 110), [position.x + randomFloat(40, 60), position.y + randomFloat(40, 60)]), new AnimationKeyframe(200, [position.x, position.y])], 200, 0, interpolateElastic), new NumberAnimation([new AnimationKeyframe(0, 0), new AnimationKeyframe(20, Math.PI / 100), new AnimationKeyframe(40, 0)], 40, 0, interpolateLinear));
                     square.makeRectangle(150, 150);
                     scene.addMirror(square);
                 }
@@ -1971,7 +1913,7 @@ function loadExample(n) {
             break;
         case 3:
             scene.addLaser(new Laser(new Point(-700, -300), Math.PI / 10));
-            let blob = new Mirror(Mirror.reflecting, new Point(0, 0), new Animation([new Keyframe(0, 0), new Keyframe(5000, 6 * Math.PI)], 5000, 0, interpolateLinear));
+            let blob = new Mirror(Mirror.reflecting(), new Point(0, 0), new NumberAnimation([new AnimationKeyframe(0, 0), new AnimationKeyframe(5000, 6 * Math.PI)], 5000, 0, interpolateLinear));
             blob.makeBlob(300, 0.9, 0.9, 100);
             blob.smoothVertices(0.5, 10);
             scene.addMirror(blob);
@@ -1979,12 +1921,12 @@ function loadExample(n) {
         case 4:
             scene.addLaser(new Laser(new Point(700, 0), Math.PI, 1));
             scene.addMirrors([
-                new Mirror(Mirror.absorbing, new Point(0, 0), 0).makeRectangle(1500, 1000),
-                new Mirror(Mirror.reflecting, new Point(350, 300), 1.2 * Math.PI).makeRectangle(300, 50),
-                new Mirror(Mirror.reflecting, new Point(-300, -400), 1.9 * Math.PI).makeRectangle(300, 50),
-                new Mirror(Mirror.reflecting, new Point(400, -300), 1.1 * Math.PI).makeRectangle(300, 50),
-                new Mirror(Mirror.reflecting, new Point(0, 0), 0.7 * Math.PI).makeRectangle(300, 50),
-                new Mirror(Mirror.reflecting, new Point(-500, 300), 0.3 * Math.PI).makeRectangle(300, 50),
+                new Mirror(Mirror.absorbing(), new Point(0, 0), 0).makeRectangle(1500, 1000),
+                new Mirror(Mirror.reflecting(), new Point(350, 300), 1.2 * Math.PI).makeRectangle(300, 50),
+                new Mirror(Mirror.reflecting(), new Point(-300, -400), 1.9 * Math.PI).makeRectangle(300, 50),
+                new Mirror(Mirror.reflecting(), new Point(400, -300), 1.1 * Math.PI).makeRectangle(300, 50),
+                new Mirror(Mirror.reflecting(), new Point(0, 0), 0.7 * Math.PI).makeRectangle(300, 50),
+                new Mirror(Mirror.reflecting(), new Point(-500, 300), 0.3 * Math.PI).makeRectangle(300, 50),
             ]);
             scene.mirrors[0].interactive = false;
             break;
@@ -1996,7 +1938,7 @@ function loadExample(n) {
                 new Laser(new Point(-100, 100), 0),
                 new Laser(new Point(-100, 200), 0),
             ]);
-            let parabola = new Mirror(Mirror.reflecting, new Point(300, 0), Math.PI);
+            let parabola = new Mirror(Mirror.reflecting(), new Point(300, 0), Math.PI);
             parabola.makeConcaveMirror(200, 600, 175, 200);
             scene.addMirror(parabola);
             break;
@@ -2008,7 +1950,7 @@ function loadExample(n) {
                 new Laser(new Point(-100, 100), 0),
                 new Laser(new Point(-100, 200), 0),
             ]);
-            let parabola2 = new Mirror(Mirror.reflecting, new Point(300, 0), Math.PI);
+            let parabola2 = new Mirror(Mirror.reflecting(), new Point(300, 0), Math.PI);
             parabola2.makeConvexMirror(200, 600, 200);
             scene.addMirror(parabola2);
             break;
@@ -2020,7 +1962,7 @@ function loadExample(n) {
                 new Laser(new Point(-100, 100), 0),
                 new Laser(new Point(-100, 200), 0),
             ]);
-            let parabola3 = new Mirror(Mirror.refracting, new Point(300, 0), 0);
+            let parabola3 = new Mirror(Mirror.refracting(), new Point(300, 0), 0);
             parabola3.makeConvexLens(200, 600, 200);
             scene.addMirror(parabola3);
             break;
@@ -2032,23 +1974,29 @@ function loadExample(n) {
                 new Laser(new Point(-100, 100), 0),
                 new Laser(new Point(-100, 200), 0),
             ]);
-            let parabola4 = new Mirror(Mirror.refracting, new Point(300, 0), 0);
+            let parabola4 = new Mirror(Mirror.refracting(), new Point(300, 0), 0);
             parabola4.makeConcaveLens(200, 600, 300, 200);
             scene.addMirror(parabola4);
             break;
         case 9:
-            scene.addLaser(new Laser(new Point(0, 0), new Animation([new Keyframe(0, 0), new Keyframe(1000, 2 * Math.PI)], 1000, 0, interpolateLinear)));
+            scene.addLaser(new Laser(new Point(0, 0), new NumberAnimation([new AnimationKeyframe(0, 0), new AnimationKeyframe(1000, 2 * Math.PI)], 1000, 0, interpolateLinear)));
             scene.addMirrors([
                 new Mirror(2, new Point(-250, 0), 0).makeConcaveLens(200, 500, 200, 200),
                 new Mirror(2, new Point(250, 0), 0).makeConcaveLens(200, 500, 200, 200),
-                new Mirror(Mirror.reflecting, new Animation([new Keyframe(0, [-700, -400]), new Keyframe(125, [700, -400]), new Keyframe(200, [700, 400]), new Keyframe(325, [-700, 400]), new Keyframe(400, [-700, -400])], 400, 0, interpolateQuadratic), 0).makeRectangle(200, 200),
-                new Mirror(Mirror.reflecting, new Animation([new Keyframe(0, [-700, -400]), new Keyframe(125, [700, -400]), new Keyframe(200, [700, 400]), new Keyframe(325, [-700, 400]), new Keyframe(400, [-700, -400])], 400, 200, interpolateQuadratic), 0).makeRectangle(200, 200),
+                new Mirror(Mirror.reflecting(), new NumberAnimation([new AnimationKeyframe(0, [-700, -400]), new AnimationKeyframe(125, [700, -400]), new AnimationKeyframe(200, [700, 400]), new AnimationKeyframe(325, [-700, 400]), new AnimationKeyframe(400, [-700, -400])], 400, 0, interpolateQuadratic), 0).makeRectangle(200, 200),
+                new Mirror(Mirror.reflecting(), new NumberAnimation([new AnimationKeyframe(0, [-700, -400]), new AnimationKeyframe(125, [700, -400]), new AnimationKeyframe(200, [700, 400]), new AnimationKeyframe(325, [-700, 400]), new AnimationKeyframe(400, [-700, -400])], 400, 200, interpolateQuadratic), 0).makeRectangle(200, 200),
             ]);
             break;
     }
 }
 
+function updateCollisionTable() {
+    let lasersCollisions = scene.getLasersCollisions();
+    console.log(lasersCollisions);
+}
+
 // register window mouse and key events as well as loading and window resize event
+window.addEventListener("load", setup);
 window.addEventListener("resize", resize);
 window.addEventListener("mousedown", mousedown);
 window.addEventListener("mouseup", mouseup);
@@ -2058,15 +2006,17 @@ window.addEventListener("keyup", keyup);
 window.addEventListener("touchstart", touchstart);
 window.addEventListener("touchend", touchend);
 window.addEventListener("touchmove", touchmove);
-// render once all the images in the HTML have loaded
-window.addEventListener("load", function () {
-    request = window.requestAnimationFrame(render)
-});
-// resize the canvas on start
-resize();
 
-// function to reset the style width and height of the canvas
-function resize() {
+function setup(event = undefined) {
+    loadExample(1);
+    // render the first frame
+    request = window.requestAnimationFrame(render);
+    // resize the canvas onload
+    resize();
+}
+
+/** function to reset the style width and height of the canvas */
+function resize(event = undefined) {
     windowWidth = window.innerWidth;
     windowHeight = window.innerHeight;
 
@@ -2080,18 +2030,17 @@ function resize() {
     }
 }
 
-// function to register a mousedown event, sets the mouse button and action
-// and plays a sound and adds appropriate interferer if needed as well as fixing
-// the properties of the dragged object
+/** function to register a mousedown event, sets the mouse button and action
+ * and plays a sound and adds appropriate interferer if needed as well as fixing
+ * the properties of the dragged object
+ */
 function mousedown(event) {
-    // prevent registering mouse before wallpaper shown
+    // prevent registering mouse during wallpaper showing
     if (time < 90) {
         return;
     }
 
-    // set index 0, 1 or 2 of mouse buttons to active
-    mouseButtons[event.button] = true;
-
+    mousePressed = true;
     // check the left side of the canvas buttons to see where mouse was
     // clicked and set mouse action accordingly
     if (mousePosition.x + 960 > -10 && mousePosition.y > -310 && mousePosition.x + 960 < 150 && mousePosition.y < 230) {
@@ -2155,7 +2104,7 @@ function mousedown(event) {
         mouseAction = MouseAction.rotate;
         return;
     } else if (mouseAction === MouseAction.interferer) {
-        let mirror = new Mirror(Mirror.reflecting, mousePosition.clone().addTo(cameraPosition), randomFloat(0, 2 * Math.PI));
+        let mirror = new Mirror(Mirror.reflecting(), mousePosition.clone().addTo(cameraPosition), randomFloat(0, 2 * Math.PI));
         mirror.makeRegularPolygon(randomFloat(150, 200), randomInteger(3, 6));
         scene.addMirror(mirror);
         mirror.dragValue = mirror.indexOfRefraction;
@@ -2253,10 +2202,12 @@ function mousedown(event) {
     }
 }
 
-// function to register a mouseup event, sets the mouse button
-// and plays a sound and fixes the scene
+/**
+ * function to register a mouseup event, sets the mouse button
+ * and plays a sound and fixes the scene
+ */
 function mouseup(event) {
-    mouseButtons[event.button] = false;
+    mousePressed = false;
 
     if (scene.draggedObject !== false && touch === false) {
         clickSound.play();
@@ -2265,7 +2216,7 @@ function mouseup(event) {
     scene.setDraggedObjectTo(false);
 }
 
-// function to register a mousemove event, sets the mouse position to coordinate values
+/** function to register a mousemove event, sets the mouse position to coordinate values */
 function mousemove(event) {
     let rect = canvas.getBoundingClientRect();
     let point = new Point(((event.clientX - rect.left) / (rect.right - rect.left) - 0.5), ((event.clientY - rect.top) / (rect.bottom - rect.top) - 0.5)).scaleXY(1920, 1080);
@@ -2274,8 +2225,9 @@ function mousemove(event) {
     mousePosition.setTo(point);
 }
 
-// function to register a keydown event, adds the event key
-// and checks the event key to determine how to change the scene
+/** function to register a keydown event, adds the event key
+ * and checks the event key to determine how to change the scene
+ */
 function keydown(event) {
     const eventKey = event.key;
 
@@ -2332,27 +2284,27 @@ function keydown(event) {
     }
 }
 
-// function to register a keyup event, removed the event key from the array
+/** function to register a keyup event, removed the event key from the array */
 function keyup(event) {
     const eventKey = event.key;
     keysPressed.splice(keysPressed.indexOf(eventKey), 1);
     keysFired = false;
 }
 
-// function to register a mobile touchstart event, calls mousedown
+/** function to register a mobile touchstart event, calls mousedown */
 function touchstart(event) {
     touch = true;
     touchmove(event);
     mousedown({button: 0});
 }
 
-// function to register a mobile touchend event, calls mouseup
+/** function to register a mobile touchend event, calls mouseup */
 function touchend(event) {
     touch = true;
     mouseup({button: 0});
 }
 
-// function to register a mobile touchmove event, calls mousemove
+/** function to register a mobile touchmove event, calls mousemove */
 function touchmove(event) {
     touch = true;
     for (let n = 0; n < event.touches.length; n++) {
@@ -2360,7 +2312,7 @@ function touchmove(event) {
     }
 }
 
-// function to get the amount of shadowBlur to be used for a glow effect
+/** function to get the amount of shadowBlur to be used for a glow effect */
 function getGlowBlur(shadowBlur) {
     if (glow) {
         return shadowBlur;
@@ -2369,7 +2321,7 @@ function getGlowBlur(shadowBlur) {
     return 0;
 }
 
-// function to get the properties of objects as an array of properties
+/** function to get the properties of objects as an array of properties */
 function getPropertiesOfObjects(objects, property) {
     let properties = [];
 
@@ -2380,7 +2332,7 @@ function getPropertiesOfObjects(objects, property) {
     return properties;
 }
 
-// function to get the minimum of an array of numbers
+/** function to get the minimum of an array of numbers */
 function minimum(values) {
     let min = values[0];
 
@@ -2395,7 +2347,7 @@ function minimum(values) {
     return min;
 }
 
-// function to get the maximum of an array of numbers
+/** function to get the maximum of an array of numbers */
 function maximum(values) {
     let max = values[0];
 
@@ -2410,7 +2362,7 @@ function maximum(values) {
     return max;
 }
 
-// function to get the summation of an array of numbers
+/** function to get the summation of an array of numbers */
 function summation(values) {
     let sum = 0;
 
@@ -2421,74 +2373,74 @@ function summation(values) {
     return sum;
 }
 
-// function to get the average of an array of numbers
+/** function to get the average of an array of numbers */
 function average(values) {
     let avg = summation(values) / values.length;
     return avg;
 }
 
-// function to get a random integer from a minimum to a maximum value
+/** function to get a random integer from a minimum to a maximum value */
 function randomInteger(min = 0, max = 1) {
     return Math.floor(randomFloat(min, max + 1));
 }
 
-// function to get a random float from a minimum to a maximum value
+/** function to get a random float from a minimum to a maximum value */
 function randomFloat(min = 0, max = 1) {
     return Math.random() * (max - min) + min;
 }
 
-// function to get the value of a number clamped to a minimum
+/** function to get the value of a number clamped to a minimum */
 function clampMin(num, min) {
     return Math.max(num, min)
 }
 
-// function to get the value of a number clamped to a maximum
+/** function to get the value of a number clamped to a maximum */
 function clampMax(num, max) {
     return Math.min(num, max);
 }
 
-// function to get the value of a number clamped to a minimum and maximum
+/** function to get the value of a number clamped to a minimum and maximum */
 function clamp(num, min, max) {
     return Math.min(Math.max(num, min), max);
 }
 
-// function to get the mapping value of a number from first space to the second space
+/** function to get the mapping value of a number from first space to the second space */
 function map(value, start1, stop1, start2, stop2) {
     return ((value - start1) / (stop1 - start1)) * (stop2 - start2) + start2;
 }
 
-// function to get the distance between two point objects
+/** function to get the distance between two point objects */
 function distance(p1, p2 = pointOrigin) {
     return Math.hypot(p1.x - p2.x, p1.y - p2.y);
 }
 
-// function to get the squared distance between two point objects
+/** function to get the squared distance between two point objects */
 function distanceSquared(p1, p2 = pointOrigin) {
     return Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2);
 }
 
-// function to get the manhattan distance between two point objects (sum of absolutes)
+/** function to get the manhattan distance between two point objects (sum of absolutes) */
 function distanceManhattan(p1, p2 = pointOrigin) {
     return Math.abs(p1.x - p2.x) + Math.abs(p1.y - p2.y);
 }
 
-// function to get the linearly interpolated value from a starting and ending value
+/** function to get the linearly interpolated value from a starting and ending value */
 function interpolateLinear(startingValue, endingValue, t) {
     return (startingValue + (endingValue - startingValue) * t);
 }
 
-// function to get the quadratically interpolated value from a starting and ending value
+/** function to get the quadratically interpolated value from a starting and ending value */
 function interpolateQuadratic(startingValue, endingValue, t) {
     return interpolateLinear(startingValue, endingValue, t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
 }
 
-// function to get an elastically interpolated value from a starting and ending value
+/** function to get an elastically interpolated value from a starting and ending value */
 function interpolateElastic(startingValue, endingValue, t) {
     const c5 = (2 * Math.PI) / 4.5;
     return interpolateLinear(startingValue, endingValue, t === 0 ? 0 : t === 1 ? 1 : t < 0.5 ? -(Math.pow(2, 20 * t - 10) * Math.sin((20 * t - 11.125) * c5)) / 2 : (Math.pow(2, -20 * t + 10) * Math.sin((20 * t - 11.125) * c5)) / 2 + 1);
 }
 
-// function to get the minimum signed angle between two angles
+/** function to get the minimum signed angle between two angles */
 function calculateAngleDifference(a1, a2) {
     let difference = a2 - a1;
     while (difference < -Math.PI)
@@ -2498,19 +2450,19 @@ function calculateAngleDifference(a1, a2) {
     return difference;
 }
 
-// function to get whether two segments intersects using two line objects
+/** function to get whether two segments intersects using two line objects */
 function intersectSegmentSegment(line1, line2) {
     return intersectionSegmentSegment(line1, line2) !== false;
 }
 
-// function to get the intersection of two lines using two line objects
+/** function to get the intersection of two lines using two line objects */
 function intersectionLineLine(line1, line2) {
     return intersectionStraightStraight(line1, line2, function (ua, ub) {
         return true;
     });
 }
 
-// function to get the intersection of a line and segment using two line objects
+/** function to get the intersection of a line and segment using two line objects */
 function intersectionLineSegment(line1, line2) {
     return intersectionStraightStraight(line1, line2, function (ua, ub) {
         if (ub < 0 || ub > 1) {
@@ -2521,7 +2473,7 @@ function intersectionLineSegment(line1, line2) {
     });
 }
 
-// function to get the intersection of two segments using two line objects
+/** function to get the intersection of two segments using two line objects */
 function intersectionSegmentSegment(line1, line2) {
     return intersectionStraightStraight(line1, line2, function (ua, ub) {
         if (ua < 0 || ua > 1 || ub < 0 || ub > 1) {
@@ -2532,7 +2484,7 @@ function intersectionSegmentSegment(line1, line2) {
     });
 }
 
-// function to get the intersection of a segment and a ray using two line objects
+/** function to get the intersection of a segment and a ray using two line objects */
 function intersectionSegmentRay(line1, line2) {
     return intersectionStraightStraight(line1, line2, function (ua, ub) {
         if (ua < 0 || ua > 1 || ub < 0) {
@@ -2543,8 +2495,10 @@ function intersectionSegmentRay(line1, line2) {
     });
 }
 
-// generic function to get the intersection of two capped or uncapped lines
-// using an elimination function of two lines
+/**
+ * generic function to get the intersection of two capped or uncapped lines
+ * using an elimination function of two lines
+ */
 function intersectionStraightStraight(line1, line2, eliminationFunction) {
     if (line1.p1.matchesWith(line1.p2, 1e-9) || line2.p1.matchesWith(line2.p2, 1e-9)) {
         return false;
@@ -2567,12 +2521,12 @@ function intersectionStraightStraight(line1, line2, eliminationFunction) {
     return line1.p1.clone().addTo(line1.p2.clone().subtractTo(line1.p1).multiplyBy(ua));
 }
 
-// function to get the real modulus (working correctly with negative numbers)
+/** function to get the real modulus (working correctly with negative numbers) */
 function modulus(dividend, divisor) {
     return ((dividend % divisor) + divisor) % divisor;
 }
 
-// function to check whether a number matches a reference within a certain threshold
+/** function to check whether a number matches a reference within a certain threshold */
 function numberMatches(num, ref, epsilon) {
     return (Math.abs(num - ref) <= epsilon);
 }
