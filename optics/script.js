@@ -2030,7 +2030,8 @@ function resize(event = undefined) {
     }
 }
 
-/** function to register a mousedown event, sets the mouse button and action
+/**
+ * function to register a mousedown event, sets the mouse button and action
  * and plays a sound and adds appropriate interferer if needed as well as fixing
  * the properties of the dragged object
  */
@@ -2230,7 +2231,8 @@ function mousemove(event) {
     mousePosition.setTo(point);
 }
 
-/** function to register a keydown event, adds the event key
+/**
+ * function to register a keydown event, adds the event key
  * and checks the event key to determine how to change the scene
  */
 function keydown(event) {

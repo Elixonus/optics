@@ -8,7 +8,7 @@ body {
     border-radius: 5vmin;
     outline: 3vmin solid #000000;
     cursor: none;
-    user-select: none;
+    touch-action: none;
 }
 
 #group-buttons {
