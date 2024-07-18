@@ -2059,6 +2059,7 @@ function mousedown(event) {
         }
 
         if (touch === false) {
+            switchSound.currentTime = 0;
             switchSound.play();
         }
 
@@ -2077,6 +2078,7 @@ function mousedown(event) {
         }
 
         if (touch === false) {
+            switchSound.currentTime = 0;
             switchSound.play();
         }
 
@@ -2193,10 +2195,12 @@ function mousedown(event) {
         }
 
         if (touch === false) {
+            clickSound.currentTime = 0;
             clickSound.play();
         }
     } else {
         if (touch === false) {
+            misclickSound.currentTime = 0;
             misclickSound.play();
         }
     }
@@ -2210,6 +2214,7 @@ function mouseup(event) {
     mousePressed = false;
 
     if (scene.draggedObject !== false && touch === false) {
+        clickSound.currentTime = 0;
         clickSound.play();
     }
 
