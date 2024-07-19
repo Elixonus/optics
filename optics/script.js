@@ -1288,7 +1288,7 @@ const loadButton6 = document.getElementById("button-load-scene-6");
 const loadButton7 = document.getElementById("button-load-scene-7");
 const loadButton8 = document.getElementById("button-load-scene-8");
 const loadButton9 = document.getElementById("button-load-scene-9");
-const collisionTable = document.getElementById("table-collision")
+const collisionTable = document.getElementById("table-collision");
 const wallpaperImage = document.getElementById("image-wallpaper");
 const tileImage = document.getElementById("image-tile");
 const laserImage = document.getElementById("image-laser");
@@ -1405,11 +1405,11 @@ function render() {
 
     // move the camera left, right, up, or down based on the pressed and held key
 
-    if (keysPressed.includes("ArrowLeft") || keysPressed.includes("a") || keysPressed.includes("A") || (mousePosition.x < -760 && mousePressed === true && touch === true && mobilePanning === true)) {
+    if (keysPressed.includes("ArrowLeft") || keysPressed.includes("a") || keysPressed.includes("A") || (mousePosition.x < -660 && mousePressed === true && touch === true && mobilePanning === true)) {
         targetPosition.x -= 10 * timeScale;
     }
 
-    if (keysPressed.includes("ArrowRight") || keysPressed.includes("d") || keysPressed.includes("D") || (mousePosition.x > 760 && mousePressed === true && touch === true && mobilePanning === true)) {
+    if (keysPressed.includes("ArrowRight") || keysPressed.includes("d") || keysPressed.includes("D") || (mousePosition.x > 660 && mousePressed === true && touch === true && mobilePanning === true)) {
         targetPosition.x += 10 * timeScale;
     }
 
@@ -1625,22 +1625,22 @@ function render() {
 
         // check and set the text to indicate the horizontal position of the object
         if (mouseAction === MouseAction.dragX) {
-            text = "x: " + Math.round(scene.draggedObject.position.x);
+            text = "x: " + Math.round(scene.draggedObject.position.x).toString();
         }
 
         // check and set the text to indicate the vertical position of the object
         if (mouseAction === MouseAction.dragY) {
-            text = "y: " + Math.round(-scene.draggedObject.position.y);
+            text = "y: " + Math.round(-scene.draggedObject.position.y).toString();
         }
 
         // check and set the text to indicate the position of the object
         if (mouseAction === MouseAction.drag) {
-            text = "x: " + Math.round(scene.draggedObject.position.x) + ", y: " + Math.round(-scene.draggedObject.position.y);
+            text = "x: " + Math.round(scene.draggedObject.position.x).toString() + ", y: " + Math.round(-scene.draggedObject.position.y).toString();
         }
 
         // check and set the text to indicate the rotation of the object
         if (mouseAction === MouseAction.rotate) {
-            text = "r: " + Math.floor(modulus((2 * Math.PI - scene.draggedObject.rotation) * 180 / Math.PI, 360)) + " deg";
+            text = "r: " + Math.round(modulus((2 * Math.PI - scene.draggedObject.rotation) * 180 / Math.PI, 360)).toString() + " deg";
         }
 
         // check and set the text depending on which object is currently being dragged
@@ -1655,7 +1655,7 @@ function render() {
             } else if (scene.draggedObject instanceof Mirror) {
                 if (scene.draggedMirror.isRefracting()) {
                     // set the text to indicate the index of refraction of the lens
-                    text = "Refractive, IOR: " + Math.round(100 * scene.draggedObject.indexOfRefraction) / 100;
+                    text = "Refractive, IOR: " + (Math.round(100 * scene.draggedObject.indexOfRefraction) / 100).toString();
                 }
 
                 if (scene.draggedMirror.isReflecting()) {
@@ -1991,8 +1991,33 @@ function loadExample(n) {
 }
 
 function updateCollisionTable() {
+    let newBody = document.createElement("tbody");
     let lasersCollisions = scene.getLasersCollisions();
-    console.log(lasersCollisions);
+
+    for(let n = 0; n < lasersCollisions.length; n++) {
+        let laserCollisions = lasersCollisions[n];
+
+        for(let m = 0; m < laserCollisions.length; m++) {
+            let laserCollision = laserCollisions[m];
+            let row = newBody.insertRow(-1);
+            let cell1 = row.insertCell(-1);
+            cell1.innerText = n.toString();
+            let cell2 = row.insertCell(-1);
+            cell2.innerText = m.toString();
+            let cell3 = row.insertCell(-1);
+            cell3.innerText = laserCollision.type.charAt(0).toUpperCase() + laserCollision.type.slice(1);
+            let cell4 = row.insertCell(-1);
+
+            if (laserCollision.type === "reflection" || laserCollision.type === "refraction") {
+                cell4.innerText = (Math.round(100 * laserCollision.incidentAngle * 180 / Math.PI) / 100).toString();
+            }
+        }
+    }
+
+    let oldBody = collisionTable.getElementsByTagName("tbody")[0];
+    console.log(oldBody);
+    console.log(newBody);
+    oldBody.parentNode.replaceChild(newBody, oldBody);
 }
 
 // register window mouse and key events as well as loading and window resize event
