@@ -314,9 +314,9 @@ class DraggableObject {
 class Scene {
     /** create a scene consisting of lasers, mirrors, and guides from an array of generic objects */
     constructor(objects = []) {
-        this._lasers = [];
-        this._mirrors = [];
-        this._guides = [];
+        this.lasers = [];
+        this.mirrors = [];
+        this.guides = [];
         this.draggedLaser = false;
         this.draggedMirror = false;
         this.draggedGuide = false;
@@ -327,6 +327,12 @@ class Scene {
         }
 
         return this.addObject(objects);
+    }
+
+    /** get all the objects in the scene as an array of lasers, mirrors, and guides */
+    getObjects() {
+        let objects = this.lasers.concat(this.mirrors).concat(this.guides);
+        return objects;
     }
 
     /** fix the dragged laser properties of the scene */
@@ -1288,7 +1294,9 @@ const loadButton6 = document.getElementById("button-load-scene-6");
 const loadButton7 = document.getElementById("button-load-scene-7");
 const loadButton8 = document.getElementById("button-load-scene-8");
 const loadButton9 = document.getElementById("button-load-scene-9");
-const updateButton = document.getElementById("button-update-collision");
+const updateObjectButton = document.getElementById("button-update-object")
+const updateCollisionButton = document.getElementById("button-update-collision");
+const objectTable = document.getElementById("table-object");
 const collisionTable = document.getElementById("table-collision");
 const wallpaperImage = document.getElementById("image-wallpaper");
 const tileImage = document.getElementById("image-tile");
@@ -1352,7 +1360,8 @@ loadButton6.addEventListener("click", (event) => loadExample(6));
 loadButton7.addEventListener("click", (event) => loadExample(7));
 loadButton8.addEventListener("click", (event) => loadExample(8));
 loadButton9.addEventListener("click", (event) => loadExample(9));
-updateButton.addEventListener("click", (event) => updateCollisionTable());
+updateObjectButton.addEventListener("click", (event) => updateObjectTable());
+updateCollisionButton.addEventListener("click", (event) => updateCollisionTable());
 
 /** render a step of the simulation based on the time variable */
 function render() {
@@ -1990,6 +1999,100 @@ function loadExample(n) {
             ]);
             break;
     }
+}
+
+function updateObjectTable() {
+    let newBody = document.createElement("tbody");
+    let objects = scene.getObjects();
+
+    for(let n = 0; n < objects.length; n++) {
+        let object = objects[n];
+        let row = newBody.insertRow(-1);
+        let cell1 = row.insertCell(-1);
+        cell1.innerText = (n + 1).toString();
+        let cell2 = row.insertCell(-1);
+
+        if (object instanceof Laser) {
+            cell2.innerText = (scene.lasers.indexOf(object) + 1).toString();
+        } else {
+            cell2.innerText = "-";
+        }
+
+        let cell3 = row.insertCell(-1);
+
+        if (object instanceof Mirror) {
+            cell3.innerText = (scene.mirrors.indexOf(object) + 1).toString();
+        } else {
+            cell3.innerText = "-";
+        }
+
+        let cell4 = row.insertCell(-1);
+
+        if (object instanceof Guide) {
+            cell4.innerText = (scene.guides.indexOf(object) + 1).toString();
+        } else {
+            cell4.innerText = "-";
+        }
+
+        let cell5 = row.insertCell(-1);
+
+        if (object instanceof Laser) {
+            cell5.innerText = "Laser";
+        } else if (object instanceof Mirror) {
+            cell5.innerText = "Interferer";
+        } else if (object instanceof Guide) {
+            cell5.innerText = "Guide";
+        } else {
+            cell5.innerText = "-";
+        }
+
+        let cell6 = row.insertCell(-1);
+
+        if (object instanceof Laser) {
+            if (Math.round(object.brightness) === 1) {
+                cell6.innerText = "Turned On"
+            } else {
+                cell6.innerText = "Turned Off";
+            }
+        } else if (object instanceof Mirror) {
+            if (object.isReflecting()) {
+                cell6.innerText = "Reflective";
+            } else if (object.isRefracting()) {
+                cell6.innerText = "Refractive";
+            } else if (object.isAbsorbing()) {
+                cell6.innerText = "Absorptive";
+            }
+        } else if (object instanceof Guide) {
+            if (Math.round(object.guidance) === 0) {
+                cell6.innerText = "Ruler";
+            } else {
+                cell6.innerText = "Protractor";
+            }
+        }
+
+        let cell7 = row.insertCell(-1);
+
+        if (object instanceof Mirror && object.isRefracting()) {
+            cell7.innerText = (Math.round(100 * object.indexOfRefraction) / 100).toString();
+        } else {
+            cell7.innerText = "-";
+        }
+
+        let cell8 = row.insertCell(-1);
+
+        if (object instanceof Mirror) {
+            cell8.innerText = object.vertices.length.toString();
+        }
+
+        let cell9 = row.insertCell(-1);
+        cell9.innerText = "(" + Math.round(object.position.x).toString() + ", " + Math.round(-object.position.y).toString() + ")";
+
+        let cell10 = row.insertCell(-1);
+        cell10.innerText = (Math.round(100 * object.rotation * 180 / Math.PI) / 100).toString() + " deg";
+    }
+
+    let oldBody = objectTable.getElementsByTagName("tbody")[0];
+    oldBody.parentNode.replaceChild(newBody, oldBody);
 }
 
 function updateCollisionTable() {

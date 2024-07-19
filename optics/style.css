@@ -30,7 +30,7 @@ body {
     background-color: #00d0ff;
 }
 
-#group-logger {
+#group-collision {
     margin-top: 20px;
 }
 
@@ -38,6 +38,7 @@ body {
     margin: 1px auto;
     padding: 10px;
     border: 5px solid #222222;
+    border-radius: 10px;
     background-color: #000000;
     color: #ffffff;
 }
