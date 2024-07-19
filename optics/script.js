@@ -1288,6 +1288,7 @@ const loadButton6 = document.getElementById("button-load-scene-6");
 const loadButton7 = document.getElementById("button-load-scene-7");
 const loadButton8 = document.getElementById("button-load-scene-8");
 const loadButton9 = document.getElementById("button-load-scene-9");
+const updateButton = document.getElementById("button-update-collision");
 const collisionTable = document.getElementById("table-collision");
 const wallpaperImage = document.getElementById("image-wallpaper");
 const tileImage = document.getElementById("image-tile");
@@ -1351,6 +1352,7 @@ loadButton6.addEventListener("click", (event) => loadExample(6));
 loadButton7.addEventListener("click", (event) => loadExample(7));
 loadButton8.addEventListener("click", (event) => loadExample(8));
 loadButton9.addEventListener("click", (event) => loadExample(9));
+updateButton.addEventListener("click", (event) => updateCollisionTable());
 
 /** render a step of the simulation based on the time variable */
 function render() {
@@ -1997,26 +1999,66 @@ function updateCollisionTable() {
     for(let n = 0; n < lasersCollisions.length; n++) {
         let laserCollisions = lasersCollisions[n];
 
+        if (Math.round(scene.lasers[n].brightness) === 0) {
+            laserCollisions = [];
+        }
+
         for(let m = 0; m < laserCollisions.length; m++) {
             let laserCollision = laserCollisions[m];
             let row = newBody.insertRow(-1);
             let cell1 = row.insertCell(-1);
-            cell1.innerText = n.toString();
+            cell1.innerText = (n + 1).toString();
             let cell2 = row.insertCell(-1);
-            cell2.innerText = m.toString();
+            cell2.innerText = (m + 1).toString();
             let cell3 = row.insertCell(-1);
             cell3.innerText = laserCollision.type.charAt(0).toUpperCase() + laserCollision.type.slice(1);
             let cell4 = row.insertCell(-1);
 
+            if (laserCollision.type !== "void") {
+                cell4.innerText = "(" + Math.round(laserCollision.position.x).toString() + ", " + Math.round(-laserCollision.position.y).toString() + ")";
+            } else {
+                cell4.innerText = "-";
+            }
+            
+            let cell5 = row.insertCell(-1);
+
             if (laserCollision.type === "reflection" || laserCollision.type === "refraction") {
-                cell4.innerText = (Math.round(100 * laserCollision.incidentAngle * 180 / Math.PI) / 100).toString();
+                cell5.innerText = (Math.round(100 * laserCollision.incidentAngle * 180 / Math.PI) / 100).toString() + " deg";
+            } else {
+                cell5.innerText = "-";
+            }
+
+            let cell6 = row.insertCell(-1);
+
+            if (laserCollision.type === "reflection") {
+                cell6.innerText = (Math.round(100 * laserCollision.reflectedAngle * 180 / Math.PI) / 100).toString() + " deg";
+            } else {
+                cell6.innerText = "-";
+            }
+
+            let cell7 = row.insertCell(-1);
+            let cell8 = row.insertCell(-1);
+            let cell9 = row.insertCell(-1);
+            let cell10 = row.insertCell(-1);
+            let cell11 = row.insertCell(-1);
+
+            if (laserCollision.type === "refraction") {
+                cell7.innerText = (Math.round(100 * laserCollision.refractedAngle * 180 / Math.PI) / 100).toString() + " deg";
+                cell8.innerText = (Math.round(100 * laserCollision.incidentIndex) / 100).toString();
+                cell9.innerText = (Math.round(100 * laserCollision.refractedIndex) / 100).toString();
+                cell10.innerText = laserCollision.incidentCount.toString();
+                cell11.innerText = laserCollision.refractedCount.toString();
+            } else {
+                cell7.innerText = "-";
+                cell8.innerText = "-";
+                cell9.innerText = "-";
+                cell10.innerText = "-";
+                cell11.innerText = "-";
             }
         }
     }
 
     let oldBody = collisionTable.getElementsByTagName("tbody")[0];
-    console.log(oldBody);
-    console.log(newBody);
     oldBody.parentNode.replaceChild(newBody, oldBody);
 }
 
@@ -2063,6 +2105,10 @@ function resize(event = undefined) {
 function mousedown(event) {
     // prevent registering mouse during wallpaper showing
     if (time < 90) {
+        return;
+    }
+
+    if (mousePosition.x < -960 || mousePosition.y < -540 || mousePosition.x > 960 || mousePosition.y > 540) {
         return;
     }
 
@@ -2290,10 +2336,16 @@ function keydown(event) {
             mouseAction = MouseAction.interferer
         } else if (eventKey.toUpperCase() === "G") {
             mouseAction = MouseAction.guide;
+        } else if (eventKey === "ArrowLeft") {
+            event.preventDefault();
+        } else if (eventKey === "ArrowRight") {
+            event.preventDefault();
+        } else if (eventKey === "ArrowUp") {
+            event.preventDefault();
+        } else if (eventKey === "ArrowDown") {
+            event.preventDefault();
         } else if (eventKey === "Backspace" || eventKey === "Delete" || eventKey === "0") {
             loadExample(0);
-        } else if (eventKey.toUpperCase() === "Z") {
-            glow = !glow;
         } else if (eventKey === "1") {
             loadExample(1);
         } else if (eventKey === "2") {
@@ -2312,6 +2364,8 @@ function keydown(event) {
             loadExample(8);
         } else if (eventKey === "9") {
             loadExample(9);
+        } else if (eventKey.toUpperCase() === "Z") {
+            glow = !glow;
         }
     }
 }
