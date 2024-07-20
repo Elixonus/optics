@@ -1073,30 +1073,7 @@ class Mirror extends DraggableObject {
      * width and height are the width and height of the concave lens (respectively)
      * need help with creating correct geometry of lenses
      */
-    makeConcaveLens(focalLength, height, thickness, vertexCount) {
-        if (!this.isRefracting()) {
-            this.indexOfRefraction = Mirror.refracting();
-        }
-
-        let curvatureRadius = Math.abs((Math.sqrt(Math.pow(2 * focalLength * this.indexOfRefraction * (1 - this.indexOfRefraction), 2) - 4 * this.indexOfRefraction * focalLength * thickness * (-Math.pow(this.indexOfRefraction, 2) + 2 * this.indexOfRefraction - 1)) + 2 * focalLength * this.indexOfRefraction * (this.indexOfRefraction - 1)) / (2 * this.indexOfRefraction));
-        console.log(curvatureRadius);
-        console.log(curvatureRadius);
-        let center1 = new Point(-curvatureRadius - 0.5 * thickness, 0);
-        let line1Angle = Math.asin(0.5 * height / curvatureRadius);
-        this.vertices = [];
-
-        for (let n = 0; n < vertexCount / 2; n++) {
-            let angle = interpolateLinear(-line1Angle, line1Angle, n / Math.floor(vertexCount / 2 - 1));
-            let vertex = center1.clone().addToPolar(curvatureRadius, angle);
-            this.vertices.push(vertex);
-        }
-
-        for (let n = 0; n < vertexCount / 2; n++) {
-            let vertex = this.vertices[n].clone().multiplyBy(-1);
-            this.vertices.push(vertex);
-        }
-
-        /*
+    makeConcaveLens(curvatureRadius, height, width, vertexCount) {
         this.makeConvexMirror(curvatureRadius, height, vertexCount);
         let leftMost = this.getExtremes().leftMost.clone();
 
@@ -1109,7 +1086,6 @@ class Mirror extends DraggableObject {
             let vertex = this.vertices[n];
             this.vertices.push(new Point(-(vertex.x + leftMost.x) - leftMost.x - height / 60, vertex.y));
         }
-        */
 
         this.closedShape = true;
         return this;
@@ -1120,35 +1096,14 @@ class Mirror extends DraggableObject {
      * height is the height of the convex lens
      * need help with creating correct geometry of lenses
      */
-    makeConvexLens(focalLength, height, vertexCount) {
-        if (!this.isRefracting()) {
-            this.indexOfRefraction = Mirror.refracting();
-        }
-
-        // todo: fix curvature radius and focalLength (not converging)
-        this.makeConcaveLens(focalLength, height, 0, vertexCount);
-        let leftMost = this.getExtremes().leftMost.clone();
-        let halfVertices = Math.floor(this.vertices.length / 2);
-
-        for(let n = 0; n < halfVertices; n++) {
-            let vertex = this.vertices[n];
-            vertex.x -= leftMost.x;
-        }
-
-        for(let n = halfVertices; n < this.vertices.length; n++) {
-            let vertex = this.vertices[n];
-            vertex.x += leftMost.x;
-        }
-
-
-        /*
+    makeConvexLens(curvatureRadius, height, vertexCount) {
         this.makeConvexMirror(curvatureRadius, height, Math.round((vertexCount + 2) / 2));
 
         for (let n = this.vertices.length - 2; n >= 1; n--) {
             let vertex = this.vertices[n];
             this.vertices.push(new Point(-vertex.x, vertex.y));
         }
-        */
+
         this.closedShape = true;
         return this;
     }
@@ -2022,7 +1977,7 @@ function loadExample(n) {
                 new Laser(new Point(-100, 200), 0),
             ]);
             let parabola4 = new Mirror(Mirror.refracting(1.5), new Point(300, 0), 0);
-            parabola4.makeConcaveLens(500, 600, 50, 400);
+            parabola4.makeConcaveLens(200, 600, 310, 400);
             scene.addMirror(parabola4);
             break;
         case 8:
@@ -2034,7 +1989,7 @@ function loadExample(n) {
                 new Laser(new Point(-100, 200), 0),
             ]);
             let parabola3 = new Mirror(Mirror.refracting(1.5), new Point(300, 0), 0);
-            parabola3.makeConvexLens(500, 600, 400);
+            parabola3.makeConvexLens(200, 600, 400);
             scene.addMirror(parabola3);
             break;
         case 9:
