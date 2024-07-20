@@ -770,8 +770,8 @@ class Mirror extends DraggableObject {
     }
 
     /** get a fake index of refraction for a refracting mirror */
-    static refracting() {
-        return 1.5;
+    static refracting(index = 1.5) {
+        return index;
     }
 
     /** get a fake index of refraction for a reflecting mirror */
@@ -1034,18 +1034,13 @@ class Mirror extends DraggableObject {
     makeConcaveMirror(focalLength, yLength, xLength, vertexCount) {
         this.vertices = [];
 
-        for (let n = 0; n < vertexCount; n++) {
-            let x = (n / (vertexCount - 1) - 0.5) * yLength;
+        for (let n = 0; n < vertexCount - 2; n++) {
+            let x = (n / (vertexCount - 3) - 0.5) * yLength;
             this.vertices.push(new Point(Math.pow(x, 2) / (4 * focalLength), x));
         }
 
         let rightMost = this.getExtremes().rightMost.clone();
         this.vertices.push(new Point(rightMost.x - xLength, yLength / 2), new Point(rightMost.x - xLength, -yLength / 2));
-
-        if (!this.isReflecting()) {
-            this.indexOfRefraction = Mirror.reflecting();
-        }
-
         this.closedShape = true;
         return this;
     }
@@ -1055,7 +1050,7 @@ class Mirror extends DraggableObject {
      * yLength is the height of the convex mirror
      */
     makeConvexMirror(focalLength, yLength, vertexCount) {
-        this.makeConcaveMirror(focalLength, yLength, 0, vertexCount);
+        this.makeConcaveMirror(focalLength, yLength, 0, vertexCount + 2);
         this.vertices.pop();
         this.vertices.pop();
         let rightMost = this.getExtremes().rightMost.clone();
@@ -1065,8 +1060,21 @@ class Mirror extends DraggableObject {
             vertex.x = -vertex.x + rightMost.x;
         }
 
-        if (!this.isReflecting()) {
-            this.indexOfRefraction = Mirror.reflecting();
+        this.closedShape = true;
+        return this;
+    }
+
+    /**
+     * set the vertices of the polygon to match the shape of convex lens
+     * yLength is the height of the convex lens
+     * need help with creating correct geometry of lenses
+     */
+    makeConvexLens(curvatureRadius, yLength, vertexCount, switchType = true) {
+        this.makeConvexMirror(curvatureRadius, yLength, Math.round((vertexCount + 2) / 2));
+
+        for (let n = this.vertices.length - 2; n >= 1; n--) {
+            let vertex = this.vertices[n];
+            this.vertices.push(new Point(-vertex.x, vertex.y));
         }
 
         this.closedShape = true;
@@ -1078,40 +1086,19 @@ class Mirror extends DraggableObject {
      * xLength and yLength are the width and height of the concave lens (respectively)
      * need help with creating correct geometry of lenses
      */
-    makeConcaveLens(focalLength, yLength, xLength, vertexCount) {
-        this.makeConvexMirror(focalLength, yLength, vertexCount);
-        let rightMost = this.getExtremes().leftMost.clone();
+    makeConcaveLens(curvatureRadius, yLength, xLength, vertexCount) {
+        this.makeConvexMirror(curvatureRadius, yLength, vertexCount);
+        let leftMost = this.getExtremes().leftMost.clone();
 
         for (let n = 0; n < this.vertices.length; n++) {
             let vertex = this.vertices[n];
-            vertex.x += -xLength / 2 + rightMost.x;
+            vertex.x += -xLength / 2 + leftMost.x;
         }
 
-        for (let n = this.vertices.length - 2; n >= 1; n--) {
+        for (let n = this.vertices.length - 1; n >= 0; n--) {
             let vertex = this.vertices[n];
-            this.vertices.push(new Point(-(vertex.x + rightMost.x) - rightMost.x - yLength / 60, vertex.y));
+            this.vertices.push(new Point(-(vertex.x + leftMost.x) - leftMost.x - yLength / 60, vertex.y));
         }
-
-        // todo: set index of refraction to special value
-
-        this.closedShape = true;
-        return this;
-    }
-
-    /**
-     * set the vertices of the polygon to match the shape of convex lens
-     * yLength is the height of the convex lens
-     * need help with creating correct geometry of lenses
-     */
-    makeConvexLens(focalLength, yLength, vertexCount) {
-        this.makeConvexMirror(focalLength, yLength, vertexCount);
-
-        for (let n = this.vertices.length - 2; n >= 1; n--) {
-            let vertex = this.vertices[n];
-            this.vertices.push(new Point(-vertex.x, vertex.y));
-        }
-
-        // todo: set index of refraction to special value
 
         this.closedShape = true;
         return this;
@@ -1985,9 +1972,9 @@ function loadExample(n) {
                 new Laser(new Point(-100, 100), 0),
                 new Laser(new Point(-100, 200), 0),
             ]);
-            let parabola3 = new Mirror(Mirror.refracting(), new Point(300, 0), 0);
-            parabola3.makeConvexLens(200, 600, 200);
-            scene.addMirror(parabola3);
+            let parabola4 = new Mirror(Mirror.refracting(1.5), new Point(300, 0), 0);
+            parabola4.makeConcaveLens(200, 600, 300, 200);
+            scene.addMirror(parabola4);
             break;
         case 8:
             scene.addLasers([
@@ -1997,9 +1984,9 @@ function loadExample(n) {
                 new Laser(new Point(-100, 100), 0),
                 new Laser(new Point(-100, 200), 0),
             ]);
-            let parabola4 = new Mirror(Mirror.refracting(), new Point(300, 0), 0);
-            parabola4.makeConcaveLens(200, 600, 300, 200);
-            scene.addMirror(parabola4);
+            let parabola3 = new Mirror(Mirror.refracting(1.5), new Point(300, 0), 0);
+            parabola3.makeConvexLens(500, 600, 200);
+            scene.addMirror(parabola3);
             break;
         case 9:
             scene.addLaser(new Laser(new Point(0, 0), new NumberAnimation([new AnimationKeyframe(0, 0), new AnimationKeyframe(1000, 2 * Math.PI)], 1000, 0, interpolateLinear)));
@@ -2067,26 +2054,25 @@ function updateObjectTable() {
         }
 
         let cell5 = row.insertCell(-1);
-
-        if (object instanceof Mirror && object.isRefracting()) {
-            cell5.innerText = (Math.round(100 * object.indexOfRefraction) / 100).toString();
-        } else {
-            cell5.innerText = "-";
-        }
+        cell5.innerText = "(" + (Math.round(10 * object.position.x) / 10).toString() + ", " + (Math.round(-10 * object.position.y) / 10).toString() + ")";
 
         let cell6 = row.insertCell(-1);
+        cell6.innerText = (Math.round(100 * modulus(object.rotation * 180 / Math.PI, 360)) / 100).toString() + " deg";
+        let cell7 = row.insertCell(-1);
 
         if (object instanceof Mirror) {
-            cell6.innerText = object.vertices.length.toString();
+            cell7.innerText = object.vertices.length.toString();
         } else {
-            cell6.innerText = "-";
+            cell7.innerText = "-";
         }
 
-        let cell7 = row.insertCell(-1);
-        cell7.innerText = "(" + (Math.round(10 * object.position.x) / 10).toString() + ", " + (Math.round(-10 * object.position.y) / 10).toString() + ")";
-
         let cell8 = row.insertCell(-1);
-        cell8.innerText = (Math.round(100 * object.rotation * 180 / Math.PI) / 100).toString() + " deg";
+
+        if (object instanceof Mirror && object.isRefracting()) {
+            cell8.innerText = (Math.round(100 * object.indexOfRefraction) / 100).toString();
+        } else {
+            cell8.innerText = "-";
+        }
     }
 
     let oldBody = objectTable.getElementsByTagName("tbody")[0];
@@ -2124,7 +2110,7 @@ function updateCollisionTable() {
             let cell5 = row.insertCell(-1);
 
             if (laserCollision.type === "reflection" || laserCollision.type === "refraction") {
-                cell5.innerText = (Math.round(100 * laserCollision.incidentAngle * 180 / Math.PI) / 100).toString() + " deg";
+                cell5.innerText = (Math.round(100 * modulus(laserCollision.incidentAngle * 180 / Math.PI, 360)) / 100).toString() + " deg";
             } else {
                 cell5.innerText = "-";
             }
@@ -2132,7 +2118,7 @@ function updateCollisionTable() {
             let cell6 = row.insertCell(-1);
 
             if (laserCollision.type === "reflection") {
-                cell6.innerText = (Math.round(100 * laserCollision.reflectedAngle * 180 / Math.PI) / 100).toString() + " deg";
+                cell6.innerText = (Math.round(100 * modulus(laserCollision.reflectedAngle * 180 / Math.PI, 360)) / 100).toString() + " deg";
             } else {
                 cell6.innerText = "-";
             }
@@ -2144,7 +2130,7 @@ function updateCollisionTable() {
             let cell11 = row.insertCell(-1);
 
             if (laserCollision.type === "refraction") {
-                cell7.innerText = (Math.round(100 * laserCollision.refractedAngle * 180 / Math.PI) / 100).toString() + " deg";
+                cell7.innerText = (Math.round(100 * modulus(laserCollision.refractedAngle * 180 / Math.PI, 360)) / 100).toString() + " deg";
                 cell8.innerText = (Math.round(100 * laserCollision.incidentIndex) / 100).toString();
                 cell9.innerText = (Math.round(100 * laserCollision.refractedIndex) / 100).toString();
                 cell10.innerText = laserCollision.incidentCount.toString();
@@ -2652,7 +2638,7 @@ function intersectionLineLine(line1, line2) {
 /** function to get the intersection of a line and segment using two line objects */
 function intersectionLineSegment(line1, line2) {
     return intersectionStraightStraight(line1, line2, function (ua, ub) {
-        if (ub < 0 || ub > 1) {
+        if (ub <= 0 || ub > 1) {
             return false;
         }
 
@@ -2663,7 +2649,7 @@ function intersectionLineSegment(line1, line2) {
 /** function to get the intersection of two segments using two line objects */
 function intersectionSegmentSegment(line1, line2) {
     return intersectionStraightStraight(line1, line2, function (ua, ub) {
-        if (ua < 0 || ua > 1 || ub < 0 || ub > 1) {
+        if (ua <= 0 || ua > 1 || ub <= 0 || ub > 1) {
             return false;
         }
 
@@ -2674,7 +2660,7 @@ function intersectionSegmentSegment(line1, line2) {
 /** function to get the intersection of a segment and a ray using two line objects */
 function intersectionSegmentRay(line1, line2) {
     return intersectionStraightStraight(line1, line2, function (ua, ub) {
-        if (ua < 0 || ua > 1 || ub < 0) {
+        if (ua <= 0 || ua > 1 || ub <= 0) {
             return false;
         }
 
