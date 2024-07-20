@@ -623,6 +623,10 @@ class Scene {
         // form a new array of collisions copy with an additional new closest interaction
         let newCollisions = structuredClone(collisions);
 
+        for (let n = 0; n < newCollisions.length; n++) {
+            newCollisions[n].position = new Point(newCollisions[n].position.x, newCollisions[n].position.y);
+        }
+
         if (closestMirror === undefined) {
             // if no collisions are found, add a final laser light point into the void
             newCollisions.push({
@@ -1029,28 +1033,28 @@ class Mirror extends DraggableObject {
 
     /**
      * set the vertices of the polygon to match the shape of a concave mirror
-     * xLength and yLength are the width and height of the concave mirror (respectively)
+     * width and height are the width and height of the concave mirror (respectively)
      */
-    makeConcaveMirror(focalLength, yLength, xLength, vertexCount) {
+    makeConcaveMirror(focalLength, height, width, vertexCount) {
         this.vertices = [];
 
         for (let n = 0; n < vertexCount - 2; n++) {
-            let x = (n / (vertexCount - 3) - 0.5) * yLength;
+            let x = (n / (vertexCount - 3) - 0.5) * height;
             this.vertices.push(new Point(Math.pow(x, 2) / (4 * focalLength), x));
         }
 
         let rightMost = this.getExtremes().rightMost.clone();
-        this.vertices.push(new Point(rightMost.x - xLength, yLength / 2), new Point(rightMost.x - xLength, -yLength / 2));
+        this.vertices.push(new Point(rightMost.x - width, height / 2), new Point(rightMost.x - width, -height / 2));
         this.closedShape = true;
         return this;
     }
 
     /**
      * set the vertices of the polygon to match the shape of a convex mirror
-     * yLength is the height of the convex mirror
+     * height is the height of the convex mirror
      */
-    makeConvexMirror(focalLength, yLength, vertexCount) {
-        this.makeConcaveMirror(focalLength, yLength, 0, vertexCount + 2);
+    makeConvexMirror(focalLength, height, vertexCount) {
+        this.makeConcaveMirror(focalLength, height, 0, vertexCount + 2);
         this.vertices.pop();
         this.vertices.pop();
         let rightMost = this.getExtremes().rightMost.clone();
@@ -1066,17 +1070,19 @@ class Mirror extends DraggableObject {
 
     /**
      * set the vertices of the polygon to match the shape of a concave lens
-     * xLength and yLength are the width and height of the concave lens (respectively)
+     * width and height are the width and height of the concave lens (respectively)
      * need help with creating correct geometry of lenses
      */
-    makeConcaveLens(focalLength, yLength, thickness, vertexCount) {
+    makeConcaveLens(focalLength, height, thickness, vertexCount) {
         if (!this.isRefracting()) {
             this.indexOfRefraction = Mirror.refracting();
         }
 
-        let curvatureRadius = Math.abs(focalLength * (this.indexOfRefraction - 1) + 0.5 * Math.sqrt(Math.pow(2 * focalLength * this.indexOfRefraction * (this.indexOfRefraction - 1), 2) - 4 * this.indexOfRefraction * thickness * focalLength * (2 * this.indexOfRefraction - this.indexOfRefraction * this.indexOfRefraction - 1)) / this.indexOfRefraction);
+        let curvatureRadius = Math.abs((Math.sqrt(Math.pow(2 * focalLength * this.indexOfRefraction * (1 - this.indexOfRefraction), 2) - 4 * this.indexOfRefraction * focalLength * thickness * (-Math.pow(this.indexOfRefraction, 2) + 2 * this.indexOfRefraction - 1)) + 2 * focalLength * this.indexOfRefraction * (this.indexOfRefraction - 1)) / (2 * this.indexOfRefraction));
+        console.log(curvatureRadius);
+        console.log(curvatureRadius);
         let center1 = new Point(-curvatureRadius - 0.5 * thickness, 0);
-        let line1Angle = Math.asin(0.5 * yLength / curvatureRadius);
+        let line1Angle = Math.asin(0.5 * height / curvatureRadius);
         this.vertices = [];
 
         for (let n = 0; n < vertexCount / 2; n++) {
@@ -1091,17 +1097,17 @@ class Mirror extends DraggableObject {
         }
 
         /*
-        this.makeConvexMirror(curvatureRadius, yLength, vertexCount);
+        this.makeConvexMirror(curvatureRadius, height, vertexCount);
         let leftMost = this.getExtremes().leftMost.clone();
 
         for (let n = 0; n < this.vertices.length; n++) {
             let vertex = this.vertices[n];
-            vertex.x += -xLength / 2 + leftMost.x;
+            vertex.x += -width / 2 + leftMost.x;
         }
 
         for (let n = this.vertices.length - 1; n >= 0; n--) {
             let vertex = this.vertices[n];
-            this.vertices.push(new Point(-(vertex.x + leftMost.x) - leftMost.x - yLength / 60, vertex.y));
+            this.vertices.push(new Point(-(vertex.x + leftMost.x) - leftMost.x - height / 60, vertex.y));
         }
         */
 
@@ -1111,16 +1117,16 @@ class Mirror extends DraggableObject {
 
     /**
      * set the vertices of the polygon to match the shape of convex lens
-     * yLength is the height of the convex lens
+     * height is the height of the convex lens
      * need help with creating correct geometry of lenses
      */
-    makeConvexLens(focalLength, yLength, vertexCount) {
+    makeConvexLens(focalLength, height, vertexCount) {
         if (!this.isRefracting()) {
             this.indexOfRefraction = Mirror.refracting();
         }
 
         // todo: fix curvature radius and focalLength (not converging)
-        this.makeConcaveLens(focalLength, yLength, 0, vertexCount);
+        this.makeConcaveLens(focalLength, height, 0, vertexCount);
         let leftMost = this.getExtremes().leftMost.clone();
         let halfVertices = Math.floor(this.vertices.length / 2);
 
@@ -1136,7 +1142,7 @@ class Mirror extends DraggableObject {
 
 
         /*
-        this.makeConvexMirror(curvatureRadius, yLength, Math.round((vertexCount + 2) / 2));
+        this.makeConvexMirror(curvatureRadius, height, Math.round((vertexCount + 2) / 2));
 
         for (let n = this.vertices.length - 2; n >= 1; n--) {
             let vertex = this.vertices[n];
