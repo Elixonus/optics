@@ -1065,28 +1065,38 @@ class Mirror extends DraggableObject {
     }
 
     /**
-     * set the vertices of the polygon to match the shape of convex lens
-     * yLength is the height of the convex lens
-     * need help with creating correct geometry of lenses
-     */
-    makeConvexLens(curvatureRadius, yLength, vertexCount, switchType = true) {
-        this.makeConvexMirror(curvatureRadius, yLength, Math.round((vertexCount + 2) / 2));
-
-        for (let n = this.vertices.length - 2; n >= 1; n--) {
-            let vertex = this.vertices[n];
-            this.vertices.push(new Point(-vertex.x, vertex.y));
-        }
-
-        this.closedShape = true;
-        return this;
-    }
-
-    /**
      * set the vertices of the polygon to match the shape of a concave lens
      * xLength and yLength are the width and height of the concave lens (respectively)
      * need help with creating correct geometry of lenses
      */
-    makeConcaveLens(curvatureRadius, yLength, xLength, vertexCount) {
+    makeConcaveLens(focalLength, yLength, xLength, thickness, vertexCount) {
+        if (!this.isRefracting()) {
+            this.indexOfRefraction = Mirror.refracting();
+        }
+
+        //                                             switch maybe to + v
+        let curvatureRadius = focalLength * (1 - this.indexOfRefraction) - 0.5 * Math.sqrt(Math.pow(2 * focalLength * this.indexOfRefraction * (this.indexOfRefraction - 1), 2) - 4 * this.indexOfRefraction * thickness * focalLength * (2 * this.indexOfRefraction - this.indexOfRefraction * this.indexOfRefraction - 1)) / this.indexOfRefraction;
+        this.vertices = [];
+
+        let center1 = new Point(-curvatureRadius - 0.5 * thickness, 0);
+        let corner1 = new Point(-0.5 * xLength, 0.5 * yLength);
+        let line1 = new Line(center1, corner1);
+        let line1Angle = line1.getAngle();
+
+        for (let n = 0; n < vertexCount / 2; n++) {
+            let angle = interpolateLinear(-line1Angle, line1Angle, n / (vertexCount / 2 - 1));
+            let vertex = center1.clone().addToPolar(curvatureRadius, angle);
+            this.vertices.push(vertex);
+        }
+
+        for (let n = 0; n < vertexCount / 2; n++) {
+            let vertex = this.vertices[n].clone().multiplyBy(-1);
+            this.vertices.push(vertex);
+        }
+
+
+
+        /*
         this.makeConvexMirror(curvatureRadius, yLength, vertexCount);
         let leftMost = this.getExtremes().leftMost.clone();
 
@@ -1099,7 +1109,27 @@ class Mirror extends DraggableObject {
             let vertex = this.vertices[n];
             this.vertices.push(new Point(-(vertex.x + leftMost.x) - leftMost.x - yLength / 60, vertex.y));
         }
+        */
 
+        this.closedShape = true;
+        return this;
+    }
+
+    /**
+     * set the vertices of the polygon to match the shape of convex lens
+     * yLength is the height of the convex lens
+     * need help with creating correct geometry of lenses
+     */
+    makeConvexLens(focalLength, yLength, vertexCount) {
+
+        /*
+        this.makeConvexMirror(curvatureRadius, yLength, Math.round((vertexCount + 2) / 2));
+
+        for (let n = this.vertices.length - 2; n >= 1; n--) {
+            let vertex = this.vertices[n];
+            this.vertices.push(new Point(-vertex.x, vertex.y));
+        }
+        */
         this.closedShape = true;
         return this;
     }
@@ -1973,7 +2003,7 @@ function loadExample(n) {
                 new Laser(new Point(-100, 200), 0),
             ]);
             let parabola4 = new Mirror(Mirror.refracting(1.5), new Point(300, 0), 0);
-            parabola4.makeConcaveLens(200, 600, 300, 200);
+            parabola4.makeConcaveLens(200, 600, 300, 10, 200);
             scene.addMirror(parabola4);
             break;
         case 8:
