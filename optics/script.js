@@ -623,6 +623,10 @@ class Scene {
         // form a new array of collisions copy with an additional new closest interaction
         let newCollisions = structuredClone(collisions);
 
+        for (let n = 0; n < newCollisions.length; n++) {
+            newCollisions[n].position = new Point(newCollisions[n].position.x, newCollisions[n].position.y);
+        }
+
         if (closestMirror === undefined) {
             // if no collisions are found, add a final laser light point into the void
             newCollisions.push({
@@ -1029,28 +1033,28 @@ class Mirror extends DraggableObject {
 
     /**
      * set the vertices of the polygon to match the shape of a concave mirror
-     * xLength and yLength are the width and height of the concave mirror (respectively)
+     * width and height are the width and height of the concave mirror (respectively)
      */
-    makeConcaveMirror(focalLength, yLength, xLength, vertexCount) {
+    makeConcaveMirror(focalLength, height, width, vertexCount) {
         this.vertices = [];
 
         for (let n = 0; n < vertexCount - 2; n++) {
-            let x = (n / (vertexCount - 3) - 0.5) * yLength;
+            let x = (n / (vertexCount - 3) - 0.5) * height;
             this.vertices.push(new Point(Math.pow(x, 2) / (4 * focalLength), x));
         }
 
         let rightMost = this.getExtremes().rightMost.clone();
-        this.vertices.push(new Point(rightMost.x - xLength, yLength / 2), new Point(rightMost.x - xLength, -yLength / 2));
+        this.vertices.push(new Point(rightMost.x - width, height / 2), new Point(rightMost.x - width, -height / 2));
         this.closedShape = true;
         return this;
     }
 
     /**
      * set the vertices of the polygon to match the shape of a convex mirror
-     * yLength is the height of the convex mirror
+     * height is the height of the convex mirror
      */
-    makeConvexMirror(focalLength, yLength, vertexCount) {
-        this.makeConcaveMirror(focalLength, yLength, 0, vertexCount + 2);
+    makeConvexMirror(focalLength, height, vertexCount) {
+        this.makeConcaveMirror(focalLength, height, 0, vertexCount + 2);
         this.vertices.pop();
         this.vertices.pop();
         let rightMost = this.getExtremes().rightMost.clone();
@@ -1065,16 +1069,22 @@ class Mirror extends DraggableObject {
     }
 
     /**
-     * set the vertices of the polygon to match the shape of convex lens
-     * yLength is the height of the convex lens
+     * set the vertices of the polygon to match the shape of a concave lens
+     * width and height are the width and height of the concave lens (respectively)
      * need help with creating correct geometry of lenses
      */
-    makeConvexLens(curvatureRadius, yLength, vertexCount, switchType = true) {
-        this.makeConvexMirror(curvatureRadius, yLength, Math.round((vertexCount + 2) / 2));
+    makeConcaveLens(curvatureRadius, height, width, vertexCount) {
+        this.makeConvexMirror(curvatureRadius, height, vertexCount);
+        let leftMost = this.getExtremes().leftMost.clone();
 
-        for (let n = this.vertices.length - 2; n >= 1; n--) {
+        for (let n = 0; n < this.vertices.length; n++) {
             let vertex = this.vertices[n];
-            this.vertices.push(new Point(-vertex.x, vertex.y));
+            vertex.x += -width / 2 + leftMost.x;
+        }
+
+        for (let n = this.vertices.length - 1; n >= 0; n--) {
+            let vertex = this.vertices[n];
+            this.vertices.push(new Point(-(vertex.x + leftMost.x) - leftMost.x - height / 60, vertex.y));
         }
 
         this.closedShape = true;
@@ -1082,22 +1092,16 @@ class Mirror extends DraggableObject {
     }
 
     /**
-     * set the vertices of the polygon to match the shape of a concave lens
-     * xLength and yLength are the width and height of the concave lens (respectively)
+     * set the vertices of the polygon to match the shape of convex lens
+     * height is the height of the convex lens
      * need help with creating correct geometry of lenses
      */
-    makeConcaveLens(curvatureRadius, yLength, xLength, vertexCount) {
-        this.makeConvexMirror(curvatureRadius, yLength, vertexCount);
-        let leftMost = this.getExtremes().leftMost.clone();
+    makeConvexLens(curvatureRadius, height, vertexCount) {
+        this.makeConvexMirror(curvatureRadius, height, Math.round((vertexCount + 2) / 2));
 
-        for (let n = 0; n < this.vertices.length; n++) {
+        for (let n = this.vertices.length - 2; n >= 1; n--) {
             let vertex = this.vertices[n];
-            vertex.x += -xLength / 2 + leftMost.x;
-        }
-
-        for (let n = this.vertices.length - 1; n >= 0; n--) {
-            let vertex = this.vertices[n];
-            this.vertices.push(new Point(-(vertex.x + leftMost.x) - leftMost.x - yLength / 60, vertex.y));
+            this.vertices.push(new Point(-vertex.x, vertex.y));
         }
 
         this.closedShape = true;
@@ -1973,7 +1977,7 @@ function loadExample(n) {
                 new Laser(new Point(-100, 200), 0),
             ]);
             let parabola4 = new Mirror(Mirror.refracting(1.5), new Point(300, 0), 0);
-            parabola4.makeConcaveLens(200, 600, 300, 200);
+            parabola4.makeConcaveLens(200, 600, 310, 400);
             scene.addMirror(parabola4);
             break;
         case 8:
@@ -1985,7 +1989,7 @@ function loadExample(n) {
                 new Laser(new Point(-100, 200), 0),
             ]);
             let parabola3 = new Mirror(Mirror.refracting(1.5), new Point(300, 0), 0);
-            parabola3.makeConvexLens(500, 600, 200);
+            parabola3.makeConvexLens(200, 600, 400);
             scene.addMirror(parabola3);
             break;
         case 9:
