@@ -30,6 +30,10 @@ body {
     background-color: #00d0ff;
 }
 
+#group-object {
+    margin-top: 20px;
+}
+
 #group-collision {
     margin-top: 20px;
 }

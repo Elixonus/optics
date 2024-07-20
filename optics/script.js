@@ -1042,6 +1042,10 @@ class Mirror extends DraggableObject {
         let rightMost = this.getExtremes().rightMost.clone();
         this.vertices.push(new Point(rightMost.x - xLength, yLength / 2), new Point(rightMost.x - xLength, -yLength / 2));
 
+        if (!this.isReflecting()) {
+            this.indexOfRefraction = Mirror.reflecting();
+        }
+
         this.closedShape = true;
         return this;
     }
@@ -1059,6 +1063,10 @@ class Mirror extends DraggableObject {
         for (let n = 0; n < this.vertices.length; n++) {
             let vertex = this.vertices[n];
             vertex.x = -vertex.x + rightMost.x;
+        }
+
+        if (!this.isReflecting()) {
+            this.indexOfRefraction = Mirror.reflecting();
         }
 
         this.closedShape = true;
@@ -1084,6 +1092,8 @@ class Mirror extends DraggableObject {
             this.vertices.push(new Point(-(vertex.x + rightMost.x) - rightMost.x - yLength / 60, vertex.y));
         }
 
+        // todo: set index of refraction to special value
+
         this.closedShape = true;
         return this;
     }
@@ -1100,6 +1110,8 @@ class Mirror extends DraggableObject {
             let vertex = this.vertices[n];
             this.vertices.push(new Point(-vertex.x, vertex.y));
         }
+
+        // todo: set index of refraction to special value
 
         this.closedShape = true;
         return this;
@@ -2020,75 +2032,61 @@ function updateObjectTable() {
 
         let cell3 = row.insertCell(-1);
 
-        if (object instanceof Mirror) {
-            cell3.innerText = (scene.mirrors.indexOf(object) + 1).toString();
+        if (object instanceof Laser) {
+            cell3.innerText = "Laser";
+        } else if (object instanceof Mirror) {
+            cell3.innerText = "Interferer";
+        } else if (object instanceof Guide) {
+            cell3.innerText = "Guide";
         } else {
             cell3.innerText = "-";
         }
 
         let cell4 = row.insertCell(-1);
 
-        if (object instanceof Guide) {
-            cell4.innerText = (scene.guides.indexOf(object) + 1).toString();
-        } else {
-            cell4.innerText = "-";
+        if (object instanceof Laser) {
+            if (Math.round(object.brightness) === 1) {
+                cell4.innerText = "Turned On"
+            } else {
+                cell4.innerText = "Turned Off";
+            }
+        } else if (object instanceof Mirror) {
+            if (object.isReflecting()) {
+                cell4.innerText = "Reflective";
+            } else if (object.isRefracting()) {
+                cell4.innerText = "Refractive";
+            } else if (object.isAbsorbing()) {
+                cell4.innerText = "Absorptive";
+            }
+        } else if (object instanceof Guide) {
+            if (Math.round(object.guidance) === 0) {
+                cell4.innerText = "Ruler";
+            } else {
+                cell4.innerText = "Protractor";
+            }
         }
 
         let cell5 = row.insertCell(-1);
 
-        if (object instanceof Laser) {
-            cell5.innerText = "Laser";
-        } else if (object instanceof Mirror) {
-            cell5.innerText = "Interferer";
-        } else if (object instanceof Guide) {
-            cell5.innerText = "Guide";
+        if (object instanceof Mirror && object.isRefracting()) {
+            cell5.innerText = (Math.round(100 * object.indexOfRefraction) / 100).toString();
         } else {
             cell5.innerText = "-";
         }
 
         let cell6 = row.insertCell(-1);
 
-        if (object instanceof Laser) {
-            if (Math.round(object.brightness) === 1) {
-                cell6.innerText = "Turned On"
-            } else {
-                cell6.innerText = "Turned Off";
-            }
-        } else if (object instanceof Mirror) {
-            if (object.isReflecting()) {
-                cell6.innerText = "Reflective";
-            } else if (object.isRefracting()) {
-                cell6.innerText = "Refractive";
-            } else if (object.isAbsorbing()) {
-                cell6.innerText = "Absorptive";
-            }
-        } else if (object instanceof Guide) {
-            if (Math.round(object.guidance) === 0) {
-                cell6.innerText = "Ruler";
-            } else {
-                cell6.innerText = "Protractor";
-            }
+        if (object instanceof Mirror) {
+            cell6.innerText = object.vertices.length.toString();
+        } else {
+            cell6.innerText = "-";
         }
 
         let cell7 = row.insertCell(-1);
-
-        if (object instanceof Mirror && object.isRefracting()) {
-            cell7.innerText = (Math.round(100 * object.indexOfRefraction) / 100).toString();
-        } else {
-            cell7.innerText = "-";
-        }
+        cell7.innerText = "(" + (Math.round(10 * object.position.x) / 10).toString() + ", " + (Math.round(-10 * object.position.y) / 10).toString() + ")";
 
         let cell8 = row.insertCell(-1);
-
-        if (object instanceof Mirror) {
-            cell8.innerText = object.vertices.length.toString();
-        }
-
-        let cell9 = row.insertCell(-1);
-        cell9.innerText = "(" + Math.round(object.position.x).toString() + ", " + Math.round(-object.position.y).toString() + ")";
-
-        let cell10 = row.insertCell(-1);
-        cell10.innerText = (Math.round(100 * object.rotation * 180 / Math.PI) / 100).toString() + " deg";
+        cell8.innerText = (Math.round(100 * object.rotation * 180 / Math.PI) / 100).toString() + " deg";
     }
 
     let oldBody = objectTable.getElementsByTagName("tbody")[0];
@@ -2118,7 +2116,7 @@ function updateCollisionTable() {
             let cell4 = row.insertCell(-1);
 
             if (laserCollision.type !== "void") {
-                cell4.innerText = "(" + Math.round(laserCollision.position.x).toString() + ", " + Math.round(-laserCollision.position.y).toString() + ")";
+                cell4.innerText = "(" + (Math.round(10 * laserCollision.position.x) / 10).toString() + ", " + (Math.round(-10 * laserCollision.position.y) / 10).toString() + ")";
             } else {
                 cell4.innerText = "-";
             }
