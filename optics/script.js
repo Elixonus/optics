@@ -1075,8 +1075,10 @@ class Mirror extends DraggableObject {
         }
 
         //                                             switch maybe to + v
-        let curvatureRadius = focalLength * (1 - this.indexOfRefraction) - 0.5 * Math.sqrt(Math.pow(2 * focalLength * this.indexOfRefraction * (this.indexOfRefraction - 1), 2) - 4 * this.indexOfRefraction * thickness * focalLength * (2 * this.indexOfRefraction - this.indexOfRefraction * this.indexOfRefraction - 1)) / this.indexOfRefraction;
+        let curvatureRadius = focalLength * (this.indexOfRefraction - 1) - 0.5 * Math.sqrt(Math.pow(2 * focalLength * this.indexOfRefraction * (this.indexOfRefraction - 1), 2) - 4 * this.indexOfRefraction * thickness * focalLength * (2 * this.indexOfRefraction - this.indexOfRefraction * this.indexOfRefraction - 1)) / this.indexOfRefraction;
         this.vertices = [];
+
+        curvatureRadius = 300;
 
         let center1 = new Point(-curvatureRadius - 0.5 * thickness, 0);
         let corner1 = new Point(-0.5 * xLength, 0.5 * yLength);
@@ -1121,6 +1123,18 @@ class Mirror extends DraggableObject {
      * need help with creating correct geometry of lenses
      */
     makeConvexLens(focalLength, yLength, vertexCount) {
+        if (!this.isRefracting()) {
+            this.indexOfRefraction = Mirror.refracting();
+        }
+
+        let curvatureRadius = 100;
+        this.vertices = [];
+        let center1 = new Point();
+
+        for(let n = 0; n < vertexCount / 2; n++) {
+            let vertex = ;
+        }
+
 
         /*
         this.makeConvexMirror(curvatureRadius, yLength, Math.round((vertexCount + 2) / 2));
@@ -2003,7 +2017,7 @@ function loadExample(n) {
                 new Laser(new Point(-100, 200), 0),
             ]);
             let parabola4 = new Mirror(Mirror.refracting(1.5), new Point(300, 0), 0);
-            parabola4.makeConcaveLens(200, 600, 300, 10, 200);
+            parabola4.makeConcaveLens(200, 600, 300, 30, 200);
             scene.addMirror(parabola4);
             break;
         case 8:
