@@ -269,7 +269,6 @@ class DraggableObject {
         this.dragOffset = undefined;
         this.dragPosition = undefined;
         this.dragRotation = undefined;
-        this.dragValue = undefined;
         this.interactive = true;
         this.animate();
     }
@@ -1402,7 +1401,7 @@ function render() {
         } else if (mouseAction === MouseAction.change) {
             if (scene.draggedObject instanceof Mirror) {
                 // change the lens' index of refraction based on the vertical displacement of the mouse
-                scene.draggedMirror.indexOfRefraction = clampMin(scene.draggedMirror.dragValue + (scene.draggedMirror.mousePositionOnDrag.y - mousePosition.y) / 100, -2);
+                scene.draggedMirror.indexOfRefraction = clampMin(scene.draggedMirror.dragIndexOfRefraction + (scene.draggedMirror.mousePositionOnDrag.y - mousePosition.y) / 100, -2);
             } else if (scene.draggedObject instanceof Laser) {
                 // change the laser's brightness either to 0 or to 1 based on the vertical displacement of the mouse
                 scene.draggedLaser.brightness = clamp(map(Math.round(modulus(scene.draggedLaser.dragBrightness + (scene.draggedLaser.mousePositionOnDrag.y - mousePosition.y) / 300, 1)), 0, 1, 0.25, 0.75), 0, 1);
@@ -1936,11 +1935,11 @@ function loadExample(n) {
             scene.addLaser(new Laser(new Point(700, 0), Math.PI, 1));
             scene.addMirrors([
                 new Mirror(Mirror.absorbing(), new Point(0, 0), 0).makeRectangle(1500, 1000),
-                new Mirror(Mirror.reflecting(), new Point(350, 300), 1.2 * Math.PI).makeRectangle(300, 50),
-                new Mirror(Mirror.reflecting(), new Point(-300, -400), 1.9 * Math.PI).makeRectangle(300, 50),
-                new Mirror(Mirror.reflecting(), new Point(400, -300), 1.1 * Math.PI).makeRectangle(300, 50),
-                new Mirror(Mirror.reflecting(), new Point(0, 0), 0.7 * Math.PI).makeRectangle(300, 50),
-                new Mirror(Mirror.reflecting(), new Point(-500, 300), 0.3 * Math.PI).makeRectangle(300, 50),
+                new Mirror(Mirror.reflecting(), new Point(350, 300), 0.7 * Math.PI).makeRectangle(50, 300),
+                new Mirror(Mirror.reflecting(), new Point(-300, -400), 1.4 * Math.PI).makeRectangle(50, 300),
+                new Mirror(Mirror.reflecting(), new Point(400, -300), 0.6 * Math.PI).makeRectangle(50, 300),
+                new Mirror(Mirror.reflecting(), new Point(0, 0), 0.2 * Math.PI).makeRectangle(50, 300),
+                new Mirror(Mirror.reflecting(), new Point(-500, 300), 0.8 * Math.PI).makeRectangle(50, 300),
             ]);
             scene.mirrors[0].interactive = false;
             break;
@@ -2272,7 +2271,7 @@ function mousedown(event) {
         let mirror = new Mirror(Mirror.reflecting(), mousePosition.clone().addTo(cameraPosition), randomFloat(0, 2 * Math.PI));
         mirror.makeRegularPolygon(randomFloat(150, 200), randomInteger(3, 6));
         scene.addMirror(mirror);
-        mirror.dragValue = mirror.indexOfRefraction;
+        mirror.dragIndexOfRefraction = mirror.indexOfRefraction;
         mirror.mousePositionOnDrag = mousePosition.clone();
         mirror.dragOffset = new Point(0, 0);
         mirror.dragPosition = mirror.position.clone();
@@ -2352,7 +2351,7 @@ function mousedown(event) {
         if (object instanceof Laser) {
             object.dragBrightness = object.brightness;
         } else if (object instanceof Mirror) {
-            object.dragValue = object.indexOfRefraction;
+            object.dragIndexOfRefraction = object.indexOfRefraction;
         } else if (object instanceof Guide) {
             object.dragGuidance = object.guidance;
         }
@@ -2422,10 +2421,13 @@ function keydown(event) {
         } else if (eventKey.toUpperCase() === "C") {
             mouseAction = MouseAction.change;
         } else if (eventKey.toUpperCase() === "L") {
+            scene.setDraggedObjectTo(false);
             mouseAction = MouseAction.laser;
         } else if (eventKey.toUpperCase() === "I") {
+            scene.setDraggedObjectTo(false);
             mouseAction = MouseAction.interferer
         } else if (eventKey.toUpperCase() === "G") {
+            scene.setDraggedObjectTo(false);
             mouseAction = MouseAction.guide;
         } else if (eventKey === "ArrowLeft") {
             event.preventDefault();
