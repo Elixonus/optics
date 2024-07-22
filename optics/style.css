@@ -30,6 +30,10 @@ body {
     background-color: #00d0ff;
 }
 
+#group-action {
+    margin-top: 20px;
+}
+
 #group-object {
     margin-top: 20px;
 }

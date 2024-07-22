@@ -514,23 +514,32 @@ class Scene {
         return mirrors;
     }
 
+    /** get an array of objects that are within a distance of parameter point from a parameter array of objects */
+    static getCloseObjectsToPoint(p = pointOrigin, radius, objects = [], ) {
+        let closeObjects = [];
+
+        for (let n = 0; n < objects.length; n++) {
+            let object = objects[n];
+            let distanceToObject = distance(p, object.position);
+
+            if (distanceToObject < radius) {
+                closeObjects.push(object);
+            }
+        }
+
+        return closeObjects;
+    }
+
     /** get the closest object from a parameter array of objects to a parameter point */
-    static getClosestObjectToPoint(p = pointOrigin, objects = [], distanceModifier = undefined) {
+    static getClosestObjectToPoint(p = pointOrigin, objects = []) {
         let closestObject = undefined;
         let distanceToClosestObject = undefined;
 
         for (let n = 0; n < objects.length; n++) {
             let object = objects[n];
             let distanceToObject = distance(p, object.position);
-            let comparedDistance;
 
-            if (distanceModifier !== undefined) {
-                comparedDistance = distanceModifier(distanceToObject);
-            } else {
-                comparedDistance = distanceToObject;
-            }
-
-            if (closestObject === undefined || comparedDistance < distanceToClosestObject) {
+            if (closestObject === undefined || distanceToObject < distanceToClosestObject) {
                 closestObject = object;
                 distanceToClosestObject = distanceToObject;
             }
@@ -547,8 +556,8 @@ class Scene {
     }
 
     /** get the closest mirror to a parameter point in the scene */
-    getClosestMirrorToPoint(p = pointOrigin, distanceModifier = undefined) {
-        let closest = Scene.getClosestObjectToPoint(p, this.mirrors, distanceModifier);
+    getClosestMirrorToPoint(p = pointOrigin) {
+        let closest = Scene.getClosestObjectToPoint(p, this.mirrors);
         return closest;
     }
 
@@ -1072,8 +1081,8 @@ class Mirror extends DraggableObject {
      * width and height are the width and height of the concave lens (respectively)
      * need help with creating correct geometry of lenses
      */
-    makeConcaveLens(curvatureRadius, height, width, vertexCount) {
-        this.makeConvexMirror(curvatureRadius, height, vertexCount);
+    makeConcaveLens(parabolaFocalLength, height, width, vertexCount) {
+        this.makeConvexMirror(parabolaFocalLength, height, vertexCount);
         let leftMost = this.getExtremes().leftMost.clone();
 
         for (let n = 0; n < this.vertices.length; n++) {
@@ -1095,8 +1104,8 @@ class Mirror extends DraggableObject {
      * height is the height of the convex lens
      * need help with creating correct geometry of lenses
      */
-    makeConvexLens(curvatureRadius, height, vertexCount) {
-        this.makeConvexMirror(curvatureRadius, height, Math.round((vertexCount + 2) / 2));
+    makeConvexLens(parabolaFocalLength, height, vertexCount) {
+        this.makeConvexMirror(parabolaFocalLength, height, Math.round((vertexCount + 2) / 2));
 
         for (let n = this.vertices.length - 2; n >= 1; n--) {
             let vertex = this.vertices[n];
@@ -1328,10 +1337,11 @@ const letterGImage = document.getElementById("icon-letter-g");
 const clickSound = document.getElementById("sound-click");
 const misclickSound = document.getElementById("sound-misclick");
 const switchSound = document.getElementById("sound-switch");
+let fullscreen = false;
 let glow = true;
 const pointOrigin = new Point(0, 0);
 const cameraPosition = pointOrigin.clone();
-const targetPosition = cameraPosition.clone();
+const targetCameraPosition = cameraPosition.clone();
 const mousePosition = pointOrigin.clone();
 let mousePressed = false;
 let mouseAction = MouseAction.drag;
@@ -1340,6 +1350,7 @@ let keysFired = false;
 let keysHelp = 0;
 let touch = false;
 let mobilePanning = true;
+let selectionIndex = 0;
 const LASER_MAX_COLLISIONS = 50;
 const DRAW_RANGE = 10000;
 const scene = new Scene();
@@ -1349,8 +1360,11 @@ const targetFramerate = 60;
 let framerate = targetFramerate;
 let deltaTime = 1000 / framerate;
 let timeScale = 1;
+let actionCounter = 0;
+let actionIDCounter = 0;
 
 // prevent right click registration
+canvas.addEventListener("selectstart", (event) => event.preventDefault());
 canvas.addEventListener("contextmenu", (event) => event.preventDefault());
 clearButton.addEventListener("click", (event) => loadExample(0));
 loadButton1.addEventListener("click", (event) => loadExample(1));
@@ -1419,44 +1433,44 @@ function render() {
     // move the camera left, right, up, or down based on the pressed and held key
 
     if (keysPressed.includes("ArrowLeft") || keysPressed.includes("a") || keysPressed.includes("A") || (mousePosition.x < -660 && mousePressed === true && touch === true && mobilePanning === true)) {
-        targetPosition.x -= 10 * timeScale;
+        targetCameraPosition.x -= 10 * timeScale;
     }
 
     if (keysPressed.includes("ArrowRight") || keysPressed.includes("d") || keysPressed.includes("D") || (mousePosition.x > 660 && mousePressed === true && touch === true && mobilePanning === true)) {
-        targetPosition.x += 10 * timeScale;
+        targetCameraPosition.x += 10 * timeScale;
     }
 
     if (keysPressed.includes("ArrowUp") || keysPressed.includes("w") || keysPressed.includes("W") || (mousePosition.y < -340 && mousePressed === true && touch === true && mobilePanning === true)) {
-        targetPosition.y -= 10 * timeScale;
+        targetCameraPosition.y -= 10 * timeScale;
     }
 
     if (keysPressed.includes("ArrowDown") || keysPressed.includes("s") || keysPressed.includes("S") || (mousePosition.y > 340 && mousePressed === true && touch === true && mobilePanning === true)) {
-        targetPosition.y += 10 * timeScale;
+        targetCameraPosition.y += 10 * timeScale;
     }
 
-    targetPosition.x = clamp(targetPosition.x, -0.5 * DRAW_RANGE, 0.5 * DRAW_RANGE);
-    targetPosition.y = clamp(targetPosition.y, -0.5 * DRAW_RANGE, 0.5 * DRAW_RANGE);
+    targetCameraPosition.x = clamp(targetCameraPosition.x, -0.5 * DRAW_RANGE, 0.5 * DRAW_RANGE);
+    targetCameraPosition.y = clamp(targetCameraPosition.y, -0.5 * DRAW_RANGE, 0.5 * DRAW_RANGE);
 
     // linearly interpolate the camera position from the target position
-    cameraPosition.interpolateToPointLinear(targetPosition, 1 - Math.pow(0.9, timeScale));
+    cameraPosition.interpolateToPointLinear(targetCameraPosition, 1 - Math.pow(0.9, timeScale));
 
     // find the paths of collisions of the lasers in the scene as an array of arrays of point objects
     let lasersCollisions = scene.getLasersCollisions();
 
     // if the user is dragging a protractor, snap the position of the protractor to the position of the closest laser collision with mirror
     if (scene.draggedGuide !== false && mouseAction === MouseAction.drag && scene.draggedObject instanceof Guide && Math.round(scene.draggedObject.guidance) === 1) {
-        let objects = [];
+        let positionObjects = [];
         for (let n = 0; n < lasersCollisions.length; n++) {
-            objects.push({position: scene.lasers[n].position});
+            positionObjects.push({position: scene.lasers[n].position});
             let laserCollisions = lasersCollisions[n];
 
             for (let m = 0; m < laserCollisions.length; m++) {
                 let laserCollision = laserCollisions[m];
-                objects.push({position: laserCollision.position});
+                positionObjects.push({position: laserCollision.position});
             }
         }
 
-        let closest = Scene.getClosestObjectToPoint(scene.draggedObject.position, objects);
+        let closest = Scene.getClosestObjectToPoint(scene.draggedObject.position, positionObjects);
 
         // do the position snap if the distance to the object is less than 50 pixels
         if (closest !== false && closest.distanceToObject <= 50) {
@@ -1890,7 +1904,7 @@ function render() {
 function loadExample(n) {
     scene.reset();
     // recenter the camera position
-    targetPosition.setTo(pointOrigin);
+    targetCameraPosition.setTo(pointOrigin);
 
     switch (n) {
         case 0:
@@ -2060,7 +2074,7 @@ function updateObjectTable() {
         cell5.innerText = "(" + (Math.round(10 * object.position.x) / 10).toString() + ", " + (Math.round(-10 * object.position.y) / 10).toString() + ")";
 
         let cell6 = row.insertCell(-1);
-        cell6.innerText = (Math.round(100 * modulus(object.rotation * 180 / Math.PI, 360)) / 100).toString() + " deg";
+        cell6.innerText = (Math.round(100 * modulus((2 * Math.PI - object.rotation) * 180 / Math.PI, 360)) / 100).toString() + " deg";
         let cell7 = row.insertCell(-1);
 
         if (object instanceof Mirror) {
@@ -2221,7 +2235,6 @@ function mousedown(event) {
         }
 
         if (touch === false) {
-            switchSound.currentTime = 0;
             switchSound.play();
         }
 
@@ -2240,7 +2253,6 @@ function mousedown(event) {
         }
 
         if (touch === false) {
-            switchSound.currentTime = 0;
             switchSound.play();
         }
 
@@ -2256,8 +2268,11 @@ function mousedown(event) {
 
     // check whether to add a laser, interferer or guide tool to the scene
     if (mouseAction === MouseAction.laser) {
+        if (scene.lasers.length >= 100) {
+            return;
+        }
+
         let laser = new Laser(mousePosition.clone().addTo(cameraPosition), randomFloat(0, 2 * Math.PI));
-        scene.addLaser(laser);
         laser.dragBrightness = 0.75;
         laser.dragOffset = new Point(0, 0);
         laser.dragPosition = laser.position.clone();
@@ -2265,12 +2280,16 @@ function mousedown(event) {
         laser.mousePositionOnDrag = mousePosition.clone();
         scene.draggedObject = laser;
         scene.draggedLaser = laser;
+        scene.addLaser(laser);
         mouseAction = MouseAction.rotate;
         return;
     } else if (mouseAction === MouseAction.interferer) {
+        if (scene.mirrors.length >= 100) {
+            return;
+        }
+
         let mirror = new Mirror(Mirror.reflecting(), mousePosition.clone().addTo(cameraPosition), randomFloat(0, 2 * Math.PI));
         mirror.makeRegularPolygon(randomFloat(150, 200), randomInteger(3, 6));
-        scene.addMirror(mirror);
         mirror.dragIndexOfRefraction = mirror.indexOfRefraction;
         mirror.mousePositionOnDrag = mousePosition.clone();
         mirror.dragOffset = new Point(0, 0);
@@ -2278,6 +2297,7 @@ function mousedown(event) {
         mirror.dragRotation = mirror.rotation;
         scene.draggedObject = mirror;
         scene.draggedMirror = mirror;
+        scene.addMirror(mirror);
         mouseAction = MouseAction.change;
         return;
     } else if (mouseAction === MouseAction.guide) {
@@ -2314,36 +2334,32 @@ function mousedown(event) {
     };
 
     let point = mousePosition.clone().addTo(cameraPosition);
-    let closestLaser = Scene.getClosestObjectToPoint(point, scene.lasers.filter(function (z) {
+    let lasers = Scene.getCloseObjectsToPoint(point, 200, scene.lasers.filter(function (z) {
         return z.interactive;
-    }), distanceRandomizer);
-    let laser = undefined;
+    }));
+    let mirrors = scene.getMirrorsWithPointInside(point).filter(function (z) {
+        return z.interactive;
+    });
+    let guides = Scene.getCloseObjectsToPoint(point, 300, scene.guides.filter(function (z) {
+        return z.interactive;
+    }));
+    let objects = lasers.concat(mirrors, guides);
+    let object;
 
-    if (closestLaser !== false && closestLaser.distanceToObject <= 200) {
-        laser = [closestLaser.object];
+    if (objects.length === 0) {
+        object = false;
     } else {
-        laser = [];
+        if (selectionIndex >= objects.length) {
+            selectionIndex = 0;
+        }
+
+        object = objects[selectionIndex];
+        selectionIndex++;
     }
 
-    let closestGuide = Scene.getClosestObjectToPoint(point, scene.guides.filter(function (z) {
-        return z.interactive;
-    }), distanceRandomizer);
-    let guide = undefined;
-
-    if (closestGuide !== false && closestGuide.distanceToObject <= 300) {
-        guide = [closestGuide.object];
-    } else {
-        guide = [];
-    }
-
-    let closest = Scene.getClosestObjectToPoint(point, scene.getMirrorsWithPointInside(point).filter(function (z) {
-        return z.interactive;
-    }).concat(laser, guide), distanceRandomizer);
-
-    if (closest !== false) {
-        let object = closest.object;
+    if (object !== false) {
         scene.setDraggedObjectTo(object);
-        object.dragOffset = point.subtractTo(object.position);
+        object.dragOffset = point.clone().subtractTo(object.position);
         object.mousePositionOnDrag = mousePosition.clone();
         object.dragPosition = object.position.clone();
         object.dragRotation = object.rotation;
@@ -2357,12 +2373,10 @@ function mousedown(event) {
         }
 
         if (touch === false) {
-            clickSound.currentTime = 0;
             clickSound.play();
         }
     } else {
         if (touch === false) {
-            misclickSound.currentTime = 0;
             misclickSound.play();
         }
     }
@@ -2376,7 +2390,6 @@ function mouseup(event) {
     mousePressed = false;
 
     if (scene.draggedObject !== false && touch === false) {
-        clickSound.currentTime = 0;
         clickSound.play();
     }
 
@@ -2457,6 +2470,18 @@ function keydown(event) {
             loadExample(8);
         } else if (eventKey === "9") {
             loadExample(9);
+        } else if (eventKey.toUpperCase() === "F") {
+            if (!fullscreen) {
+                if (canvas.requestFullscreen) {
+                    canvas.requestFullscreen();
+                }
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+
+            fullscreen = !fullscreen;
         } else if (eventKey.toUpperCase() === "Z") {
             glow = !glow;
         }
