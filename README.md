@@ -79,6 +79,10 @@ Three types of interferer objects are displayed differently.
 
 ### Extra
 
+```F``` - Toggle browser fullscreen mode (shows canvas).
+
+```H``` - Toggle in-canvas hints for user actions.
+
 ```Z``` - Toggle between quality and performance (toggles shadow blur effect off or on).
 
 ## Limitations 🔒

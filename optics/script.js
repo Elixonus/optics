@@ -1339,6 +1339,8 @@ const misclickSound = document.getElementById("sound-misclick");
 const switchSound = document.getElementById("sound-switch");
 let fullscreen = false;
 let glow = true;
+let hint = true;
+let textAnimation = new NumberAnimation([new AnimationKeyframe(0, 0), new AnimationKeyframe(25, 0), new AnimationKeyframe(125, 1), new AnimationKeyframe(150, 1), new AnimationKeyframe(250, 0)], 250, 0, interpolateLinear, true);
 const pointOrigin = new Point(0, 0);
 const cameraPosition = pointOrigin.clone();
 const targetCameraPosition = cameraPosition.clone();
@@ -1482,6 +1484,7 @@ function render() {
     ctx.fillStyle = "#000000";
     ctx.fillRect(0, 0, 1920, 1080);
     // go from canvas space to world space with just a translation
+    ctx.save();
     ctx.translate(960 - cameraPosition.x, 540 - cameraPosition.y);
     // render the tiled background
     ctx.fillStyle = ctx.createPattern(tileImage, "repeat");
@@ -1645,7 +1648,9 @@ function render() {
         ctx.restore();
     }
 
-    // draw text overlay if user is currently dragging an object
+    ctx.shadowBlur = 0;
+    
+    // draw user action text overlay if user is currently dragging an object
     if (scene.draggedObject !== false) {
         let text = undefined;
         let doDrawText = true;
@@ -1724,25 +1729,110 @@ function render() {
             }
 
             // find the width of the text in pixels to be used for centering the text
+            ctx.font = "50px Verdana";
             let textWidth = ctx.measureText(text).width;
 
             // render the text overlay's background
-            ctx.shadowBlur = 0;
             ctx.fillStyle = "#000000";
             ctx.fillRect(scene.draggedObject.position.x - textWidth / 2 - 5, scene.draggedObject.position.y - 25 - 5 + extraSpace, textWidth + 10, 50 + 10);
 
             // render the text overlay's text
             ctx.fillStyle = "#ffffff";
-            ctx.font = "50px Verdana";
             ctx.fillText(text, scene.draggedObject.position.x - textWidth / 2, scene.draggedObject.position.y + 25 + extraSpace);
         }
     }
 
     // go from world space to canvas space
-    ctx.resetTransform();
+    ctx.restore();
 
-    ctx.shadowBlur = 0;
+    // draw hint text overlay if hint is set to true
+    if (hint) {
+        let text = undefined;
+
+        if (mouseAction === MouseAction.drag) {
+            if (scene.draggedObject === false) {
+                text = "Click and drag an object to change the position.";
+            } else {
+                if (!scene.draggedObject.hasOwnProperty("positionAnimation") || scene.draggedObject.positionAnimation === undefined) {
+                    text = "Drag the object to change the position.";
+                } else {
+                    text = "The object's position animation is currently in progress.";
+                }
+            }
+        } else if (mouseAction === MouseAction.dragX) {
+            if (scene.draggedObject === false) {
+                text = "Click and drag an object horizontally to change the position.";
+            } else {
+                if (!scene.draggedObject.hasOwnProperty("positionAnimation") || scene.draggedObject.positionAnimation === undefined) {
+                    text = "Drag the object horizontally to change the position.";
+                } else {
+                    text = "The object's position animation is currently in progress.";
+                }
+            }
+        } else if (mouseAction === MouseAction.dragY) {
+            if (scene.draggedObject === false) {
+                text = "Click and drag an object vertically to change the position.";
+            } else {
+                if (!scene.draggedObject.hasOwnProperty("positionAnimation") || scene.draggedObject.positionAnimation === undefined) {
+                    text = "Drag the object vertically to change the position.";
+                } else {
+                    text = "The object's position animatoin is currently in progress.";
+                }
+            }
+        } else if (mouseAction === MouseAction.rotate) {
+            if (scene.draggedObject === false) {
+                text = "Click and mouse-drag an object to change the rotation.";
+            } else {
+                if (!scene.draggedObject.hasOwnProperty("rotationAnimation") || scene.draggedObject.rotationAnimation === undefined) {
+                    text = "Drag the mouse to change the rotation.";
+                } else {
+                    text = "The object's rotation animation is currently in progress.";
+                }
+            }
+        } else if (mouseAction === MouseAction.change) {
+            if (scene.draggedObject === false) {
+                text = "Click and mouse-drag an object to change the property.";
+            } else if (scene.draggedLaser !== false) {
+                text = "Drag the mouse vertically to switch the power.";
+            } else if (scene.draggedMirror !== false) {
+                text = "Drag the mouse vertically to change the type of behavior of light.";
+            } else if (scene.draggedGuide !== false) {
+                text = "Drag the mouse vertically to switch the tool.";
+            }
+        } else if (mouseAction === MouseAction.laser) {
+            text = "Click and hold to create a laser of a certain rotation.";
+        } else if (mouseAction === MouseAction.interferer) {
+            text = "Click and hold to create an interferer of a certain type.";
+        } else if (mouseAction === MouseAction.guide) {
+            text = "Click and hold to create a ruler or protractor of a certain rotation.";
+        }
+
+        ctx.font = "50px Verdana";
+        let textWidth = ctx.measureText(text).width;
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(960 - 600 - 5, 50 - 25 - 25, 1200 + 10, 50 + 50);
+        ctx.clip();
+
+        if (textWidth >= 1200) {
+            let textNumber = textAnimation.getValues();
+            ctx.translate((textWidth / 2 - 600) * map(textNumber, 0, 1, -1, 1), 0);
+            textAnimation.animate();
+        }
+
+        // render the text overlay's background
+        ctx.fillStyle = "#000000";
+        ctx.fillRect(960 - textWidth / 2 - 5, 50 - 25 - 5, textWidth + 10, 50 + 10);
+
+        // render the text overlay's text
+        ctx.fillStyle = "#ffffff";
+        ctx.fillText(text, 960 - textWidth / 2, 50 + 25);
+        ctx.restore();
+    }
+
     // go from canvas space to button space
+    ctx.save();
     ctx.translate(0, 540);
 
     ctx.fillStyle = "#222222";
@@ -1846,10 +1936,10 @@ function render() {
         }
     }
 
-    ctx.globalAlpha = 1;
     // go from button space to canvas space
-    ctx.resetTransform();
+    ctx.restore();
 
+    ctx.save();
     // check if time ranges from 0 to 120 and draw the canvas wallpaper
     if (time <= 120) {
         if (time < 60) {
@@ -1865,13 +1955,13 @@ function render() {
         ctx.drawImage(wallpaperImage, 0, 0);
     }
 
-    ctx.globalAlpha = 1;
-    ctx.shadowBlur = 5;
-    ctx.shadowColor = "#000000";
+    ctx.restore();
 
     // go from canvas space to mouse space
     ctx.save();
     ctx.translate(mousePosition.x + 960, mousePosition.y + 540);
+    ctx.shadowBlur = 5;
+    ctx.shadowColor = "#000000";
 
     // draw the mouse's associated mouse action icon
     if (scene.draggedObject === false) {
@@ -1896,6 +1986,7 @@ function render() {
 
     // go from mouse space to canvas space
     ctx.restore();
+
     time += timeScale;
     request = window.requestAnimationFrame(render);
 }
@@ -2482,6 +2573,8 @@ function keydown(event) {
             }
 
             fullscreen = !fullscreen;
+        } else if (eventKey.toUpperCase() === "H") {
+            hint = !hint;
         } else if (eventKey.toUpperCase() === "Z") {
             glow = !glow;
         }
