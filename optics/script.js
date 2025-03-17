@@ -618,7 +618,10 @@ class Scene {
                     let distanceToIntersection = distance(laser.position, intersection);
 
                     // check if intersection is closer than current closest and if it is, update current closest
-                    if (closestIntersection === undefined || distanceToIntersection < distanceToClosestIntersection) {
+                    if (
+                        closestIntersection === undefined ||
+                        distanceToIntersection < distanceToClosestIntersection
+                    ) {
                         closestMirror = mirror;
                         closestIntersection = intersection;
                         distanceToClosestIntersection = distanceToIntersection;
@@ -656,7 +659,12 @@ class Scene {
             newCollisions[newCollisions.length - 1].incidentAngle = incidentAngle;
             newCollisions[newCollisions.length - 1].reflectedAngle = reflectedAngle;
             // reflect light and proceed recursively
-            return this.laser(new Laser(closestIntersection, closestSide.getAbsoluteAngleReflected(laser.rotation)), insideMirrors, newCollisions, closestSide);
+            return this.laser(
+                new Laser(closestIntersection, closestSide.getAbsoluteAngleReflected(laser.rotation)),
+                insideMirrors,
+                newCollisions,
+                closestSide
+            );
         } else if (closestMirror.isRefracting()) {
             // conditionally refract light
             // find an array of mirrors which currently encloes the laser light interaction
@@ -712,7 +720,12 @@ class Scene {
                 let reflectedAngle = incidentAngle;
                 newCollisions[newCollisions.length - 1].reflectedAngle = reflectedAngle;
                 // reflect (total internal) light and proceed recursively
-                return this.laser(new Laser(closestIntersection, closestSide.getAbsoluteAngleReflected(laser.rotation)), insideMirrors, newCollisions, closestSide);
+                return this.laser(
+                    new Laser(closestIntersection, closestSide.getAbsoluteAngleReflected(laser.rotation)),
+                    insideMirrors,
+                    newCollisions,
+                    closestSide
+                );
             } else {
                 newCollisions[newCollisions.length - 1].type = "refraction";
                 newCollisions[newCollisions.length - 1].incidentCount = insideMirrors.length;
@@ -723,7 +736,16 @@ class Scene {
                 let refractedAngle = Math.asin(refractedAngleSine);
                 newCollisions[newCollisions.length - 1].refractedAngle = refractedAngle;
                 // find angle of refraction in world space and proceed recursively
-                return this.laser(new Laser(closestIntersection, laser.rotation - Math.sign(laserLine.getDotProductBetweenLine(closestSide)) * Math.sign(laserLine.getProjectionOfCrossProductBetweenLine(closestSide)) * (incidentAngle - refractedAngle)), newInsideMirrors, newCollisions, closestSide);
+                return this.laser(
+                    new Laser(closestIntersection, laser.rotation - (
+                        Math.sign(laserLine.getDotProductBetweenLine(closestSide)) *
+                        Math.sign(laserLine.getProjectionOfCrossProductBetweenLine(closestSide)) *
+                        (incidentAngle - refractedAngle)
+                    )),
+                    newInsideMirrors,
+                    newCollisions,
+                    closestSide
+                );
             }
         } else if (closestMirror.isAbsorbing()) {
             newCollisions[newCollisions.length - 1].type = "absorption";
@@ -738,9 +760,11 @@ class Scene {
 
         for (let n = 0; n < this.lasers.length; n++) {
             let laser = this.lasers[n];
-            lasersData.push(this.laser(laser, this.getMirrorsWithPointInside(laser.position).filter(function (mirror) {
-                return mirror.isRefracting();
-            })));
+            lasersData.push(this.laser(
+                laser, this.getMirrorsWithPointInside(laser.position).filter(function (mirror) {
+                    return mirror.isRefracting();
+                })
+            ));
         }
 
         return lasersData;
@@ -773,7 +797,13 @@ class Mirror extends DraggableObject {
      * as well as from an array of points representing the vertices of the polygon and a parameter determining
      * whether the shape of the polygon is closed from start to end
      */
-    constructor(indexOfRefraction, position, rotation, vertices = [], closedShape = true) {
+    constructor(
+        indexOfRefraction,
+        position,
+        rotation,
+        vertices = [],
+        closedShape = true
+    ) {
         super(position, rotation);
         this.indexOfRefraction = indexOfRefraction;
         this.vertices = vertices;
@@ -825,7 +855,10 @@ class Mirror extends DraggableObject {
         let vertex = this.vertices[modulus(vertexNumber, this.vertices.length)];
 
         if (absolute === true) {
-            vertex = vertex.clone().rotateAroundPoint(pointOrigin, this.rotation).addTo(this.position);
+            vertex = (
+                vertex.clone()
+                .rotateAroundPoint(pointOrigin, this.rotation)
+                .addTo(this.position));
         }
 
         return vertex;
@@ -837,7 +870,10 @@ class Mirror extends DraggableObject {
      * otherwise if absolute, return a line with two new transformed points in the world space
      */
     getSide(sideNumber, absolute = false) {
-        return new Line(this.getVertex(sideNumber, absolute), this.getVertex(sideNumber + 1, absolute));
+        return new Line(
+            this.getVertex(sideNumber, absolute),
+            this.getVertex(sideNumber + 1, absolute)
+        );
     }
 
     /** get an anonymous object containing 4 rectangularly bounding vertices */
@@ -885,7 +921,10 @@ class Mirror extends DraggableObject {
      * otherwise, if absolute parameter is true, the point parameter is considered in world space
      */
     pointInside(p, absolute = false) {
-        let pointOutside = this.getExtremes(absolute).leftMost.clone().subtractTo(new Point(1, 0));
+        let pointOutside = (
+            this.getExtremes(absolute).leftMost
+            .clone().subtractTo(new Point(1, 0))
+        );
         let lineFromInsideToOutside = new Line(p, pointOutside);
         let sum = 0;
 
@@ -913,7 +952,10 @@ class Mirror extends DraggableObject {
 
         // uses Shoelace Theorem to find the area of the polygon
         for (let n = 1; n <= this.vertices.length; n++) {
-            sum += this.getVertex(n).x * this.getVertex(n + 1).y - this.getVertex(n + 1).x * this.getVertex(n).y;
+            sum += (
+                this.getVertex(n).x * this.getVertex(n + 1).y -
+                this.getVertex(n + 1).x * this.getVertex(n).y
+            );
         }
 
         // absolute value in case went in wrong direction
@@ -963,7 +1005,10 @@ class Mirror extends DraggableObject {
             let side = this.getSide(n);
 
             for (let m = 1; m < verticesMultiplier; m++) {
-                this.vertices.splice(n + 1, 0, side.p1.clone().interpolateToPointLinear(side.p2, m / (verticesMultiplier + 1)));
+                this.vertices.splice(
+                    n + 1, 0,
+                    side.p1.clone().interpolateToPointLinear(side.p2, m / (verticesMultiplier + 1))
+                );
                 n++;
             }
         }
@@ -1032,7 +1077,10 @@ class Mirror extends DraggableObject {
 
         for (let n = 0; n < sideCount; n++) {
             let angle = n / sideCount * 2 * Math.PI;
-            this.vertices.push(new Point(radius * Math.cos(angle), radius * Math.sin(angle)));
+            this.vertices.push(new Point(
+                radius * Math.cos(angle),
+                radius * Math.sin(angle)
+            ));
         }
 
         this.closedShape = true;
@@ -1048,11 +1096,17 @@ class Mirror extends DraggableObject {
 
         for (let n = 0; n < vertexCount - 2; n++) {
             let x = (n / (vertexCount - 3) - 0.5) * height;
-            this.vertices.push(new Point(Math.pow(x, 2) / (4 * focalLength), x));
+            this.vertices.push(new Point(
+                Math.pow(x, 2) / (4 * focalLength),
+                x
+            ));
         }
 
         let rightMost = this.getExtremes().rightMost.clone();
-        this.vertices.push(new Point(rightMost.x - width, height / 2), new Point(rightMost.x - width, -height / 2));
+        this.vertices.push(
+            new Point(rightMost.x - width, height / 2),
+            new Point(rightMost.x - width, -height / 2)
+        );
         this.closedShape = true;
         return this;
     }
@@ -1092,7 +1146,10 @@ class Mirror extends DraggableObject {
 
         for (let n = this.vertices.length - 1; n >= 0; n--) {
             let vertex = this.vertices[n];
-            this.vertices.push(new Point(-(vertex.x + leftMost.x) - leftMost.x - height / 60, vertex.y));
+            this.vertices.push(new Point(
+                -(vertex.x + leftMost.x) - leftMost.x - height / 60,
+                vertex.y
+            ));
         }
 
         this.closedShape = true;
@@ -1105,7 +1162,11 @@ class Mirror extends DraggableObject {
      * need help with creating correct geometry of lenses
      */
     makeConvexLens(parabolaFocalLength, height, vertexCount) {
-        this.makeConvexMirror(parabolaFocalLength, height, Math.round((vertexCount + 2) / 2));
+        this.makeConvexMirror(
+            parabolaFocalLength,
+            height,
+            Math.round((vertexCount + 2) / 2)
+        );
 
         for (let n = this.vertices.length - 2; n >= 1; n--) {
             let vertex = this.vertices[n];
@@ -1127,9 +1188,14 @@ class Mirror extends DraggableObject {
         this.vertices = [];
 
         for (let n = 0; n < vertexCount; n++) {
-            let radius = clampMin(averageRadius + maxRadiusDeviation * averageRadius * randomFloat(-1, 1), -1);
+            let radius = clampMin(
+                averageRadius + maxRadiusDeviation * averageRadius * randomFloat(-1, 1), -1
+            );
             let angle = (n + maxAngleDeviation * randomFloat(-1, 1)) / vertexCount * 2 * Math.PI;
-            this.vertices.push(new Point(radius * Math.cos(angle), radius * Math.sin(angle)));
+            this.vertices.push(new Point(
+                radius * Math.cos(angle),
+                radius * Math.sin(angle)
+            ));
         }
 
         this.closedShape = true;
@@ -1199,7 +1265,13 @@ class NumberAnimation {
      * from a global number interpolation function, duration of animation and
      * from a looping boolean parameter
      */
-    constructor(keyframes, duration, offset = 0, interpolationFunction = interpolateLinear, isLooping = true) {
+    constructor(
+        keyframes,
+        duration,
+        offset = 0,
+        interpolationFunction = interpolateLinear,
+        isLooping = true
+    ) {
         this.time = 0;
         this.keyframes = keyframes;
         this.duration = duration;
@@ -1219,7 +1291,10 @@ class NumberAnimation {
 
         for (let n = 0; n < this.keyframes.length; n++) {
             let keyframe = this.keyframes[n];
-            if ((lowKeyframe === undefined || keyframe.time >= lowKeyframe.time) && keyframe.time <= this.time + this.offset) {
+            if (
+                (lowKeyframe === undefined || keyframe.time >= lowKeyframe.time) &&
+                keyframe.time <= this.time + this.offset
+            ) {
                 lowKeyframe = keyframe;
             }
         }
@@ -1229,7 +1304,10 @@ class NumberAnimation {
 
         for (let n = 0; n < this.keyframes.length; n++) {
             let keyframe = this.keyframes[n];
-            if ((highKeyframe === undefined || keyframe.time <= highKeyframe.time) && keyframe.time >= this.time + this.offset) {
+            if (
+                (highKeyframe === undefined || keyframe.time <= highKeyframe.time) &&
+                keyframe.time >= this.time + this.offset
+            ) {
                 highKeyframe = keyframe;
             }
         }
@@ -1254,7 +1332,9 @@ class NumberAnimation {
             let values = [];
 
             for (let n = 0; n < this.keyframes[0].values.length; n++) {
-                values.push(this.interpolationFunction(lowKeyframe.values[n], highKeyframe.values[n], mapped));
+                values.push(this.interpolationFunction(
+                    lowKeyframe.values[n], highKeyframe.values[n], mapped
+                ));
             }
 
             return values;
@@ -1340,7 +1420,13 @@ const switchSound = document.getElementById("sound-switch");
 let fullscreen = false;
 let glow = true;
 let hint = true;
-let textAnimation = new NumberAnimation([new AnimationKeyframe(0, 0), new AnimationKeyframe(25, 0), new AnimationKeyframe(125, 1), new AnimationKeyframe(150, 1), new AnimationKeyframe(250, 0)], 250, 0, interpolateLinear, true);
+let textAnimation = new NumberAnimation([
+    new AnimationKeyframe(0, 0),
+    new AnimationKeyframe(25, 0),
+    new AnimationKeyframe(125, 1),
+    new AnimationKeyframe(150, 1),
+    new AnimationKeyframe(250, 0)
+], 250, 0, interpolateLinear, true);
 const pointOrigin = new Point(0, 0);
 const cameraPosition = pointOrigin.clone();
 const targetCameraPosition = cameraPosition.clone();
@@ -1402,29 +1488,49 @@ function render() {
     if (scene.draggedObject !== false) {
         if (mouseAction === MouseAction.drag) {
             // drag the object horizontally and vertically to match the position of the mouse
-            scene.draggedObject.position.setTo(mousePosition).addTo(cameraPosition).subtractTo(scene.draggedObject.dragOffset);
+            (
+                scene.draggedObject.position.setTo(mousePosition)
+                .addTo(cameraPosition)
+                .subtractTo(scene.draggedObject.dragOffset)
+            );
         } else if (mouseAction === MouseAction.dragX) {
             // drag the object horizontally to match the horizontal position of the mouse
-            scene.draggedObject.position.x = mousePosition.x + cameraPosition.x - scene.draggedObject.dragOffset.x;
+            scene.draggedObject.position.x = (
+                mousePosition.x + cameraPosition.x - scene.draggedObject.dragOffset.x
+            );
         } else if (mouseAction === MouseAction.dragY) {
             // drag the object vertically to match the vertical position of the mouse
-            scene.draggedObject.position.y = mousePosition.y + cameraPosition.y - scene.draggedObject.dragOffset.y;
+            scene.draggedObject.position.y = (
+                mousePosition.y + cameraPosition.y - scene.draggedObject.dragOffset.y
+            );
         } else if (mouseAction === MouseAction.rotate) {
             // rotate the object to point away from mouse position at the object position
             // creating a line from the object to the mouse and finding the angle
-            let line = new Line(scene.draggedObject.position.clone().subtractTo(cameraPosition), mousePosition);
+            let line = new Line(
+                scene.draggedObject.position.clone().subtractTo(cameraPosition),
+                mousePosition
+            );
             scene.draggedObject.rotation = modulus(line.getAngle(), 2 * Math.PI);
         } else if (mouseAction === MouseAction.change) {
             if (scene.draggedObject instanceof Mirror) {
                 // change the lens' index of refraction based on the vertical displacement of the mouse
-                scene.draggedMirror.indexOfRefraction = clampMin(scene.draggedMirror.dragIndexOfRefraction + (scene.draggedMirror.mousePositionOnDrag.y - mousePosition.y) / 100, -2);
+                scene.draggedMirror.indexOfRefraction = clampMin((
+                    scene.draggedMirror.dragIndexOfRefraction +
+                    (scene.draggedMirror.mousePositionOnDrag.y - mousePosition.y) / 100
+                ), -2);
             } else if (scene.draggedObject instanceof Laser) {
                 // change the laser's brightness either to 0 or to 1 based on the vertical displacement of the mouse
-                scene.draggedLaser.brightness = clamp(map(Math.round(modulus(scene.draggedLaser.dragBrightness + (scene.draggedLaser.mousePositionOnDrag.y - mousePosition.y) / 300, 1)), 0, 1, 0.25, 0.75), 0, 1);
+                scene.draggedLaser.brightness = clamp(map(Math.round(modulus((
+                    scene.draggedLaser.dragBrightness +
+                    (scene.draggedLaser.mousePositionOnDrag.y - mousePosition.y) / 300
+                ), 1)), 0, 1, 0.25, 0.75), 0, 1);
             } else if (scene.draggedObject instanceof Guide) {
                 // change the guide tool's guidance property to 0 or to 1 based on the vertical displacement of the mouse
                 // determining whether to show a ruler or protractor
-                scene.draggedGuide.guidance = clamp(map(Math.round(modulus(scene.draggedGuide.dragGuidance + (scene.draggedGuide.mousePositionOnDrag.y - mousePosition.y) / 300, 1)), 0, 1, 0.25, 0.75), 0, 1);
+                scene.draggedGuide.guidance = clamp(map(Math.round(modulus((
+                    scene.draggedGuide.dragGuidance +
+                    (scene.draggedGuide.mousePositionOnDrag.y - mousePosition.y) / 300
+                ), 1)), 0, 1, 0.25, 0.75), 0, 1);
             }
         }
     }
@@ -1434,19 +1540,59 @@ function render() {
 
     // move the camera left, right, up, or down based on the pressed and held key
 
-    if (keysPressed.includes("ArrowLeft") || keysPressed.includes("a") || keysPressed.includes("A") || (mousePosition.x < -660 && mousePressed === true && touch === true && mobilePanning === true)) {
+    if (
+        keysPressed.includes("ArrowLeft") ||
+        keysPressed.includes("a") ||
+        keysPressed.includes("A") ||
+        (
+            mousePosition.x < -660 &&
+            mousePressed === true &&
+            touch === true &&
+            mobilePanning === true
+        )
+    ) {
         targetCameraPosition.x -= 10 * timeScale;
     }
 
-    if (keysPressed.includes("ArrowRight") || keysPressed.includes("d") || keysPressed.includes("D") || (mousePosition.x > 660 && mousePressed === true && touch === true && mobilePanning === true)) {
+    if (
+        keysPressed.includes("ArrowRight") ||
+        keysPressed.includes("d") ||
+        keysPressed.includes("D") ||
+        (
+            mousePosition.x > 660 &&
+            mousePressed === true &&
+            touch === true &&
+            mobilePanning === true
+        )
+    ) {
         targetCameraPosition.x += 10 * timeScale;
     }
 
-    if (keysPressed.includes("ArrowUp") || keysPressed.includes("w") || keysPressed.includes("W") || (mousePosition.y < -340 && mousePressed === true && touch === true && mobilePanning === true)) {
+    if (
+        keysPressed.includes("ArrowUp") ||
+        keysPressed.includes("w") ||
+        keysPressed.includes("W") ||
+        (
+            mousePosition.y < -340 &&
+            mousePressed === true &&
+            touch === true &&
+            mobilePanning === true
+        )
+    ) {
         targetCameraPosition.y -= 10 * timeScale;
     }
 
-    if (keysPressed.includes("ArrowDown") || keysPressed.includes("s") || keysPressed.includes("S") || (mousePosition.y > 340 && mousePressed === true && touch === true && mobilePanning === true)) {
+    if (
+        keysPressed.includes("ArrowDown") ||
+        keysPressed.includes("s") ||
+        keysPressed.includes("S") ||
+        (
+            mousePosition.y > 340 &&
+            mousePressed === true &&
+            touch === true &&
+            mobilePanning === true
+        )
+    ) {
         targetCameraPosition.y += 10 * timeScale;
     }
 
@@ -1460,7 +1606,12 @@ function render() {
     let lasersCollisions = scene.getLasersCollisions();
 
     // if the user is dragging a protractor, snap the position of the protractor to the position of the closest laser collision with mirror
-    if (scene.draggedGuide !== false && mouseAction === MouseAction.drag && scene.draggedObject instanceof Guide && Math.round(scene.draggedObject.guidance) === 1) {
+    if (
+        scene.draggedGuide !== false &&
+        mouseAction === MouseAction.drag &&
+        scene.draggedObject instanceof Guide &&
+        Math.round(scene.draggedObject.guidance) === 1
+    ) {
         let positionObjects = [];
         for (let n = 0; n < lasersCollisions.length; n++) {
             positionObjects.push({position: scene.lasers[n].position});
@@ -1496,7 +1647,11 @@ function render() {
         let guide = scene.guides[n];
 
         // set to half opacity if guide tool not being dragged
-        if (scene.draggedObject === false || !scene.draggedObject instanceof Guide || scene.draggedObject !== guide) {
+        if (
+            scene.draggedObject === false ||
+            !scene.draggedObject instanceof Guide ||
+            scene.draggedObject !== guide
+        ) {
             ctx.globalAlpha = 0.5;
         }
 
@@ -1593,7 +1748,11 @@ function render() {
             // render with fill if the interferer is refracting
             // and opacity of fill based on a modified sigmoid function
             if (mirror.isRefracting()) {
-                ctx.globalAlpha = clamp(1 - 1 / Math.pow(Math.E, 0.1 * (mirror.indexOfRefraction - 1)), 0, 1);
+                ctx.globalAlpha = clamp(
+                    1 - 1 / Math.pow(Math.E, 0.1 * (mirror.indexOfRefraction - 1)),
+                    0,
+                    1
+                );
                 ctx.shadowBlur = 0;
                 ctx.fill();
             }
@@ -1667,12 +1826,17 @@ function render() {
 
         // check and set the text to indicate the position of the object
         if (mouseAction === MouseAction.drag) {
-            text = "x: " + Math.round(scene.draggedObject.position.x).toString() + ", y: " + Math.round(-scene.draggedObject.position.y).toString();
+            text = (
+                "x: " + Math.round(scene.draggedObject.position.x).toString() +
+                ", y: " + Math.round(-scene.draggedObject.position.y).toString()
+            );
         }
 
         // check and set the text to indicate the rotation of the object
         if (mouseAction === MouseAction.rotate) {
-            text = "r: " + Math.round(modulus((2 * Math.PI - scene.draggedObject.rotation) * 180 / Math.PI, 360)).toString() + " deg";
+            text = "r: " + Math.round(
+                modulus((2 * Math.PI - scene.draggedObject.rotation) * 180 / Math.PI, 360)
+            ).toString() + " deg";
         }
 
         // check and set the text depending on which object is currently being dragged
@@ -1687,7 +1851,9 @@ function render() {
             } else if (scene.draggedObject instanceof Mirror) {
                 if (scene.draggedMirror.isRefracting()) {
                     // set the text to indicate the index of refraction of the lens
-                    text = "Refractive, IOR: " + (Math.round(100 * scene.draggedObject.indexOfRefraction) / 100).toString();
+                    text = "Refractive, IOR: " + (
+                        Math.round(100 * scene.draggedObject.indexOfRefraction) / 100
+                    ).toString();
                 }
 
                 if (scene.draggedMirror.isReflecting()) {
@@ -1723,7 +1889,10 @@ function render() {
                 } else {
                     extraSpace = 70;
                 }
-            } else if (scene.draggedObject instanceof Guide && Math.round(scene.draggedObject.guidance) === 1) {
+            } else if (
+                scene.draggedObject instanceof Guide &&
+                Math.round(scene.draggedObject.guidance) === 1
+            ) {
                 // offset the text of the protractor to reveal its center
                 extraSpace = 100;
             }
@@ -1734,11 +1903,20 @@ function render() {
 
             // render the text overlay's background
             ctx.fillStyle = "#000000";
-            ctx.fillRect(scene.draggedObject.position.x - textWidth / 2 - 5, scene.draggedObject.position.y - 25 - 5 + extraSpace, textWidth + 10, 50 + 10);
+            ctx.fillRect(
+                scene.draggedObject.position.x - textWidth / 2 - 5,
+                scene.draggedObject.position.y - 25 - 5 + extraSpace,
+                textWidth + 10,
+                50 + 10
+            );
 
             // render the text overlay's text
             ctx.fillStyle = "#ffffff";
-            ctx.fillText(text, scene.draggedObject.position.x - textWidth / 2, scene.draggedObject.position.y + 25 + extraSpace);
+            ctx.fillText(
+                text,
+                scene.draggedObject.position.x - textWidth / 2,
+                scene.draggedObject.position.y + 25 + extraSpace
+            );
         }
     }
 
@@ -1753,7 +1931,10 @@ function render() {
             if (scene.draggedObject === false) {
                 text = "Click and drag an object to change the position.";
             } else {
-                if (!scene.draggedObject.hasOwnProperty("positionAnimation") || scene.draggedObject.positionAnimation === undefined) {
+                if (
+                    !scene.draggedObject.hasOwnProperty("positionAnimation") ||
+                    scene.draggedObject.positionAnimation === undefined
+                ) {
                     text = "Drag the object to change the position.";
                 } else {
                     text = "The object's position animation is currently in progress.";
@@ -1763,7 +1944,10 @@ function render() {
             if (scene.draggedObject === false) {
                 text = "Click and drag an object horizontally to change the position.";
             } else {
-                if (!scene.draggedObject.hasOwnProperty("positionAnimation") || scene.draggedObject.positionAnimation === undefined) {
+                if (
+                    !scene.draggedObject.hasOwnProperty("positionAnimation") ||
+                    scene.draggedObject.positionAnimation === undefined
+                ) {
                     text = "Drag the object horizontally to change the position.";
                 } else {
                     text = "The object's position animation is currently in progress.";
@@ -1773,7 +1957,10 @@ function render() {
             if (scene.draggedObject === false) {
                 text = "Click and drag an object vertically to change the position.";
             } else {
-                if (!scene.draggedObject.hasOwnProperty("positionAnimation") || scene.draggedObject.positionAnimation === undefined) {
+                if (
+                    !scene.draggedObject.hasOwnProperty("positionAnimation") ||
+                    scene.draggedObject.positionAnimation === undefined
+                ) {
                     text = "Drag the object vertically to change the position.";
                 } else {
                     text = "The object's position animatoin is currently in progress.";
@@ -1783,7 +1970,10 @@ function render() {
             if (scene.draggedObject === false) {
                 text = "Click and mouse-drag an object to change the rotation.";
             } else {
-                if (!scene.draggedObject.hasOwnProperty("rotationAnimation") || scene.draggedObject.rotationAnimation === undefined) {
+                if (
+                    !scene.draggedObject.hasOwnProperty("rotationAnimation") ||
+                    scene.draggedObject.rotationAnimation === undefined
+                ) {
                     text = "Drag the mouse to change the rotation.";
                 } else {
                     text = "The object's rotation animation is currently in progress.";
@@ -1888,7 +2078,12 @@ function render() {
     ctx.fillRect(1780, 0, 140, 140);
 
     // check and set whether it's best to show the icon symbols or letters
-    if (((distance(new Point(mousePosition.x + 960, mousePosition.y), new Point(0, 0)) < 500 || distance(new Point(mousePosition.x + 960, mousePosition.y), new Point(1920, 0)) < 500) && scene.draggedObject === false) || touch === true) {
+    if (
+        ((
+            distance(new Point(mousePosition.x + 960, mousePosition.y), new Point(0, 0)) < 500 ||
+            distance(new Point(mousePosition.x + 960, mousePosition.y), new Point(1920, 0)) < 500
+        ) && scene.draggedObject === false) || touch === true
+    ) {
         keysHelp = clampMin(keysHelp - 0.05 * timeScale, 0);
     } else {
         keysHelp = clampMax(keysHelp + 0.05 * timeScale, 1);
@@ -1965,7 +2160,11 @@ function render() {
 
     // draw the mouse's associated mouse action icon
     if (scene.draggedObject === false) {
-        if (mouseAction === MouseAction.laser || mouseAction === MouseAction.interferer || mouseAction === MouseAction.guide) {
+        if (
+            mouseAction === MouseAction.laser ||
+            mouseAction === MouseAction.interferer ||
+            mouseAction === MouseAction.guide
+        ) {
             ctx.drawImage(objectImage, -18, -18, 36, 36);
         } else {
             ctx.drawImage(pointImage, -5, -5, 36, 36);
@@ -2023,7 +2222,26 @@ function loadExample(n) {
             for (let x = -2; x <= 2; x++) {
                 for (let y = -1; y <= 1; y++) {
                     let position = new Point(300 * x, 300 * y);
-                    let square = new Mirror(3, new NumberAnimation([new AnimationKeyframe(0, [position.x, position.y]), new AnimationKeyframe(randomFloat(90, 110), [position.x + randomFloat(40, 60), position.y + randomFloat(40, 60)]), new AnimationKeyframe(200, [position.x, position.y])], 200, 0, interpolateElastic), new NumberAnimation([new AnimationKeyframe(0, 0), new AnimationKeyframe(20, Math.PI / 100), new AnimationKeyframe(40, 0)], 40, 0, interpolateLinear));
+                    let square = new Mirror(
+                        3,
+                        new NumberAnimation(
+                            [
+                                new AnimationKeyframe(0, [position.x, position.y]),
+                                new AnimationKeyframe(randomFloat(90, 110), [
+                                    position.x + randomFloat(40, 60),
+                                    position.y + randomFloat(40, 60)
+                                ]),
+                                new AnimationKeyframe(200, [position.x, position.y])
+                            ], 200, 0, interpolateElastic
+                        ),
+                        new NumberAnimation(
+                            [
+                                new AnimationKeyframe(0, 0),
+                                new AnimationKeyframe(20, Math.PI / 100),
+                                new AnimationKeyframe(40, 0)
+                            ], 40, 0, interpolateLinear
+                        )
+                    );
                     square.makeRectangle(150, 150);
                     scene.addMirror(square);
                 }
@@ -2031,7 +2249,16 @@ function loadExample(n) {
             break;
         case 3:
             scene.addLaser(new Laser(new Point(-700, -300), Math.PI / 10));
-            let blob = new Mirror(Mirror.reflecting(), new Point(0, 0), new NumberAnimation([new AnimationKeyframe(0, 0), new AnimationKeyframe(5000, 6 * Math.PI)], 5000, 0, interpolateLinear));
+            let blob = new Mirror(
+                Mirror.reflecting(),
+                new Point(0, 0),
+                new NumberAnimation(
+                    [
+                        new AnimationKeyframe(0, 0),
+                        new AnimationKeyframe(5000, 6 * Math.PI)
+                    ], 5000, 0, interpolateLinear
+                )
+            );
             blob.makeBlob(300, 0.9, 0.9, 100);
             blob.smoothVertices(0.5, 10);
             scene.addMirror(blob);
@@ -2097,12 +2324,44 @@ function loadExample(n) {
             scene.addMirror(parabola3);
             break;
         case 9:
-            scene.addLaser(new Laser(new Point(0, 0), new NumberAnimation([new AnimationKeyframe(0, 0), new AnimationKeyframe(1000, 2 * Math.PI)], 1000, 0, interpolateLinear)));
+            scene.addLaser(new Laser(
+                new Point(0, 0),
+                new NumberAnimation(
+                    [
+                        new AnimationKeyframe(0, 0),
+                        new AnimationKeyframe(1000, 2 * Math.PI)
+                    ], 1000, 0, interpolateLinear
+                )
+            ));
             scene.addMirrors([
                 new Mirror(2, new Point(-250, 0), 0).makeConcaveLens(200, 500, 200, 200),
                 new Mirror(2, new Point(250, 0), 0).makeConcaveLens(200, 500, 200, 200),
-                new Mirror(Mirror.reflecting(), new NumberAnimation([new AnimationKeyframe(0, [-700, -400]), new AnimationKeyframe(125, [700, -400]), new AnimationKeyframe(200, [700, 400]), new AnimationKeyframe(325, [-700, 400]), new AnimationKeyframe(400, [-700, -400])], 400, 0, interpolateQuadratic), 0).makeRectangle(200, 200),
-                new Mirror(Mirror.reflecting(), new NumberAnimation([new AnimationKeyframe(0, [-700, -400]), new AnimationKeyframe(125, [700, -400]), new AnimationKeyframe(200, [700, 400]), new AnimationKeyframe(325, [-700, 400]), new AnimationKeyframe(400, [-700, -400])], 400, 200, interpolateQuadratic), 0).makeRectangle(200, 200),
+                new Mirror(
+                    Mirror.reflecting(),
+                    new NumberAnimation(
+                        [
+                            new AnimationKeyframe(0, [-700, -400]),
+                            new AnimationKeyframe(125, [700, -400]),
+                            new AnimationKeyframe(200, [700, 400]),
+                            new AnimationKeyframe(325, [-700, 400]),
+                            new AnimationKeyframe(400, [-700, -400])
+                        ], 400, 0, interpolateQuadratic
+                    ),
+                    0
+                ).makeRectangle(200, 200),
+                new Mirror(
+                    Mirror.reflecting(),
+                    new NumberAnimation(
+                        [
+                            new AnimationKeyframe(0, [-700, -400]),
+                            new AnimationKeyframe(125, [700, -400]),
+                            new AnimationKeyframe(200, [700, 400]), 
+                            new AnimationKeyframe(325, [-700, 400]),
+                            new AnimationKeyframe(400, [-700, -400])
+                        ], 400, 200, interpolateQuadratic
+                    ),
+                    0
+                ).makeRectangle(200, 200),
             ]);
             break;
     }
@@ -2162,10 +2421,15 @@ function updateObjectTable() {
         }
 
         let cell5 = row.insertCell(-1);
-        cell5.innerText = "(" + (Math.round(10 * object.position.x) / 10).toString() + ", " + (Math.round(-10 * object.position.y) / 10).toString() + ")";
+        cell5.innerText = (
+            "(" + (Math.round(10 * object.position.x) / 10).toString() +
+            ", " + (Math.round(-10 * object.position.y) / 10).toString() + ")"
+        );
 
         let cell6 = row.insertCell(-1);
-        cell6.innerText = (Math.round(100 * modulus((2 * Math.PI - object.rotation) * 180 / Math.PI, 360)) / 100).toString() + " deg";
+        cell6.innerText = (
+            Math.round(100 * modulus((2 * Math.PI - object.rotation) * 180 / Math.PI, 360)) / 100
+        ).toString() + " deg";
         let cell7 = row.insertCell(-1);
 
         if (object instanceof Mirror) {
@@ -2210,7 +2474,10 @@ function updateCollisionTable() {
             let cell4 = row.insertCell(-1);
 
             if (laserCollision.type !== "void") {
-                cell4.innerText = "(" + (Math.round(10 * laserCollision.position.x) / 10).toString() + ", " + (Math.round(-10 * laserCollision.position.y) / 10).toString() + ")";
+                cell4.innerText = (
+                    "(" + (Math.round(10 * laserCollision.position.x) / 10).toString() +
+                    ", " + (Math.round(-10 * laserCollision.position.y) / 10).toString() + ")"
+                );
             } else {
                 cell4.innerText = "-";
             }
@@ -2218,7 +2485,9 @@ function updateCollisionTable() {
             let cell5 = row.insertCell(-1);
 
             if (laserCollision.type === "reflection" || laserCollision.type === "refraction") {
-                cell5.innerText = (Math.round(100 * modulus(laserCollision.incidentAngle * 180 / Math.PI, 360)) / 100).toString() + " deg";
+                cell5.innerText = (
+                    Math.round(100 * modulus(laserCollision.incidentAngle * 180 / Math.PI, 360)) / 100
+                ).toString() + " deg";
             } else {
                 cell5.innerText = "-";
             }
@@ -2226,7 +2495,9 @@ function updateCollisionTable() {
             let cell6 = row.insertCell(-1);
 
             if (laserCollision.type === "reflection") {
-                cell6.innerText = (Math.round(100 * modulus(laserCollision.reflectedAngle * 180 / Math.PI, 360)) / 100).toString() + " deg";
+                cell6.innerText = (
+                    Math.round(100 * modulus(laserCollision.reflectedAngle * 180 / Math.PI, 360)) / 100
+                ).toString() + " deg";
             } else {
                 cell6.innerText = "-";
             }
@@ -2238,7 +2509,9 @@ function updateCollisionTable() {
             let cell11 = row.insertCell(-1);
 
             if (laserCollision.type === "refraction") {
-                cell7.innerText = (Math.round(100 * modulus(laserCollision.refractedAngle * 180 / Math.PI, 360)) / 100).toString() + " deg";
+                cell7.innerText = (Math.round(
+                    100 * modulus(laserCollision.refractedAngle * 180 / Math.PI, 360)
+                ) / 100).toString() + " deg";
                 cell8.innerText = (Math.round(100 * laserCollision.incidentIndex) / 100).toString();
                 cell9.innerText = (Math.round(100 * laserCollision.refractedIndex) / 100).toString();
                 cell10.innerText = laserCollision.incidentCount.toString();
@@ -2303,14 +2576,24 @@ function mousedown(event) {
         return;
     }
 
-    if (mousePosition.x < -960 || mousePosition.y < -540 || mousePosition.x > 960 || mousePosition.y > 540) {
+    if (
+        mousePosition.x < -960 ||
+        mousePosition.y < -540 ||
+        mousePosition.x > 960 ||
+        mousePosition.y > 540
+    ) {
         return;
     }
 
     mousePressed = true;
     // check the left side of the canvas buttons to see where mouse was
     // clicked and set mouse action accordingly
-    if (mousePosition.x + 960 > -10 && mousePosition.y > -310 && mousePosition.x + 960 < 150 && mousePosition.y < 230) {
+    if (
+        mousePosition.x + 960 > -10 &&
+        mousePosition.y > -310 &&
+        mousePosition.x + 960 < 150 &&
+        mousePosition.y < 230
+    ) {
         if (mousePosition.y < -225) {
             if (mousePosition.x + 960 < 70) {
                 mouseAction = MouseAction.dragX;
@@ -2334,7 +2617,12 @@ function mousedown(event) {
     }
 
     // do the same thing for the right side of the canvas buttons
-    if (mousePosition.x + 960 > 1770 && mousePosition.y > -310 && mousePosition.x + 960 < 1930 && mousePosition.y < 150) {
+    if (
+        mousePosition.x + 960 > 1770 &&
+        mousePosition.y > -310 &&
+        mousePosition.x + 960 < 1930 &&
+        mousePosition.y < 150
+    ) {
         if (mousePosition.y < -155) {
             mouseAction = MouseAction.laser;
         } else if (mousePosition.y < -5) {
@@ -2351,7 +2639,12 @@ function mousedown(event) {
         return;
     }
 
-    if (mousePosition.x + 960 >= 0 && mousePosition.y + 540 >= 0 && mousePosition.x + 960 <= 1920 && mousePosition.y + 540 <= 1080) {
+    if (
+        mousePosition.x + 960 >= 0 &&
+        mousePosition.y + 540 >= 0 &&
+        mousePosition.x + 960 <= 1920 &&
+        mousePosition.y + 540 <= 1080
+    ) {
         mobilePanning = true;
     } else {
         mobilePanning = false;
@@ -2363,7 +2656,10 @@ function mousedown(event) {
             return;
         }
 
-        let laser = new Laser(mousePosition.clone().addTo(cameraPosition), randomFloat(0, 2 * Math.PI));
+        let laser = new Laser(
+            mousePosition.clone().addTo(cameraPosition),
+            randomFloat(0, 2 * Math.PI)
+        );
         laser.dragBrightness = 0.75;
         laser.dragOffset = new Point(0, 0);
         laser.dragPosition = laser.position.clone();
@@ -2379,7 +2675,11 @@ function mousedown(event) {
             return;
         }
 
-        let mirror = new Mirror(Mirror.reflecting(), mousePosition.clone().addTo(cameraPosition), randomFloat(0, 2 * Math.PI));
+        let mirror = new Mirror(
+            Mirror.reflecting(),
+            mousePosition.clone().addTo(cameraPosition),
+            randomFloat(0, 2 * Math.PI)
+        );
         mirror.makeRegularPolygon(randomFloat(150, 200), randomInteger(3, 6));
         mirror.dragIndexOfRefraction = mirror.indexOfRefraction;
         mirror.mousePositionOnDrag = mousePosition.clone();
@@ -2403,7 +2703,11 @@ function mousedown(event) {
                 scene.removeGuide(scene.guides[0]);
             }
 
-            guide = new Guide(mousePosition.clone().addTo(cameraPosition), 0, modulus(scene.guides[0].guidance + 0.5, 1));
+            guide = new Guide(
+                mousePosition.clone().addTo(cameraPosition),
+                0,
+                modulus(scene.guides[0].guidance + 0.5, 1)
+            );
         }
 
         scene.addGuide(guide);
@@ -2490,7 +2794,10 @@ function mouseup(event) {
 /** function to register a mousemove event, sets the mouse position to coordinate values */
 function mousemove(event) {
     let rect = canvas.getBoundingClientRect();
-    let point = new Point(((event.clientX - rect.left) / (rect.right - rect.left) - 0.5), ((event.clientY - rect.top) / (rect.bottom - rect.top) - 0.5)).scaleXY(1920, 1080);
+    let point = new Point(
+        ((event.clientX - rect.left) / (rect.right - rect.left) - 0.5),
+        ((event.clientY - rect.top) / (rect.bottom - rect.top) - 0.5)
+    ).scaleXY(1920, 1080);
     point.x = clamp(point.x, -0.5 * DRAW_RANGE, 0.5 * DRAW_RANGE);
     point.y = clamp(point.y, -0.5 * DRAW_RANGE, 0.5 * DRAW_RANGE);
     mousePosition.setTo(point);
@@ -2605,7 +2912,10 @@ function touchend(event) {
 function touchmove(event) {
     touch = true;
     for (let n = 0; n < event.touches.length; n++) {
-        mousemove({clientX: event.touches[n].clientX, clientY: event.touches[n].clientY});
+        mousemove({
+            clientX: event.touches[n].clientX,
+            clientY: event.touches[n].clientY
+        });
     }
 }
 
@@ -2728,13 +3038,25 @@ function interpolateLinear(startingValue, endingValue, t) {
 
 /** function to get the quadratically interpolated value from a starting and ending value */
 function interpolateQuadratic(startingValue, endingValue, t) {
-    return interpolateLinear(startingValue, endingValue, t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
+    return interpolateLinear(
+        startingValue,
+        endingValue,
+        t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2
+    );
 }
 
 /** function to get an elastically interpolated value from a starting and ending value */
 function interpolateElastic(startingValue, endingValue, t) {
     const c5 = (2 * Math.PI) / 4.5;
-    return interpolateLinear(startingValue, endingValue, t === 0 ? 0 : t === 1 ? 1 : t < 0.5 ? -(Math.pow(2, 20 * t - 10) * Math.sin((20 * t - 11.125) * c5)) / 2 : (Math.pow(2, -20 * t + 10) * Math.sin((20 * t - 11.125) * c5)) / 2 + 1);
+    return interpolateLinear(
+        startingValue,
+        endingValue,
+        (
+            t === 0 ? 0 : t === 1 ? 1 : t < 0.5 ?
+            -(Math.pow(2, 20 * t - 10) * Math.sin((20 * t - 11.125) * c5))
+            / 2 : (Math.pow(2, -20 * t + 10) * Math.sin((20 * t - 11.125) * c5)) / 2 + 1
+        )
+    );
 }
 
 /** function to get the minimum signed angle between two angles */
