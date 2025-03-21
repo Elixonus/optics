@@ -2536,7 +2536,7 @@ window.addEventListener("resize", resize);
 window.addEventListener("mousedown", mousedown);
 window.addEventListener("mouseup", mouseup);
 window.addEventListener("mousemove", mousemove);
-window.addEventListener("keydown", keydown);
+document.addEventListener("keydown", keydown);
 window.addEventListener("keyup", keyup);
 window.addEventListener("touchstart", touchstart);
 window.addEventListener("touchend", touchend);
@@ -2840,14 +2840,6 @@ function keydown(event) {
         } else if (eventKey.toUpperCase() === "G") {
             scene.setDraggedObjectTo(false);
             mouseAction = MouseAction.guide;
-        } else if (eventKey === "ArrowLeft") {
-            event.preventDefault();
-        } else if (eventKey === "ArrowRight") {
-            event.preventDefault();
-        } else if (eventKey === "ArrowUp") {
-            event.preventDefault();
-        } else if (eventKey === "ArrowDown") {
-            event.preventDefault();
         } else if (eventKey === "Backspace" || eventKey === "Delete" || eventKey === "0") {
             loadExample(0);
         } else if (eventKey === "1") {
@@ -2869,7 +2861,7 @@ function keydown(event) {
         } else if (eventKey === "9") {
             loadExample(9);
         } else if (eventKey.toUpperCase() === "F") {
-            if (!fullscreen) {
+            if (document.fullscreenElement === null) {
                 if (canvas.requestFullscreen) {
                     canvas.requestFullscreen();
                 }
@@ -2885,6 +2877,16 @@ function keydown(event) {
         } else if (eventKey.toUpperCase() === "Z") {
             glow = !glow;
         }
+    }
+
+    if(eventKey === "ArrowLeft") {
+        event.preventDefault();
+    } else if(eventKey === "ArrowRight") {
+        event.preventDefault();
+    } else if(eventKey === "ArrowUp") {
+        event.preventDefault();
+    } else if(eventKey === "ArrowDown") {
+        event.preventDefault();
     }
 }
 
