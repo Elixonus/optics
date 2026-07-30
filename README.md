@@ -2,7 +2,9 @@
 
 Lightweight real-time **ray optics** simulation that implements the physics phenomena of reflection and refraction.
 
-Designed mostly for **education** and not professional use. 📚
+![Screenshot 2](./screenshot2.PNG)
+
+Designed mostly for **educational** and not professional use. 📚
 
 ![Wallpaper](./optics/images/wallpaper.png)
 
